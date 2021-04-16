@@ -1,0 +1,6 @@
+.idea
+thirdparty
+*build*
+libr/
+examples/*/*_main.c
+*__pycache__*

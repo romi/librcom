@@ -1,0 +1,8 @@
+#ifndef ROMI_ROVER_BUILD_AND_TEST_RANDOM_MOCK_H
+#define ROMI_ROVER_BUILD_AND_TEST_RANDOM_MOCK_H
+
+#include "fff.h"
+
+DECLARE_FAKE_VALUE_FUNC(int, r_random, void *, size_t)
+
+#endif //ROMI_ROVER_BUILD_AND_TEST_RANDOM_MOCK_H
