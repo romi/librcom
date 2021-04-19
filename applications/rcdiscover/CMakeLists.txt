@@ -15,7 +15,8 @@ add_executable(rcdiscover
 
 target_link_libraries( rcdiscover
                         rpp
-                        r)
+                        r
+                        stdc++fs)
 
 if(BUILD_TESTS)
     add_subdirectory(test)

@@ -25,7 +25,8 @@ target_link_libraries(  rcom_rcdiscover_unit_tests
                         gtest
                         gmock
                         rpp
-                        r)
+                        r
+                        stdc++fs)
 
 add_test(
         NAME rcom_rcdiscover_unit_tests
