@@ -2,8 +2,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(librcom)
 
-include(${CMAKE_MODULES_DIRECTORY}/RomiProjectBuildOptions.cmake)
-
 set(SOURCES
     include/sha1.h
     include/util.h
