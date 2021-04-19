@@ -36,9 +36,13 @@ namespace rcom {
                         kInvalidRequest = -32600, // The JSON request is not a valid.
                         kMethodNotFound = -32601, // The method does not exist.
                         kInvalidParams = -32602,  // Invalid method parameter(s).
-                        kInternalError = -32603,  // Internal error.
+                        kSendError = -32603,      // Sending failed.
+                        kReceiveError = -32604,   // Sending failed.
+                        kReceiveTimeout = -32605, // Sending failed.
+                        kLinkClosed = -32606,     // Sending failed.
+                        kInternalError = -32607,  // Internal error.
                         
-                        kNullMethod = -32000,     // The method was null.
+                        kNullMethod = -32000,      // The method was null.
                         kInvalidResponse = -32001, // The JSON response is not a valid.
                 };
                         

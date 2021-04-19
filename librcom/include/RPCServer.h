@@ -32,10 +32,18 @@ namespace rcom {
         
         class RPCServer : public IMessageListener
         {
+        protected:
+                IRPCHandler &handler_;
+                MessageHub hub_;
+                
+                json_object_t construct_response(RPCError& error, JsonCpp& result);
+                json_object_t construct_response(int code, const char *message);
+
         public:
                 RPCServer(IRPCHandler &handler, const char *name, const char *topic);
                 virtual ~RPCServer() = default;
 
+                void handle_events();
                 void onmessage(IWebSocket& websocket, rpp::MemBuffer& message) override;
         };
 }

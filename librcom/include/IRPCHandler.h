@@ -26,6 +26,7 @@
 
 #include <memory>
 #include "JsonCpp.h"
+#include "MemBuffer.h"
 #include "RPCError.h"
 
 namespace rcom {

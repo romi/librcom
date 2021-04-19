@@ -45,13 +45,13 @@ namespace rcom {
                 std::string topic_;
                 RecvStatus recv_status_;
                 
-                bool connect();
-                bool get_remote_address(Address& address);
+                bool connect(double timeout);
+                bool get_remote_address(Address& address, double timeout);
                 bool obtained_message();
 
         public:
                 
-                MessageLink(const std::string& topic);                
+                MessageLink(const std::string& topic, double timeout = 7.0);                
                 virtual ~MessageLink();
 
                 std::string& get_topic() override;                

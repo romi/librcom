@@ -31,7 +31,7 @@
 
 namespace rcom {
 
-        MessageLink::MessageLink(const std::string& topic)
+        MessageLink::MessageLink(const std::string& topic, double timeout)
                 : linux_(),
                   clock_(),
                   factory_(linux_, clock_),
@@ -44,7 +44,7 @@ namespace rcom {
                         throw std::runtime_error("MessageLink: Ill-formatted topic string");
                 }
                 
-                if (!connect()) {
+                if (!connect(timeout)) {
                         r_err("MessageLink: Failed to connect: %s", topic.c_str());
                         throw std::runtime_error("MessageLink: Failed to connect");
                 }
@@ -55,12 +55,12 @@ namespace rcom {
                 websocket_->close(kCloseGoingAway);
         }
 
-        bool MessageLink::connect()
+        bool MessageLink::connect(double timeout)
         {
                 bool success = false;
 
                 Address hub_address;
-                if (get_remote_address(hub_address)) {
+                if (get_remote_address(hub_address, timeout)) {
                         websocket_ = factory_.new_client_side_websocket(hub_address);
                         success = true;
                 } else {
@@ -70,7 +70,7 @@ namespace rcom {
                 return success;
         }
 
-        bool MessageLink::get_remote_address(Address& address)
+        bool MessageLink::get_remote_address(Address& address, double timeout)
         {
                 Address registry_address;
                 RegistryServer::get_address(registry_address);
@@ -78,7 +78,7 @@ namespace rcom {
                         = factory_.new_client_side_websocket(registry_address);
                 Clock clock;
                 RegistryProxy registry(registry_socket, clock);
-                return registry.get(topic_, address);
+                return registry.get(topic_, address, timeout);
         }
 
         std::string& MessageLink::get_topic()
