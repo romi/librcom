@@ -93,21 +93,6 @@ namespace rcom {
                         }
                 }
         }
-        
-        void create_uuid(std::string& s)
-        {
-                char *id = r_uuid();
-                s = id;
-                r_free(id);
-        }
-
-        bool is_valid_uuid(const char *id)
-        {
-                // format: 1b4e28ba-2fa1-11d2-883f-0016d3cca427
-                const char *uuid_pattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
-                return (id != nullptr)
-                        && std::regex_match(id, std::regex(uuid_pattern));
-        }
 
         bool is_valid_name(const std::string& name)
         {

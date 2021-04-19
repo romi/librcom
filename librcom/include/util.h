@@ -31,8 +31,6 @@ namespace rcom {
         void SHA1(const std::string& data, unsigned char *digest);
         void encode_base64(const unsigned char *data, size_t length, std::string& out);
 
-        void create_uuid(std::string& s);
-        bool is_valid_uuid(const char *s);
         bool is_valid_name(const std::string& name);
         bool is_valid_topic(const std::string& topic);
         bool is_base64_string(const std::string& string);
