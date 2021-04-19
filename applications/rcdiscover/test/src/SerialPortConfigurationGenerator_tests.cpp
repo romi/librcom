@@ -1,16 +1,14 @@
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <future>
-
-#include <r.h>
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 #include "SerialPortConfigurationGenerator.h"
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 using testing::UnorderedElementsAre;
 using testing::Return;
 

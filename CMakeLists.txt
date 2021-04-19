@@ -128,6 +128,6 @@ endif()
 
 ###########################################################3
 
+add_subdirectory(librcom)
 add_subdirectory(applications/rcdiscover)
 add_subdirectory(applications/rcom_registry)
-add_subdirectory(librcom)
