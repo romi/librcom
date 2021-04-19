@@ -39,56 +39,6 @@ TEST_F(util_tests, sha1_returns_expected_value)
         ASSERT_TRUE(memcmp(digest, expected_digest, 20) == 0);
 }
 
-TEST_F(util_tests, is_valid_uuid_returns_true)
-{
-        // Arrange
-        const char *id = "12345678-1234-1234-1234-123456789012";
-        
-        // Act
-        bool valid = is_valid_uuid(id);
-
-        //Assert
-        ASSERT_TRUE(valid);
-}
-
-TEST_F(util_tests, is_valid_uuid_returns_false_on_too_short_uuid)
-{
-        // Arrange
-        const char *id = "12345678-1234-1234-1234-";
-        
-        // Act
-        bool valid = is_valid_uuid(id);
-
-        //Assert
-        ASSERT_FALSE(valid);
-}
-
-TEST_F(util_tests, is_valid_uuid_returns_false_on_too_long_uuid)
-{
-        // Arrange
-        const char *id = "12345678-1234-1234-12:4-123456789012";
-        
-        // Act
-        bool valid = is_valid_uuid(id);
-
-        //Assert
-        ASSERT_FALSE(valid);
-}
-
-TEST_F(util_tests, is_valid_uuid_returns_false_on_uuid_with_invalid_char)
-{
-        // Arrange
-        const char *id = "12345678-1234-1234-12:4-123456789012";
-        
-        // Act
-        bool valid = is_valid_uuid(id);
-
-        //Assert
-        ASSERT_FALSE(valid);
-}
-
-
-
 TEST_F(util_tests, is_valid_topic_returns_true)
 {
         // Arrange
