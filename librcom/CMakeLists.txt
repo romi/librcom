@@ -63,26 +63,14 @@ set(SOURCES
     src/SocketFactory.cpp
     src/WebSocket.cpp
     src/WebSocketServer.cpp
-
-    include/IRPCClient.h
-    include/IRPCHandler.h
-    include/RPCClient.h
-    include/RPCError.h
-    include/RPCServer.h
-    src/RPCClient.cpp
-    src/RPCServer.cpp
 )
 
 add_library(rcompp-lite SHARED ${SOURCES})
 target_include_directories(rcompp-lite PUBLIC include)
 target_link_libraries(rcompp-lite m rpp r)
 
-#
-#
-#add_executable(rcom-registry ../applications/rcom_registry/src/rcom-registry.cpp)
-#target_link_libraries(rcom-registry rcompp-lite rpp r m)
-##INSTALL(TARGETS rcom-registry DESTINATION "bin")
-      
+add_subdirectory(test/mocks)
+
 if(BUILD_TESTS)
     add_subdirectory(test)
 endif()
