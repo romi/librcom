@@ -260,10 +260,10 @@ namespace rcom {
                         if (length_to_read > kPayloadBufferLength)
                                 length_to_read = kPayloadBufferLength;
                                 
-                        socket_read(buffer, length_to_read);
+                        socket_read(buffer, (size_t) length_to_read);
                         
                         length_processed += length_to_read;
-                        input_append_payload(buffer, length_to_read);
+                        input_append_payload(buffer, (size_t) length_to_read);
                 }
         }
 

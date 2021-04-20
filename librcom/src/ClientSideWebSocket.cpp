@@ -213,10 +213,10 @@ namespace rcom {
                         if (n > 1024)
                                 n = 1024;
 
-                        mask_data(buffer, &data[sent], n);
+                        mask_data(buffer, &data[sent], (size_t) n);
                 
-                        output.append(buffer, n);
-                        sent += n;
+                        output.append(buffer, (size_t) n);
+                        sent += (size_t) n;
                 }
         }
 
