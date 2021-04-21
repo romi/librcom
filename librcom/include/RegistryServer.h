@@ -38,7 +38,7 @@ namespace rcom {
         {
         public:
                 static void get_address(IAddress& address);
-                static void set_address(IAddress& address);        
+                static void set_address(const char *ip, uint16_t port = 10101);        
                 
         protected:
                 IRegistry& registry_;
