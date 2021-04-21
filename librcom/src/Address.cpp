@@ -36,7 +36,7 @@ namespace rcom {
         {
         }
 
-        Address::Address(uint16_t port) : Address("127.0.0.1", port)
+        Address::Address(uint16_t port) : Address("0.0.0.0", port)
         {
         }
         
