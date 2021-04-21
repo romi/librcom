@@ -9,3 +9,4 @@ class MockMessageListener : public rcom::IMessageListener
 public:
         MOCK_METHOD(void, onmessage, (rcom::IWebSocket& link, rpp::MemBuffer& message), (override));
 };
+#pragma GCC diagnostic pop
