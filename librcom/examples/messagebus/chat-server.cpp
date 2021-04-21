@@ -42,7 +42,10 @@ public:
         ChatBus(ChatBus& b) = delete;
         ChatBus& operator=(const ChatBus& other) = delete;
 
-        void onmessage(IWebSocket& websocket, rpp::MemBuffer& message) override {
+        void onmessage(IWebSocket& websocket,
+                       rpp::MemBuffer& message,
+                       rcom::MessageType type) override {
+                (void) type; // Tell the compiler it's not used
                 cout << "> " << message.tostring() << endl;
                 /* Broadcast the incoming message to all connected
                  * clients but exclude the sender. */

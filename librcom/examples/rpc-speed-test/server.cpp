@@ -35,7 +35,10 @@ class MessageListener : public IMessageListener
 public:
         ~MessageListener() = default; 
 
-        void onmessage(IWebSocket& websocket, rpp::MemBuffer& message) override {
+        void onmessage(IWebSocket& websocket,
+                       rpp::MemBuffer& message,
+                       rcom::MessageType type) override {
+                (void) type; // Tell the compiler it's not used
                 websocket.send(message);
         }
 };

@@ -102,10 +102,13 @@ namespace rcom {
                 server_->broadcast(message, exclude, type);
         }
 
-        void MessageHub::onmessage(IWebSocket& link, rpp::MemBuffer& message)
+        void MessageHub::onmessage(IWebSocket& link,
+                                   rpp::MemBuffer& message,
+                                   MessageType type)
         {
                 (void) link;
                 (void) message;
+                (void) type;
                 r_warn("MessageHub::onmessage: Received unhandled message");
         }
 }

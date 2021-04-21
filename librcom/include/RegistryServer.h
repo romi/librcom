@@ -63,7 +63,8 @@ namespace rcom {
                 virtual ~RegistryServer() override;
                 
                 void onmessage(IWebSocket& websocket,
-                               rpp::MemBuffer& message) override;                
+                               rpp::MemBuffer& message,
+                               MessageType type) override;                
         };
 }
 

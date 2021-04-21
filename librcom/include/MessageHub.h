@@ -62,7 +62,9 @@ namespace rcom {
                                IWebSocket* exclude = nullptr,
                                MessageType type = kTextMessage) override;
 
-                void onmessage(IWebSocket& link, rpp::MemBuffer& message) override;
+                void onmessage(IWebSocket& link,
+                               rpp::MemBuffer& message,
+                               MessageType type) override;
         };
 }
 

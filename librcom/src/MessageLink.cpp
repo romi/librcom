@@ -103,8 +103,8 @@ namespace rcom {
                 return recv_status_;
         }
 
-        bool MessageLink::send(rpp::MemBuffer& message)
+        bool MessageLink::send(rpp::MemBuffer& message, MessageType type)
         {
-                return websocket_->send(message);
+                return websocket_->send(message, type);
         }
 }

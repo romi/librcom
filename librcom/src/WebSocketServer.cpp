@@ -123,7 +123,9 @@ namespace rcom {
                 
                 if (status == kRecvText
                     || status == kRecvBinary) {
-                        listener_.onmessage(*links_[index], message_);
+                        MessageType type;
+                        type = (status == kRecvText)? kTextMessage : kBinaryMessage;
+                        listener_.onmessage(*links_[index], message_, type);
                                                 
                 } else if (status == kRecvError) {
                         r_err("WebSocketServer::handle_new_messages: recv failed. "

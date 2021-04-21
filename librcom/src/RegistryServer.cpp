@@ -70,8 +70,10 @@ namespace rcom {
         }        
         
         void RegistryServer::onmessage(IWebSocket& websocket,
-                                       rpp::MemBuffer& message)
+                                       rpp::MemBuffer& message,
+                                       MessageType type)
         {
+                (void) type;
                 r_info("RegistryServer: Received message: %s", message.tostring().c_str());
                 
                 try {

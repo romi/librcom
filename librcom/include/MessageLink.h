@@ -56,7 +56,8 @@ namespace rcom {
 
                 std::string& get_topic() override;                
                 bool recv(rpp::MemBuffer& message, double timeout = 0.0) override;
-                bool send(rpp::MemBuffer& message) override;
+                bool send(rpp::MemBuffer& message,
+                          MessageType type = kTextMessage) override;
                 RecvStatus recv_status() override;
         };
 }

@@ -35,7 +35,10 @@ class HelloWorldListener : public IMessageListener
 public:
         ~HelloWorldListener() = default; 
 
-        void onmessage(IWebSocket& websocket, rpp::MemBuffer& message) override {
+        void onmessage(IWebSocket& websocket,
+                       rpp::MemBuffer& message,
+                       rcom::MessageType type) override {
+                (void) type;
                 std::cout << "Client says '" << message.tostring() << "'" << std::endl;
                 rpp::MemBuffer reply;
                 reply.append_string("world");
