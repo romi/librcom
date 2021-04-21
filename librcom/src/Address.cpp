@@ -27,17 +27,24 @@
 #include <algorithm>
 #include <log.h>
 #include "Address.h"
+#include "ip.h"
 
 using namespace std;
 
 namespace rcom {
 
-        Address::Address() : Address("0.0.0.0", 0)
+        Address::Address() : Address(0)
         {
         }
 
         Address::Address(uint16_t port) : Address("0.0.0.0", port)
         {
+                std::string ip;
+                if (get_ip(ip)) {
+                        set(ip.c_str(), 0);
+                } else {
+                        throw std::runtime_error("Address: failed to get the local IP");
+                }
         }
         
         Address::Address(const char *ip, uint16_t port) : addr_{AF_INET,0,0,{0}}

@@ -5,6 +5,7 @@ project(librcom)
 set(SOURCES
     include/sha1.h
     include/util.h
+    include/ip.h
     include/Address.h
     include/BaseSocket.h
     include/ClientSideWebSocket.h
@@ -42,6 +43,7 @@ set(SOURCES
     
     src/sha1.cpp
     src/util.cpp
+    src/ip.cpp
     src/Address.cpp
     src/BaseSocket.cpp
     src/ClientSideWebSocket.cpp
