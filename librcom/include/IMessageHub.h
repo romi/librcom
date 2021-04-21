@@ -25,6 +25,7 @@
 #define _LIBRCOM_I_MESSAGE_HUB_H_
 
 #include <MemBuffer.h>
+#include "IWebSocket.h"
 
 namespace rcom {
 
