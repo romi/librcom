@@ -41,7 +41,7 @@ namespace rcom {
         {
                 std::string ip;
                 if (get_ip(ip)) {
-                        set(ip.c_str(), 0);
+                        set(ip.c_str(), port);
                 } else {
                         throw std::runtime_error("Address: failed to get the local IP");
                 }

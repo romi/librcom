@@ -33,6 +33,7 @@
 #include <RegistryServer.h>
 #include <WebSocketServer.h>
 #include <ServerSocket.h>
+#include <Address.h>
 #include "Clock.h"
 
 std::atomic<bool> quit(false);
@@ -73,7 +74,9 @@ int main()
                 std::signal(SIGSEGV, SignalHandler);
                 std::signal(SIGINT, SignalHandler);
 
-                r_info("Registry server running.");
+                std::string s;
+                address.tostring(s);
+                r_info("Registry server running at %s.", s.c_str());
                 
                 while (!quit) {
                         server.handle_events();
