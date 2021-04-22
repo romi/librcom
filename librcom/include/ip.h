@@ -2,6 +2,6 @@
 
 namespace rcom {
         
-        bool get_ip(std::string& ip);
+        std::string get_local_ip();
 
 }

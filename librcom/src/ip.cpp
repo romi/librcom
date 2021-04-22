@@ -6,51 +6,64 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <string>
+#include <stdexcept>
 #include <r.h>
+#include "ip.h"
 
 namespace rcom {
 
-// https://stackoverflow.com/questions/2283494/get-ip-address-of-an-interface-on-linux
-        bool get_ip(std::string& ip)
+        void get_interface_ip(std::string& ip, struct ifaddrs *ifa)
         {
-                bool success = false;
-                struct ifaddrs *ifaddr;
-                struct ifaddrs *ifa;
-        
-                if (getifaddrs(&ifaddr) == -1) {
-                        perror("getifaddrs");
-                        return false;
+                char host[NI_MAXHOST];
+                int s = getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in),
+                                    host, NI_MAXHOST,
+                                    NULL, 0,
+                                    NI_NUMERICHOST);
+                        
+                if (s == 0) {
+                        ip = host;
+                } else {
+                        r_warn("getnameinfo() failed for interface %s: "
+                               "%s\n", ifa->ifa_name, gai_strerror(s));
+                        throw std::runtime_error("getnameinfo() failed");
                 }
+        }
 
-                for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-                
-                        if (ifa->ifa_addr == NULL)
-                                continue;  
-
-                        if ((strncmp(ifa->ifa_name, "w", 1) == 0)
-                            && (ifa->ifa_addr->sa_family == AF_INET)) {
-                        
-                                char host[NI_MAXHOST];
-                                int s = getnameinfo(ifa->ifa_addr,
-                                                    sizeof(struct sockaddr_in),
-                                                    host, NI_MAXHOST,
-                                                    NULL, 0,
-                                                    NI_NUMERICHOST);
-                        
-                                if (s == 0) {
-                                        ip = host;
-                                        success = true;
-                                        break;
-
-                                } else {
-                                        r_warn("getnameinfo() failed for interface %s: "
-                                               "%s\n", ifa->ifa_name, gai_strerror(s));
-                                }
+        bool match_interface(struct ifaddrs *ifa)
+        {
+                return ((strncmp(ifa->ifa_name, "w", 1) == 0)
+                        && (ifa->ifa_addr->sa_family == AF_INET));
+        }
+        
+        void scan_interfaces(std::string& ip, struct ifaddrs *ifaddr)
+        {
+                for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+                        if ((ifa->ifa_addr != NULL) && match_interface(ifa)) {
+                                get_interface_ip(ip, ifa);
                         }
                 }
+        }
 
-                freeifaddrs(ifaddr);
-                return success;
+        void log_errno()
+        {
+                char buf[128];
+                strerror_r(errno, buf, sizeof(buf));
+                r_warn("getifaddrs: %s", buf);
+        }
+        
+        // https://stackoverflow.com/questions/2283494/get-ip-address-of-an-interface-on-linux
+        std::string get_local_ip()
+        {
+                std::string ip = "127.0.0.1"; // By default
+                struct ifaddrs *ifaddr;
+                
+                if (getifaddrs(&ifaddr) == 0) {
+                        scan_interfaces(ip, ifaddr);
+                        freeifaddrs(ifaddr);
+                } else {
+                        log_errno();
+                }
+
+                return ip;
         }
 }

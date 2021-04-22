@@ -39,12 +39,8 @@ namespace rcom {
 
         Address::Address(uint16_t port) : Address("0.0.0.0", port)
         {
-                std::string ip;
-                if (get_ip(ip)) {
-                        set(ip.c_str(), port);
-                } else {
-                        throw std::runtime_error("Address: failed to get the local IP");
-                }
+                std::string ip = get_local_ip();
+                set(ip.c_str(), port);
         }
         
         Address::Address(const char *ip, uint16_t port) : addr_{AF_INET,0,0,{0}}
