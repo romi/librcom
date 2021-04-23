@@ -26,7 +26,6 @@
 #include <Address.h>
 #include <RegistryProxy.h>
 #include <RegistryServer.h>
-#include "Clock.h"
 #include "util.h"
 
 namespace rcom {
@@ -76,8 +75,7 @@ namespace rcom {
                 RegistryServer::get_address(registry_address);
                 std::unique_ptr<IWebSocket> registry_socket
                         = factory_.new_client_side_websocket(registry_address);
-                Clock clock;
-                RegistryProxy registry(registry_socket, clock);
+                RegistryProxy registry(registry_socket, clock_);
                 return registry.get(topic_, address, timeout);
         }
 

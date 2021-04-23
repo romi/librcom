@@ -22,16 +22,30 @@
 #include <signal.h>
 #include <r.h>
 #include <MessageLink.h>
+#include <syslog.h>
+#include <atomic>
 
-using namespace rcom;
-using namespace rpp;
+std::atomic<bool> quit(false);
 
-static void quit_on_control_c();
-static bool quit = false;
-
-static void print_sensor_value(MessageLink& link)
+void SignalHandler(int signal)
 {
-        MemBuffer message;
+        if (signal == SIGSEGV){
+                syslog(1, "rcom-registry segmentation fault");
+                exit(signal);
+        }
+        else if (signal == SIGINT){
+                r_info("Ctrl-C Quitting Application");
+                perror("init_signal_handler");
+                quit = true;
+        }
+        else{
+                r_err("Unknown signam received %d", signal);
+        }
+}
+
+static void print_sensor_value(rcom::MessageLink& link)
+{
+        rpp::MemBuffer message;
         if (link.recv(message, 2.0)) {
                 std::cout << message.tostring() << std::endl;
         } else {
@@ -41,10 +55,10 @@ static void print_sensor_value(MessageLink& link)
 
 int main()
 {
-        quit_on_control_c();
-        
+        std::signal(SIGINT, SignalHandler);
+
         try {
-                MessageLink link("sensor");                
+                rcom::MessageLink link("sensor");
                 
                 while (!quit) {
                         print_sensor_value(link);
@@ -57,23 +71,3 @@ int main()
         }
 }
 
-static void set_quit(int sig, siginfo_t *info, void *ucontext)
-{
-        (void) sig;
-        (void) info;
-        (void) ucontext;
-        quit = true;
-}
-
-static void quit_on_control_c()
-{
-        struct sigaction act;
-        memset(&act, 0, sizeof(struct sigaction));
-
-        act.sa_flags = SA_SIGINFO;
-        act.sa_sigaction = set_quit;
-        if (sigaction(SIGINT, &act, nullptr) != 0) {
-                perror("init_signal_handler");
-                exit(1);
-        }
-}

@@ -26,13 +26,14 @@
 
 #include "WebSocket.h"
 #include "IResponseParser.h"
+#include <IClock.h>
 
 namespace rcom {
 
         class ClientSideWebSocket : public WebSocket
         {
         protected:
-                uint8_t output_mask_[4];
+                uint8_t output_mask_[4]{};
 
                 bool handshake(IResponseParser& parser, IAddress& address);
                 void make_key(std::string& key);
@@ -61,7 +62,7 @@ namespace rcom {
                 ClientSideWebSocket(std::unique_ptr<ISocket>& socket,
                                     IResponseParser& parser,
                                     IAddress& remote_address,
-                                    IClock& clock);
+                                    rpp::IClock& clock);
                 
                 virtual ~ClientSideWebSocket() override;
         };

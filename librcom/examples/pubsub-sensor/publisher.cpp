@@ -20,15 +20,32 @@
 #include <iostream>
 #include <signal.h>
 #include <stdlib.h>
-#include <r.h>
+#include <log.h>
+#include <ClockAccessor.h>
 #include <MessageHub.h>
 #include <IMessageListener.h>
 
-static bool quit = false;
-void quit_on_control_c();
+#include <syslog.h>
+#include <atomic>
 
-using namespace rcom;
-using namespace rpp;
+std::atomic<bool> quit(false);
+
+void SignalHandler(int signal)
+{
+        if (signal == SIGSEGV){
+                syslog(1, "rcom-registry segmentation fault");
+                exit(signal);
+        }
+        else if (signal == SIGINT){
+                r_info("Ctrl-C Quitting Application");
+                perror("init_signal_handler");
+                quit = true;
+        }
+        else{
+                r_err("Unknown signam received %d", signal);
+        }
+}
+
 
 void initialize_random_generator()
 {
@@ -53,10 +70,10 @@ double get_sensor_value()
         return get_random_value_between(18.0, 22.0);
 }
 
-void broadcast_sensor_value(MessageHub& hub)
+void broadcast_sensor_value(rcom::MessageHub& hub)
 {
         double temperature = get_sensor_value();
-        MemBuffer message;
+        rpp::MemBuffer message;
         message.printf("The temperature is %.1f °C", temperature);
         hub.broadcast(message);
 }
@@ -64,10 +81,10 @@ void broadcast_sensor_value(MessageHub& hub)
 int main()
 {
         try {
-                MessageHub hub("sensor");                
-                
-                quit_on_control_c();
-        
+                rcom::MessageHub hub("sensor");
+                auto clock = rpp::ClockAccessor::GetInstance();
+                std::signal(SIGINT, SignalHandler);
+
                 while (!quit) {
                         
                         /* Don't forget to handle the incoming client
@@ -76,7 +93,7 @@ int main()
                         
                         broadcast_sensor_value(hub);
                         
-                        clock_sleep(1.0);
+                        clock->sleep(1.0);
                 }
                 
         } catch (std::runtime_error& re) {
@@ -86,23 +103,3 @@ int main()
         }
 }
 
-void set_quit(int sig, siginfo_t *info, void *ucontext)
-{
-        (void) sig;
-        (void) info;
-        (void) ucontext;
-        quit = true;
-}
-
-void quit_on_control_c()
-{
-        struct sigaction act;
-        memset(&act, 0, sizeof(struct sigaction));
-
-        act.sa_flags = SA_SIGINFO;
-        act.sa_sigaction = set_quit;
-        if (sigaction(SIGINT, &act, nullptr) != 0) {
-                perror("init_signal_handler");
-                exit(1);
-        }
-}

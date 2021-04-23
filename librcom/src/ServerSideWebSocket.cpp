@@ -28,7 +28,7 @@ namespace rcom {
         
         ServerSideWebSocket::ServerSideWebSocket(std::unique_ptr<ISocket>& socket,
                                                  IRequestParser& parser,
-                                                 IClock& clock)
+                                                 rpp::IClock& clock)
                 : WebSocket(socket, clock)
         {
                 if (!handshake(parser)) {

@@ -23,14 +23,11 @@
 #include <r.h>
 #include <MessageLink.h>
 
-using namespace rcom;
-using namespace rpp;
-
 int main()
 {
         try {
-                MessageLink link("hello-world");                
-                MemBuffer message;                
+                rcom::MessageLink link("hello-world");
+                rpp::MemBuffer message;
                 message.append_string("hello");
 
                 if (link.send(message)

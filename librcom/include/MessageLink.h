@@ -39,7 +39,8 @@ namespace rcom {
         protected:
 
                 rpp::Linux linux_;
-                Clock clock_;
+                //TBD: Not testable use ClockAccessor.
+                rpp::Clock clock_;
                 SocketFactory factory_;
                 std::unique_ptr<IWebSocket> websocket_;
                 std::string topic_;

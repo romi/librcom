@@ -20,30 +20,45 @@
 #include <iostream>
 #include <memory>
 #include <signal.h>
-#include <r.h>
+#include <log.h>
 #include <MessageLink.h>
 
-static bool quit = false;
-static void set_quit(int sig, siginfo_t *info, void *ucontext);
-static void quit_on_control_c();
+#include <syslog.h>
+#include <atomic>
 
-using namespace rcom;
-using namespace rpp;
+std::atomic<bool> quit(false);
+
+void SignalHandler(int signal)
+{
+        if (signal == SIGSEGV){
+                syslog(1, "rcom-registry segmentation fault");
+                exit(signal);
+        }
+        else if (signal == SIGINT){
+                r_info("Ctrl-C Quitting Application");
+                perror("init_signal_handler");
+                quit = true;
+        }
+        else{
+                r_err("Unknown signal received %d", signal);
+        }
+}
 
 int main()
 {
         try {
-                MessageLink link("speed");                
+
+                rcom::MessageLink link("speed");
                 uint8_t data[1024];
-                
-                MemBuffer message;
+                rpp::Clock clock;
+                rpp::MemBuffer message;
                 message.append(data, 1024);
 
                 uint64_t total_bytes = 0;
-                double start_time = clock_time();
+                double start_time = clock.time();
                 double next_time = start_time + 1.0;
 
-                quit_on_control_c();
+                std::signal(SIGINT, SignalHandler);
                 
                 while (!quit) {
                         
@@ -52,10 +67,10 @@ int main()
 
                                 total_bytes += message.size();
 
-                                if (clock_time() > next_time) {
+                                if (clock.time() > next_time) {
                                         next_time += 1.0;
                                         printf("Bandwidth: %.3f MB/s\n",
-                                               (double) total_bytes / (clock_time() - start_time) / 1048576.0);
+                                               (double) total_bytes / (clock.time() - start_time) / 1048576.0);
                                 }
                         
                         } else {
@@ -68,26 +83,5 @@ int main()
                 r_err("main: caught runtime_error: %s", re.what());
         } catch (...) {
                 r_err("main: caught exception");
-        }
-}
-
-static void set_quit(int sig, siginfo_t *info, void *ucontext)
-{
-        (void) sig;
-        (void) info;
-        (void) ucontext;
-        quit = true;
-}
-
-static void quit_on_control_c()
-{
-        struct sigaction act;
-        memset(&act, 0, sizeof(struct sigaction));
-
-        act.sa_flags = SA_SIGINFO;
-        act.sa_sigaction = set_quit;
-        if (sigaction(SIGINT, &act, nullptr) != 0) {
-                perror("init_signal_handler");
-                exit(1);
         }
 }

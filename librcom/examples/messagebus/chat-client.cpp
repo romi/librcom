@@ -21,43 +21,58 @@
 #include <signal.h>
 #include <thread>
 #include <mutex>
-#include <r.h>
+#include <log.h>
+#include <ClockAccessor.h>
 #include <MessageLink.h>
 
-static int quit = 0;
-void quit_on_control_c();
+#include <syslog.h>
+#include <atomic>
 
-using namespace std;
-using namespace rcom;
-using namespace rpp;
+std::atomic<bool> quit(false);
 
+void SignalHandler(int signal)
+{
+        if (signal == SIGSEGV){
+                syslog(1, "rcom-registry segmentation fault");
+                exit(signal);
+        }
+        else if (signal == SIGINT){
+                r_info("Ctrl-C Quitting Application");
+                perror("init_signal_handler");
+                quit = true;
+        }
+        else{
+                r_err("Unknown signam received %d", signal);
+        }
+}
 
 /* The rcom library is not thread-safe. So we use the mutex to
  * synchronize the access to the message link. */
-mutex mutex_;
+std::mutex mutex_;
 
-void print_available_messages(MessageLink *link)
+void print_available_messages(rcom::MessageLink *link)
 {
-        lock_guard<mutex> lock(mutex_);
-        MemBuffer message;
+        std::lock_guard<std::mutex> lock(mutex_);
+        rpp::MemBuffer message;
         
         /* The loop will treat all the available messages. When there
          * are no more messages (and after waiting for an additional
          * 10 ms) the loop will quit.  */
         while (link->recv(message, 0.010)) {
-                cout << "> " << message.tostring() << endl;
+                std::cout << "> " << message.tostring() << std::endl;
         }
 }
 
-void handle_incoming_messages(MessageLink *link)
+void handle_incoming_messages(rcom::MessageLink *link)
 {
+        auto clock = rpp::ClockAccessor::GetInstance();
         while (!quit) {
                 print_available_messages(link);
-                clock_sleep(0.100);
+                clock->sleep(0.100);
         }
 }
 
-void readline(MemBuffer& message)
+void readline(rpp::MemBuffer& message)
 {
         message.clear();
         
@@ -72,16 +87,16 @@ void readline(MemBuffer& message)
         }
 }
 
-void send_message(MessageLink *link, MemBuffer& message)
+void send_message(rcom::MessageLink *link, rpp::MemBuffer& message)
 {
-        lock_guard<mutex> lock(mutex_);
-        cout << "< " << message.tostring() << endl;
+        std::lock_guard<std::mutex> lock(mutex_);
+        std::cout << "< " << message.tostring() << std::endl;
         link->send(message);
 }
 
-void handle_user_messages(MessageLink *link)
+void handle_user_messages(rcom::MessageLink *link)
 {
-        MemBuffer message;
+        rpp::MemBuffer message;
         while (!quit) {
                 readline(message);
                 if (message.size() > 0) {
@@ -93,17 +108,17 @@ void handle_user_messages(MessageLink *link)
 int main()
 {
         try {
-                MessageLink link("chat");                
-                MemBuffer message;
-                        
-                quit_on_control_c();
+                rcom::MessageLink link("chat");
+                rpp::MemBuffer message;
+
+                std::signal(SIGINT, SignalHandler);
 
                 /* One thread will handle the incoming messages while
                  * another will read the user input. */
-                thread incoming(handle_incoming_messages, &link);
-                thread outgoing(handle_user_messages, &link);
+                std::thread incoming(handle_incoming_messages, &link);
+                std::thread outgoing(handle_user_messages, &link);
                         
-                cout << "Type your message in the console and press enter." << endl;
+                std::cout << "Type your message in the console and press enter." << std::endl;
                 
                 incoming.join();
                 outgoing.join();
@@ -115,23 +130,3 @@ int main()
         }
 }
 
-void set_quit(int sig, siginfo_t *info, void *ucontext)
-{
-        (void) sig;
-        (void) info;
-        (void) ucontext;
-        quit = true;
-}
-
-void quit_on_control_c()
-{
-        struct sigaction act;
-        memset(&act, 0, sizeof(struct sigaction));
-
-        act.sa_flags = SA_SIGINFO;
-        act.sa_sigaction = set_quit;
-        if (sigaction(SIGINT, &act, NULL) != 0) {
-                perror("init_signal_handler");
-                exit(1);
-        }
-}

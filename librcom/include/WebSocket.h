@@ -88,7 +88,7 @@ namespace rcom {
         protected:
                 
                 std::unique_ptr<ISocket> socket_;
-                IClock& clock_;
+                rpp::IClock& clock_;
 
                 // Used by send()
                 rpp::MemBuffer output_message_buffer_;
@@ -103,7 +103,7 @@ namespace rcom {
                 
         public:
                 
-                WebSocket(std::unique_ptr<ISocket>& socket, IClock& clock);
+                WebSocket(std::unique_ptr<ISocket>& socket, rpp::IClock& clock);
                 virtual ~WebSocket() override;
 
                 RecvStatus recv(rpp::MemBuffer& message, double timeout = 0.0);

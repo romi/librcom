@@ -29,7 +29,7 @@
 namespace rcom {
 
         RegistryProxy::RegistryProxy(std::unique_ptr<IWebSocket>& websocket,
-                                     IClock& clock)
+                                     rpp::IClock& clock)
                 : websocket_(), clock_(clock)
         {
                 websocket_ = std::move(websocket);

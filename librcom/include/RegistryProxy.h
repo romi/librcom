@@ -37,7 +37,7 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IWebSocket> websocket_;
-                IClock& clock_;
+                rpp::IClock& clock_;
                         
                 void make_register_request(rpp::MemBuffer& request,
                                            const std::string& topic,
@@ -57,8 +57,8 @@ namespace rcom {
                 bool get_address(JsonCpp& json, std::string& address_string);
 
         public:
-                RegistryProxy(std::unique_ptr<IWebSocket>& websocket, IClock& clock);
-                virtual ~RegistryProxy() override;
+                RegistryProxy(std::unique_ptr<IWebSocket>& websocket, rpp::IClock& clock);
+                ~RegistryProxy() override;
 
                 bool set(const std::string& topic, IAddress& address) override; 
                 bool get(const std::string& topic, IAddress& address,

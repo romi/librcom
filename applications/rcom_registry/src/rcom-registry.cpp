@@ -34,7 +34,7 @@
 #include <WebSocketServer.h>
 #include <ServerSocket.h>
 #include <Address.h>
-#include "Clock.h"
+#include <Clock.h>
 
 std::atomic<bool> quit(false);
 
@@ -62,7 +62,7 @@ int main()
                 r_log_set_app("rcom-registry");
         
                 rpp::Linux linux;
-                rcom::Clock clock;
+                rpp::Clock clock;
                 rcom::SocketFactory factory(linux, clock);
                 rcom::Registry registry;
                 rcom::Address address(10101);

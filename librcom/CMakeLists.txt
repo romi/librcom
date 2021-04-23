@@ -9,10 +9,8 @@ set(SOURCES
     include/Address.h
     include/BaseSocket.h
     include/ClientSideWebSocket.h
-    include/Clock.h
     include/HttpParser.h
     include/IAddress.h
-    include/IClock.h
     include/IHttpParserListener.h
     include/IMessageHub.h
     include/IMessageLink.h
@@ -47,7 +45,6 @@ set(SOURCES
     src/Address.cpp
     src/BaseSocket.cpp
     src/ClientSideWebSocket.cpp
-    src/Clock.cpp
     src/HttpParser.cpp
     src/MessageLink.cpp
     src/MessageHub.cpp
@@ -69,7 +66,7 @@ set(SOURCES
 
 add_library(rcompp-lite SHARED ${SOURCES})
 target_include_directories(rcompp-lite PUBLIC include)
-target_link_libraries(rcompp-lite m rpp r)
+target_link_libraries(rcompp-lite m rpp)
 
 add_subdirectory(test/mocks)
 

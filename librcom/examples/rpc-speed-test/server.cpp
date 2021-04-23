@@ -19,23 +19,38 @@
  */
 #include <iostream>
 #include <signal.h>
-#include <r.h>
+#include <log.h>
 #include <MessageHub.h>
 #include <IMessageListener.h>
+#include <ClockAccessor.h>
 
-static bool quit = false;
-static void set_quit(int sig, siginfo_t *info, void *ucontext);
-static void quit_on_control_c();
+#include <syslog.h>
+#include <atomic>
 
-using namespace rcom;
-using namespace rpp;
+std::atomic<bool> quit(false);
 
-class MessageListener : public IMessageListener
+void SignalHandler(int signal)
+{
+        if (signal == SIGSEGV){
+                syslog(1, "rcom-registry segmentation fault");
+                exit(signal);
+        }
+        else if (signal == SIGINT){
+                r_info("Ctrl-C Quitting Application");
+                perror("init_signal_handler");
+                quit = true;
+        }
+        else{
+                r_err("Unknown signam received %d", signal);
+        }
+}
+
+class MessageListener : public rcom::IMessageListener
 {
 public:
-        ~MessageListener() = default; 
+        ~MessageListener() override = default;
 
-        void onmessage(IWebSocket& websocket,
+        void onmessage(rcom::IWebSocket& websocket,
                        rpp::MemBuffer& message,
                        rcom::MessageType type) override {
                 (void) type; // Tell the compiler it's not used
@@ -47,13 +62,14 @@ int main()
 {
         try {
                 MessageListener listener;
-                MessageHub message_hub("speed", listener);                
+                rcom::MessageHub message_hub("speed", listener);
+                auto clock = rpp::ClockAccessor::GetInstance();
 
-                quit_on_control_c();
+                std::signal(SIGINT, SignalHandler);
         
                 while (!quit) {
                         message_hub.handle_events();
-                        clock_sleep(0.001); // FIXME
+                        clock->sleep(0.001); // FIXME
                 }
                 
         } catch (std::runtime_error& re) {
@@ -63,23 +79,3 @@ int main()
         }
 }
 
-static void set_quit(int sig, siginfo_t *info, void *ucontext)
-{
-        (void) sig;
-        (void) info;
-        (void) ucontext;
-        quit = true;
-}
-
-static void quit_on_control_c()
-{
-        struct sigaction act;
-        memset(&act, 0, sizeof(struct sigaction));
-
-        act.sa_flags = SA_SIGINFO;
-        act.sa_sigaction = set_quit;
-        if (sigaction(SIGINT, &act, nullptr) != 0) {
-                perror("init_signal_handler");
-                exit(1);
-        }
-}

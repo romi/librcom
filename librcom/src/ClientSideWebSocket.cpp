@@ -24,7 +24,6 @@
 #include <stdexcept>
 #include <r.h>
 #include "ClientSideWebSocket.h"
-#include "IClock.h"
 #include "util.h"
 
 namespace rcom {
@@ -32,7 +31,7 @@ namespace rcom {
         ClientSideWebSocket::ClientSideWebSocket(std::unique_ptr<ISocket>& socket,
                                                  IResponseParser& parser,
                                                  IAddress& remote_address,
-                                                 IClock& clock)
+                                                 rpp::IClock& clock)
                 : WebSocket(socket, clock)
         {
                 if (!handshake(parser, remote_address)) {

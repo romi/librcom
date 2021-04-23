@@ -81,8 +81,8 @@ namespace rcom {
                 std::unique_ptr<IWebSocket> registry_socket
                         = factory_.new_client_side_websocket(registry_address);
 
-                Clock clock;
-                RegistryProxy registry(registry_socket, clock);
+
+                RegistryProxy registry(registry_socket, clock_);
                 
                 Address my_address;
                 server_->get_address(my_address);

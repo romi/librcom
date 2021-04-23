@@ -18,23 +18,35 @@
 
  */
 #include <iostream>
-#include <signal.h>
-#include <r.h>
+#include <ClockAccessor.h>
+#include <log.h>
 #include <MessageHub.h>
 #include <IMessageListener.h>
+#include <syslog.h>
+#include <atomic>
 
-static bool quit = false;
-static void set_quit(int sig, siginfo_t *info, void *ucontext);
-static void quit_on_control_c();
+std::atomic<bool> quit(false);
 
-using namespace std;
-using namespace rcom;
-using namespace rpp;
+void SignalHandler(int signal)
+{
+        if (signal == SIGSEGV){
+                syslog(1, "rcom-registry segmentation fault");
+                exit(signal);
+        }
+        else if (signal == SIGINT){
+                r_info("Ctrl-C Quitting Application");
+                perror("init_signal_handler");
+                quit = true;
+        }
+        else{
+                r_err("Unknown signam received %d", signal);
+        }
+}
 
-class ChatBus : public IMessageListener
+class ChatBus : public rcom::IMessageListener
 {
 public:
-        MessageHub *hub_;
+        rcom::MessageHub *hub_;
         
         ChatBus() : hub_(nullptr) {} 
         ~ChatBus() = default; 
@@ -42,11 +54,11 @@ public:
         ChatBus(ChatBus& b) = delete;
         ChatBus& operator=(const ChatBus& other) = delete;
 
-        void onmessage(IWebSocket& websocket,
+        void onmessage(rcom::IWebSocket& websocket,
                        rpp::MemBuffer& message,
                        rcom::MessageType type) override {
                 (void) type; // Tell the compiler it's not used
-                cout << "> " << message.tostring() << endl;
+                std::cout << "> " << message.tostring() << std::endl;
                 /* Broadcast the incoming message to all connected
                  * clients but exclude the sender. */
                 hub_->broadcast(message, &websocket);
@@ -58,14 +70,15 @@ int main()
 {
         try {
                 ChatBus chat;
-                MessageHub chat_hub("chat", chat);                
+                rcom::MessageHub chat_hub("chat", chat);
                 chat.hub_ = &chat_hub;
-                
-                quit_on_control_c();
+                auto clock = rpp::ClockAccessor::GetInstance();
+
+                std::signal(SIGINT, SignalHandler);
         
                 while (!quit) {
                         chat_hub.handle_events();
-                        clock_sleep(0.050);
+                        clock->sleep(0.050);
                 }
                 
         } catch (std::runtime_error& re) {
@@ -75,23 +88,3 @@ int main()
         }
 }
 
-static void set_quit(int sig, siginfo_t *info, void *ucontext)
-{
-        (void) sig;
-        (void) info;
-        (void) ucontext;
-        quit = true;
-}
-
-static void quit_on_control_c()
-{
-        struct sigaction act;
-        memset(&act, 0, sizeof(struct sigaction));
-
-        act.sa_flags = SA_SIGINFO;
-        act.sa_sigaction = set_quit;
-        if (sigaction(SIGINT, &act, nullptr) != 0) {
-                perror("init_signal_handler");
-                exit(1);
-        }
-}

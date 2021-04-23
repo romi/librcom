@@ -34,10 +34,10 @@ namespace rcom {
         {
         protected:
                 rpp::ILinux& linux_;
-                IClock& clock_;
+                rpp::IClock& clock_;
                 
         public:
-                SocketFactory(rpp::ILinux& linux, IClock& clock);
+                SocketFactory(rpp::ILinux& linux, rpp::IClock& clock);
                 virtual ~SocketFactory() override = default;
 
                 std::unique_ptr<IWebSocket>

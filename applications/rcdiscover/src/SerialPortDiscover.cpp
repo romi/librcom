@@ -1,5 +1,7 @@
-#include <r.h>
+#include <log.h>
+#include <serial_posix.h>
 #include <iostream>
+#include <cstring>
 #include "StringUtils.h"
 #include "SerialPortDiscover.h"
 
@@ -17,8 +19,9 @@ SerialPortDiscover::ConnectedDevice(const std::string& path, const int32_t timeo
     std::string command = "?";
     const int bufflen = 256;
     char buffer[bufflen];
-    memset(buffer, 0, bufflen);
+    ::memset(buffer, 0, bufflen);
     serial_t * serial_port = new_serial(path.c_str(), 115200, 0);
+
     if ( serial_port )
     {
         while ((checked == false) && (retrycurrent++ < retrycount))

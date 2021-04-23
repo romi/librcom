@@ -23,7 +23,8 @@
  */
 #include <exception>
 #include <string.h>
-#include <r.h>
+#include <log.h>
+#include <Clock.h>
 #include "WebSocket.h"
 #include "util.h"
 
@@ -31,7 +32,7 @@ namespace rcom {
 
         static uint16_t convert_to_uint16(rpp::MemBuffer buffer);
         
-        WebSocket::WebSocket(std::unique_ptr<ISocket>& socket, IClock& clock)
+        WebSocket::WebSocket(std::unique_ptr<ISocket>& socket, rpp::IClock& clock)
                 : socket_(),
                   clock_(clock),
                   output_message_buffer_(),

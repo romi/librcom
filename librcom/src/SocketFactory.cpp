@@ -36,7 +36,7 @@
 
 namespace rcom {
         
-        SocketFactory::SocketFactory(rpp::ILinux& linux, IClock& clock)
+        SocketFactory::SocketFactory(rpp::ILinux& linux, rpp::IClock& clock)
                 : linux_(linux), clock_(clock)
         {
         }

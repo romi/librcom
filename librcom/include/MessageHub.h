@@ -38,7 +38,8 @@ namespace rcom {
         {
         protected:
                 rpp::Linux linux_;
-                Clock clock_;
+                // TBD: Not testable. Needs to use ClockAccessor.
+                rpp::Clock clock_;
                 SocketFactory factory_;
                 std::unique_ptr<IWebSocketServer> server_;
                 std::string topic_;
@@ -54,7 +55,7 @@ namespace rcom {
                  * patterns in which the message hub does not expect
                  * to receive any messages from the subscribers. */
                 MessageHub(const std::string& topic);
-                virtual ~MessageHub(); 
+                virtual ~MessageHub();
 
                 std::string& topic() override;
                 void handle_events() override;
