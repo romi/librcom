@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+#include <JsonCpp.h>
 #include "PortConfigurationGenerator.h"
 
 namespace fs = std::filesystem;
@@ -19,15 +20,19 @@ protected:
 
 	~PortConfigurationGenerator_tests() override = default;
 
-	void SetUp() override
-    {
-
+	void SetUp() override {
 	}
 
-	void TearDown() override
-    {
+	void TearDown() override {
 	}
 
+        std::string normalize_json(const char *s) {
+                JsonCpp json(s);
+                std::string out;
+                json.tostring(out, k_json_pretty | k_json_sort_keys);
+                return out;
+        }
+        
 protected:
 
 };
@@ -47,7 +52,7 @@ TEST_F(PortConfigurationGenerator_tests, PortConfigurationGenerator_when_no_devi
     std::string json_configuration;
     std::vector<std::pair<std::string, std::string>> attached_devices;
     PortConfigurationGenerator PortConfigurationGenerator;
-    std::string expected_json("{\n    \"ports\": {\n    }\n}");
+    std::string expected_json = normalize_json("{\"ports\": {}}");
     std::string file_name("serial_config.json");
     remove(file_name.c_str());
 
@@ -69,7 +74,7 @@ TEST_F(PortConfigurationGenerator_tests, PortConfigurationGenerator_when_devices
 
     attached_devices.push_back(std::make_pair(std::string("/dev/ACM0"), std::string("brushmotorcontroller")));
     attached_devices.push_back(std::make_pair(std::string("/dev/ACM1"), std::string("cnc")));
-    std::string expected_json("{\n    \"ports\": {\n        \"brushmotorcontroller\": {\n            \"port\": \"/dev/ACM0\",\n            \"type\": \"serial\"\n        },\n        \"cnc\": {\n            \"port\": \"/dev/ACM1\",\n            \"type\": \"serial\"\n        }\n    }\n}");
+    std::string expected_json = normalize_json("{\"ports\": {\"brushmotorcontroller\": {\"port\": \"/dev/ACM0\",\"type\": \"serial\"},\"cnc\": {\"port\": \"/dev/ACM1\",\"type\": \"serial\"}}}");
     std::string file_name("serial_config.json");
     remove(file_name.c_str());
 
@@ -91,8 +96,7 @@ TEST_F(PortConfigurationGenerator_tests, PortConfigurationGenerator_when_existin
 
     attached_devices.push_back(std::make_pair(std::string("/dev/ACM0"), std::string("brushmotorcontroller")));
     attached_devices.push_back(std::make_pair(std::string("/dev/ACM1"), std::string("cnc")));
-//    std::string expected_json("{\n    \"ports\": {\n        \"cnc\": {\n            \"port\": \"/dev/ACM1\",\n            \"type\": \"serial\"\n        },\n        \"brushmotorcontroller\": {\n            \"port\": \"/dev/ACM0\",\n            \"type\": \"serial\"\n        }\n    }\n}");
-    std::string expected_json("{\n    \"ports\": {\n        \"brushmotorcontroller\": {\n            \"port\": \"/dev/ACM0\",\n            \"type\": \"serial\"\n        },\n        \"cnc\": {\n            \"port\": \"/dev/ACM1\",\n            \"type\": \"serial\"\n        }\n    }\n}");
+    std::string expected_json = normalize_json("{\"ports\": {\"brushmotorcontroller\": {\"port\": \"/dev/ACM0\",\"type\": \"serial\"},\"cnc\": {\"port\": \"/dev/ACM1\",\"type\": \"serial\"}}}");
     std::string file_name("serial_config.json");
     remove(file_name.c_str());
 
@@ -114,8 +118,7 @@ TEST_F(PortConfigurationGenerator_tests, PortConfigurationGenerator_when_existin
 
     attached_devices.push_back(std::make_pair(std::string("/dev/ACM0"), std::string("brushmotorcontroller")));
     attached_devices.push_back(std::make_pair(std::string("/dev/ACM1"), std::string("cnc")));
-//    std::string expected_json("{\n    \"some_json_key\": {\n        \"cnc\": {\n            \"port\": \"/dev/ACM1\",\n            \"type\": \"serial\"\n        }\n    },\n    \"ports\": {\n        \"cnc\": {\n            \"port\": \"/dev/ACM1\",\n            \"type\": \"serial\"\n        },\n        \"brushmotorcontroller\": {\n            \"port\": \"/dev/ACM0\",\n            \"type\": \"serial\"\n        }\n    }\n}");
-    std::string expected_json("{\n    \"some_json_key\": {\n        \"cnc\": {\n            \"port\": \"/dev/ACM1\",\n            \"type\": \"serial\"\n        }\n    },\n    \"ports\": {\n        \"brushmotorcontroller\": {\n            \"port\": \"/dev/ACM0\",\n            \"type\": \"serial\"\n        },\n        \"cnc\": {\n            \"port\": \"/dev/ACM1\",\n            \"type\": \"serial\"\n        }\n    }\n}");
+    std::string expected_json = normalize_json("{\"some_json_key\": {\"cnc\": {\"port\": \"/dev/ACM1\",\"type\": \"serial\"}},\"ports\": {\"brushmotorcontroller\": {\"port\": \"/dev/ACM0\",\"type\": \"serial\"},\"cnc\": {\"port\": \"/dev/ACM1\",\"type\": \"serial\"}}}");
     std::string file_name("serial_config.json");
     remove(file_name.c_str());
 
@@ -134,7 +137,7 @@ TEST_F(PortConfigurationGenerator_tests, PortConfigurationGenerator_create_fails
     std::string json_configuration;
     std::vector<std::pair<std::string, std::string>> attached_devices;
     PortConfigurationGenerator PortConfigurationGenerator;
-    std::string expected_json("{\n    \"ports\": {\n    }\n}");
+    std::string expected_json("{\"ports\": {}}");
     std::string file_name("/impossible/serial_config.json");
 
     // Act
