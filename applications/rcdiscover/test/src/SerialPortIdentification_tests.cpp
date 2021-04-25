@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include "gtest/gtest.h"
+#include "DeviceLister.h"
 #include "SerialPortIdentification.h"
 #include "SerialPortDiscover_mock.h"
 
@@ -64,68 +65,6 @@ TEST_F(SerialPortIdentification_tests, SerialPortIdentification_can_construct)
     ASSERT_NO_THROW(SerialPortIdentification serialPortIdentification(serialPortDiscoverMock));
 }
 
-TEST_F(SerialPortIdentification_tests, ListFilesOfType_lists_correct_devices)
-{
-    // Arrange
-    CreateFiles();
-    Mocks::SerialPortDiscoverMock serialPortDiscoverMock;
-    SerialPortIdentification serialPortIdentification(serialPortDiscoverMock);
-    std::string type("ACM");
-
-    // Act
-    auto actual = serialPortIdentification.ListFilesOfType(directory, type);
-
-    //Assert
-    ASSERT_EQ(actual.size(), 2);
-    EXPECT_THAT(actual, UnorderedElementsAre(ACM0, ACM1));
-}
-
-TEST_F(SerialPortIdentification_tests, ListFilesOfType_returns_empty_when_type_empty)
-{
-    // Arrange
-    CreateFiles();
-    Mocks::SerialPortDiscoverMock serialPortDiscoverMock;
-    SerialPortIdentification serialPortIdentification(serialPortDiscoverMock);
-    std::string type("");
-
-    // Act
-    auto actual = serialPortIdentification.ListFilesOfType(directory, type);
-
-    //Assert
-    ASSERT_EQ(actual.size(), 0);
-}
-
-TEST_F(SerialPortIdentification_tests, ListFilesOfType_returns_empty_when_no_devices_match)
-{
-    // Arrange
-    CreateFiles();
-    Mocks::SerialPortDiscoverMock serialPortDiscoverMock;
-    SerialPortIdentification serialPortIdentification(serialPortDiscoverMock);
-    std::string type("XXX");
-
-    // Act
-    auto actual = serialPortIdentification.ListFilesOfType(directory, type);
-
-    //Assert
-    ASSERT_EQ(actual.size(), 0);
-}
-
-TEST_F(SerialPortIdentification_tests, ListFilesOfType_returns_empty_when_invalid_path)
-{
-    // Arrange
-    CreateFiles();
-    Mocks::SerialPortDiscoverMock serialPortDiscoverMock;
-    SerialPortIdentification serialPortIdentification(serialPortDiscoverMock);
-    std::string type("XXX");
-    std::string invalid_directory = "/invalid/root/path";
-
-    // Act
-    auto actual = serialPortIdentification.ListFilesOfType(invalid_directory, type);
-
-    //Assert
-    ASSERT_EQ(actual.size(), 0);
-}
-
 TEST_F(SerialPortIdentification_tests, Connected_devices_returns_empty_vector_when_no_devices)
 {
     // Arrange
@@ -139,8 +78,11 @@ TEST_F(SerialPortIdentification_tests, Connected_devices_returns_empty_vector_wh
     std::string type = "ACM";
 
     // Act
-    auto actual = serialPortIdentification.ListFilesOfType(directory, type);
-    auto actual_devices = serialPortIdentification.ConnectedDevices(actual);
+    std::vector<std::string> actual;
+    DeviceLister deviceLister;
+    deviceLister.ListFilesOfType(directory, type, actual);
+    DeviceMap actual_devices;
+    serialPortIdentification.ConnectedDevices(actual, actual_devices);
 
     //Assert
     ASSERT_EQ(actual_devices.size(), 0);
@@ -165,7 +107,8 @@ TEST_F(SerialPortIdentification_tests, Connected_devices_returns_valid_devices)
     devices.push_back(USB1);
 
     // Act
-    auto actual_devices = serialPortIdentification.ConnectedDevices(devices);
+    DeviceMap actual_devices;
+    serialPortIdentification.ConnectedDevices(devices, actual_devices);
 
     //Assert
     ASSERT_EQ(actual_devices.size(), 2);

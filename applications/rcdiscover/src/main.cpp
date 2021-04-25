@@ -1,24 +1,24 @@
 #include <map>
-#include "SerialPortConfigurationGenerator.h"
+#include "PortConfigurationGenerator.h"
 #include "SerialPortDiscover.h"
 #include "SerialPortIdentification.h"
+#include "DeviceLister.h"
 
 std::string dev = "/dev";
 
 /* Since the names that controllers return don't match the JSON name in config files,
  * we need to map the device info that is returned when a device is queried to json
  * key in the config file. */
-const std::map<std::string, std::string> device_to_json_key =
-        {
-                { "Grbl", "grbl" },
-                { "Alarm", "grbl" },
-                { "Idle", "grbl" },
-                { "BrushMotorController", "brush_motors" },
-                { "SabertoothController", "brush_motors" },
-                { "RomiControlPanel", "control_panel" },
-                { "Oquam", "oquam" },
-		{ "ToolCarrierJrkG2", "tool_carrier" }
-        };
+const std::map<std::string, std::string> serial_device_to_json_key = {
+        { "Grbl", "grbl" },
+        { "Alarm", "grbl" },
+        { "Idle", "grbl" },
+        { "BrushMotorController", "brush-motor-driver" },
+        { "SabertoothController", "brush-motor-driver" },
+        { "CrystalDisplay", "display-device" },
+        { "Oquam", "oquam" },
+        { "ToolCarrierJrkG2", "tool_carrier" }
+};
 
 // LCOV_EXCL_START
 
@@ -35,31 +35,32 @@ int main(int argc, char* argv[])
 {
     std::string port_configuration_file("serial_port_cfg.json");
     std::string json_configuration;
-    SerialPortDiscover serialPortDiscover(device_to_json_key);
+    DeviceLister deviceLister;
+    SerialPortDiscover serialPortDiscover(serial_device_to_json_key);
     SerialPortIdentification serialPortIdentification(serialPortDiscover);
-    SerialPortConfigurationGenerator serialPortConfigurationGenerator;
+    PortConfigurationGenerator portConfigurationGenerator;
 
     if (argc > 2) {
         show_usage(argv[0]);
         return 1;
-    }
-    else if (argc == 2) {
+    } else if (argc == 2) {
         port_configuration_file = argv[1];
-        json_configuration = serialPortConfigurationGenerator.LoadConfiguration(port_configuration_file);
+        json_configuration = portConfigurationGenerator.LoadConfiguration(port_configuration_file);
     }
 
-    auto devices = serialPortIdentification.ListFilesOfType(dev, std::string("ACM"));
-    auto connectedDevices = serialPortIdentification.ConnectedDevices(devices);
-    auto configuration_result = serialPortConfigurationGenerator.CreateConfigurationFile(json_configuration,
-                                                                                         connectedDevices,
-                                                                                         port_configuration_file);
-
-    if (configuration_result == 0)
-    {
+    DeviceList serialDevices;
+    deviceLister.ListFilesOfType(dev, std::string("ttyACM"), serialDevices);
+    deviceLister.ListFilesOfType(dev, std::string("ttyUSB"), serialDevices);
+    
+    DeviceMap connectedDevices;
+    serialPortIdentification.ConnectedDevices(serialDevices, connectedDevices);
+    
+    auto configuration_result = portConfigurationGenerator.CreateConfigurationFile(json_configuration,
+                                                                                   connectedDevices,
+                                                                                   port_configuration_file);
+    if (configuration_result == 0) {
         std::cout << "wrote config: " << port_configuration_file << std::endl;
-    }
-    else
-    {
+    } else {
         std::cout << "failed to write config: " << port_configuration_file << std::endl;
     }
 

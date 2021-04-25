@@ -6,18 +6,22 @@ include_directories(mocks
 set(SRCS
         support/TestUtil.hpp
         src/tests_main.cpp
+        src/DeviceLister_tests.cpp
         src/SerialPortIdentification_tests.cpp
         src/SerialPortDiscover_tests.cpp
-        src/SerialPortConfigurationGenerator_tests.cpp
-        ../include/ISerialPortConfigurationGenerator.h
-        ../include/SerialPortConfigurationGenerator.h
-        ../src/SerialPortConfigurationGenerator.cpp
+        src/PortConfigurationGenerator_tests.cpp
+        ../include/IPortConfigurationGenerator.h
+        ../include/PortConfigurationGenerator.h
+        ../src/PortConfigurationGenerator.cpp
         ../include/ISerialPortIdentification.h
         ../include/SerialPortIdentification.h
         ../src/SerialPortIdentification.cpp
         ../include/ISerialPortDiscover.h
         ../include/SerialPortDiscover.h
-        ../src/SerialPortDiscover.cpp)
+        ../src/SerialPortDiscover.cpp
+        ../include/DeviceLister.h
+        ../src/DeviceLister.cpp
+        )
 
 add_executable(rcom_rcdiscover_unit_tests ${SRCS})
 

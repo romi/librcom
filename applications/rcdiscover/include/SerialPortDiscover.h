@@ -5,14 +5,15 @@
 #include "ISerialPortDiscover.h"
 
 class SerialPortDiscover : public ISerialPortDiscover {
-    public:
+public:
         SerialPortDiscover(const std::map<std::string, std::string>& deviceFilter);
         virtual ~SerialPortDiscover() = default;
-        std::string ConnectedDevice(const std::string& path, const int32_t timeout_ms) override;
+        std::string ConnectedDevice(const std::string& path,
+                                    const int32_t timeout_ms) override;
 
-    private:
+private:
         std::string FilterDevice(char* buffer);
-    private:
+private:
         const std::map<std::string, std::string>& knownDevicesMap;
 };
 

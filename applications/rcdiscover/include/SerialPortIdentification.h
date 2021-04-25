@@ -7,13 +7,14 @@
 #include "ISerialPortIdentification.h"
 
 class SerialPortIdentification : ISerialPortIdentification {
-    public:
+public:
         SerialPortIdentification(ISerialPortDiscover& serialPortDiscover);
         virtual ~SerialPortIdentification() = default;
-        std::vector<std::string> ListFilesOfType(const std::string& directory, const std::string& type) override;
-        std::vector<std::pair<std::string, std::string>> ConnectedDevices(std::vector<std::string>& serialDevices) override;
-    private:
-    ISerialPortDiscover& serialPortDiscover;
+        
+        void ConnectedDevices(DeviceList& serialDevices,
+                              DeviceMap& devices) override;
+private:
+        ISerialPortDiscover& serialPortDiscover;
 };
 
 #endif //RCDISCOVER_SERIALPORTIDENTIFICATION_H

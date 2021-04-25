@@ -3,44 +3,21 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
-SerialPortIdentification::SerialPortIdentification(ISerialPortDiscover& iserialPortDiscover) : serialPortDiscover(iserialPortDiscover)
+SerialPortIdentification::SerialPortIdentification(ISerialPortDiscover& iserialPortDiscover)
+        : serialPortDiscover(iserialPortDiscover)
 {
 }
 
-std::vector<std::string>
-SerialPortIdentification::ListFilesOfType(const std::string& directory, const std::string& type)
+void
+SerialPortIdentification::ConnectedDevices(std::vector<std::string>& serialDevices,
+                                           DeviceMap& devices)
 {
-    std::vector<std::string> filenames;
-    try
-    {
-        if (type.length() > 0)
-        {
-            for(auto& p : fs::directory_iterator(directory))
-            {
-                if (p.path().string().find( type ) !=std::string::npos)
-                    filenames.emplace_back(p.path());
-            }
+        const int32_t timeout_ms = 500;
+        for (const auto& device : serialDevices) {
+                std::string deviceName;
+                deviceName = serialPortDiscover.ConnectedDevice(device, timeout_ms);
+                if (!deviceName.empty()) {
+                        devices.emplace_back(std::make_pair(device, deviceName));
+                }
         }
-    }
-    catch (std::exception& e)
-    {
-        std::cout << e.what() << std::endl;
-    }
-    return filenames;
-}
-
-std::vector< std::pair <std::string, std::string> >
-SerialPortIdentification::ConnectedDevices(std::vector<std::string>& serialDevices)
-{
-    std::vector< std::pair <std::string, std::string> > devices;
-    const int32_t timeout_ms = 500;
-    for (const auto& device : serialDevices)
-    {
-        std::string deviceName = serialPortDiscover.ConnectedDevice(device, timeout_ms);
-        if (!deviceName.empty())
-        {
-            devices.emplace_back(std::make_pair(device, deviceName));
-        }
-    }
-    return devices;
 }

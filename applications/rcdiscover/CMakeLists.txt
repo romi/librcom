@@ -5,8 +5,10 @@ include_directories(include
 
 add_executable(rcdiscover
                 src/main.cpp
-                include/SerialPortConfigurationGenerator.h
-                src/SerialPortConfigurationGenerator.cpp
+                include/DeviceLister.h
+                src/DeviceLister.cpp
+                include/PortConfigurationGenerator.h
+                src/PortConfigurationGenerator.cpp
                 include/SerialPortIdentification.h
                 src/SerialPortIdentification.cpp
                 include/SerialPortDiscover.h
