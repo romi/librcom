@@ -13,8 +13,10 @@ const std::map<std::string, std::string> device_to_json_key =
                 { "Grbl", "grbl" },
                 { "Alarm", "grbl" },
                 { "Idle", "grbl" },
-                { "BrushMotorController","brush_motors" },
-                { "RomiControlPanel",  "control_panel" },
+                { "BrushMotorController", "brush_motors" },
+                { "SabertoothController", "brush_motors" },
+                { "RomiControlPanel", "control_panel" },
+                { "Oquam", "oquam" },
 		{ "ToolCarrierJrkG2", "tool_carrier" }
         };
 

@@ -16,7 +16,7 @@ SerialPortDiscover::ConnectedDevice(const std::string& path, const int32_t timeo
     int retrycurrent = 0;
     bool checked = false;
     std::string device;
-    std::string command = "?";
+    std::string command = "#?:xxxx";
     const int bufflen = 256;
     char buffer[bufflen];
     ::memset(buffer, 0, bufflen);
