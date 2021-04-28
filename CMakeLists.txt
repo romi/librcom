@@ -129,5 +129,4 @@ endif()
 ###########################################################3
 include(${CMAKE_MODULES_DIRECTORY}/RomiProjectBuildOptions.cmake)
 add_subdirectory(librcom)
-add_subdirectory(applications/rcdiscover)
 add_subdirectory(applications/rcom_registry)
