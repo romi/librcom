@@ -18,6 +18,7 @@ add_executable(rcdiscover
 target_link_libraries( rcdiscover
                         rpp
                         r
+                        romiserial
                         stdc++fs)
 
 if(BUILD_TESTS)

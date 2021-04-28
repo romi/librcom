@@ -10,11 +10,13 @@ PortConfigurationGenerator::PortConfigurationGenerator()
         : serial_ports_configuration_key("ports"),
           serial_port_key("port"),
           serial_device_type("type"),
-          serial_type("serial")
+          serial_type("serial"),
+          ports_()
 {
 }
 
-json_object_t PortConfigurationGenerator::CreateConfigurationBase(const std::string& json_configuration)
+json_object_t
+PortConfigurationGenerator::CreateConfigurationBase(const std::string& json_configuration)
 {
         json_object_t configuration_object;
         if (json_configuration.empty()) {
@@ -32,7 +34,32 @@ json_object_t PortConfigurationGenerator::CreateConfigurationBase(const std::str
         return configuration_object;
 }
 
-int PortConfigurationGenerator::CreateConfigurationFile(const std::string& json_configuration, const DeviceMap& devices, const std::string& ouput_file)
+void PortConfigurationGenerator::CopyDevicePerhaps(const char* key, json_object_t value)
+{
+        const char *type = json_object_getstr(value, "type");
+        if (strcmp(type, serial_type.c_str()) != 0) {
+                std::cout << "Copying " << key << std::endl;
+                json_object_set(ports_, key, value);
+        }
+}
+
+static int32_t port_iterator(const char* key, json_object_t value, void* data)
+{
+        PortConfigurationGenerator *generator = (PortConfigurationGenerator *) data;
+        generator->CopyDevicePerhaps(key, value);
+        return 0;
+}
+
+void
+PortConfigurationGenerator::CopyUnhandledDeviceTypes(json_object_t previous_ports_object)
+{
+        json_object_foreach(previous_ports_object, port_iterator, this);
+}
+
+int
+PortConfigurationGenerator::CreateConfigurationFile(const std::string& json_configuration,
+                                                    const DeviceMap& devices,
+                                                    const std::string& ouput_file)
 {
         const int buff_size = 8192;
         char json_string_buff[buff_size];
@@ -40,22 +67,23 @@ int PortConfigurationGenerator::CreateConfigurationFile(const std::string& json_
         std::string json_string;
 
         json_object_t configuration_object = CreateConfigurationBase(json_configuration);
-        json_object_t ports_object;
+        json_object_t previous_ports_object;
+
+        ports_ = json_object_create();
         
         if (json_object_has(configuration_object, serial_ports_configuration_key.c_str())) {
-                ports_object = json_object_get(configuration_object,
-                                               serial_ports_configuration_key.c_str());
-        } else {
-                ports_object = json_object_create();
-                json_object_set(configuration_object, serial_ports_configuration_key.c_str(), ports_object);
-                json_unref(ports_object);
+                previous_ports_object = json_object_get(configuration_object,
+                                                        serial_ports_configuration_key.c_str());
+                CopyUnhandledDeviceTypes(previous_ports_object);
         }
+        
+        json_object_set(configuration_object, serial_ports_configuration_key.c_str(), ports_);
         
         for (const auto& device : devices) {
                 json_object_t device_object = json_object_create();
                 json_object_setstr(device_object, serial_device_type.c_str(), serial_type.c_str());
                 json_object_setstr(device_object, serial_port_key.c_str(), device.first.c_str());
-                json_object_set(ports_object, device.second.c_str(), device_object);
+                json_object_set(ports_, device.second.c_str(), device_object);
                 json_unref(device_object);
         }
 
@@ -67,11 +95,14 @@ int PortConfigurationGenerator::CreateConfigurationFile(const std::string& json_
                                  ouput_file.c_str());
 
         json_unref(configuration_object);
+        json_unref(ports_);
+        ports_ = json_null();
 
         return retval;
 }
 
-std::string PortConfigurationGenerator::LoadConfiguration(const std::string& configuration_file) const
+std::string
+PortConfigurationGenerator::LoadConfiguration(const std::string& configuration_file) const
 {
         std::ostringstream contents;
         try {

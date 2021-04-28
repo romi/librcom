@@ -5,6 +5,7 @@
 #include <thread>
 
 #include <r.h>
+#include <RomiSerial.h>
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
@@ -26,22 +27,18 @@ protected:
 
 	~SerialPortDiscover_tests() override = default;
 
-	void SetUp() override
-    {
-        fake_serial_ready = false;
+	void SetUp() override {
+                fake_serial_ready = false;
 	}
 
-	void TearDown() override
-    {
+	void TearDown() override {
 	}
 
-	void CreateFiles()
-    {
-    }
+	void CreateFiles() {
+        }
 
-    void DeleteFiles()
-    {
-    }
+        void DeleteFiles() {
+        }
 
 protected:
     const std::map<std::string, std::string> device_to_json_key =
@@ -55,146 +52,157 @@ protected:
 
 TEST_F(SerialPortDiscover_tests, SerialPortDiscover_can_construct)
 {
-    // Arrange
-    // Act
-    //Assert
-    ASSERT_NO_THROW(SerialPortDiscover SerialPortDiscover(device_to_json_key));
+        // Arrange
+        // Act
+        //Assert
+        ASSERT_NO_THROW(SerialPortDiscover SerialPortDiscover(device_to_json_key));
 }
 
 TEST_F(SerialPortDiscover_tests, SerialPortDiscover_ConnectedDevice_bad_port_returns_empty_string)
 {
-    // Arrange
-    SerialPortDiscover SerialPortDiscover(device_to_json_key);
-    const int32_t timeout_ms = 100;
-    // Act
-    auto device = SerialPortDiscover.ConnectedDevice(std::string("/dev/notreal"), timeout_ms);
+        // Arrange
+        SerialPortDiscover SerialPortDiscover(device_to_json_key);
+        // Act
+        auto device = SerialPortDiscover.ConnectedDevice(std::string("/dev/notreal"));
 
-    //Assert
-    ASSERT_TRUE(device.empty());
+        //Assert
+        ASSERT_TRUE(device.empty());
 }
 
 TEST_F(SerialPortDiscover_tests, SerialPortDiscover_ConnectedDevice_times_out_returns_empty_string)
 {
-    // Arrange
-    SerialPortDiscover SerialPortDiscover(device_to_json_key);
-    std::string port0 = CppLinuxSerial::TestUtil::GetInstance().GetDevice0Name();
-    const int32_t timeout_ms = 100;
-    // Act
-    auto device = SerialPortDiscover.ConnectedDevice(port0, timeout_ms);
+        // Arrange
+        SerialPortDiscover SerialPortDiscover(device_to_json_key);
+        std::string port0 = CppLinuxSerial::TestUtil::GetInstance().GetDevice0Name();
+        // Act
+        auto device = SerialPortDiscover.ConnectedDevice(port0);
 
-    //Assert
-    ASSERT_TRUE(device.empty());
+        //Assert
+        ASSERT_TRUE(device.empty());
 }
 
-int FakeSerialDeviceFunction(const std::string& port, const std::string& device_name, std::condition_variable *cv)
-{
-    int result = -1;
-    const int buffersize= 256;
-    char buffer[buffersize];
-    memset(buffer, 0, buffersize);
-    serial_t * serial_port = new_serial(port.c_str(), 115200, 0);
-    std::cout << "FakeSerialDeviceFunction: Notify " << std::endl;
-    {
-        std::lock_guard<std::mutex> lk(thread_mutex);
-        fake_serial_ready = true;
-        cv->notify_one();
-    }
+// FIXME
+std::string info_string_;
+bool sent_info = false;
 
-    if ( serial_port )
-    {
-        if (serial_read_timeout(serial_port, buffer, buffersize, 1000) == 0)
+void MakeInfoString(const std::string& device_name)
+{
+        info_string_ = "[0,\"";
+        info_string_ += device_name;
+        info_string_ += "\"]";
+}
+
+void SendInfo(romiserial::RomiSerial *romi_serial, int16_t *, const char *)
+{
+        romi_serial->send(info_string_.c_str());
+        sent_info = true;
+}
+
+int FakeSerialDeviceFunction(const std::string& port,
+                             const std::string& device_name,
+                             std::condition_variable *cv)
+{
+        // FIXME
+        MakeInfoString(device_name);
+        sent_info = false;
+        
+        romiserial::MessageHandler handlers[] = {
+                { '?', 0, false, SendInfo }
+        };
+        
+        romiserial::RSerial serial(port, 115200, 0);
+        romiserial::RomiSerial romi_serial(serial, serial, handlers, 1);
+        
+        std::cout << "FakeSerialDeviceFunction: Notify " << std::endl;
         {
-            std::cout << "FakeSerialDeviceFunction: read " << buffer << std::endl;
-            if (serial_write(serial_port, device_name.c_str(), device_name.length()) == 0)
-            {
-                result = 0;
-            }
+                std::lock_guard<std::mutex> lk(thread_mutex);
+                fake_serial_ready = true;
+                cv->notify_one();
         }
-    }
-    delete_serial(serial_port);
-    return result;
+        
+        while (!sent_info) {
+                romi_serial.handle_input();
+        }
+
+        return sent_info? 0 : -1;
+}
+
+void wait_notification(std::condition_variable& cv)
+{
+        std::cout << "Wait for notify " << std::endl;
+        std::unique_lock<std::mutex> lk(thread_mutex);
+        cv.wait(lk, [] { return fake_serial_ready == true; });
+        std::cout << "Received notify " << std::endl;
 }
 
 TEST_F(SerialPortDiscover_tests, SerialPortDiscover_ConnectedDevice_returns_when_device_not_known)
 {
-    // Arrange
-    const int timeout_ms = 1000;
-    std::condition_variable cv;
-    std::string actual_device;
-    std::string serial_device_name("unknown_device_name");
-    std::string expected_device;
-    std::string port0 = CppLinuxSerial::TestUtil::GetInstance().GetDevice0Name();
-    std::string port1 = CppLinuxSerial::TestUtil::GetInstance().GetDevice1Name();
+        // Arrange
+        std::condition_variable cv;
+        std::string actual_device;
+        std::string serial_device_name("unknown_device_name");
+        std::string expected_device;
+        std::string port0 = CppLinuxSerial::TestUtil::GetInstance().GetDevice0Name();
+        std::string port1 = CppLinuxSerial::TestUtil::GetInstance().GetDevice1Name();
 
-    SerialPortDiscover SerialPortDiscover(device_to_json_key);
-    // NOTE: DON'T FORGET \n its canonical!
-    auto future = std::async(FakeSerialDeviceFunction, port1, serial_device_name+"\n", &cv);
+        SerialPortDiscover SerialPortDiscover(device_to_json_key);
+        auto future = std::async(FakeSerialDeviceFunction, port1, serial_device_name, &cv);
 
-    // Act
-    std::cout << "Wait for notify " << std::endl;
-    std::unique_lock<std::mutex> lk(thread_mutex);
-    cv.wait(lk, []{return fake_serial_ready == true;});
-    std::cout << "received notify " << std::endl;
-    actual_device = SerialPortDiscover.ConnectedDevice(port0, timeout_ms);
-    int thread_success = future.get();
+        wait_notification(cv);
+        
+        // Act
+        actual_device = SerialPortDiscover.ConnectedDevice(port0);
+        int thread_success = future.get();
 
-    // Assert
-    ASSERT_EQ(expected_device, actual_device);
-    ASSERT_EQ(thread_success, 0);
+        // Assert
+        ASSERT_EQ(expected_device, actual_device);
+        ASSERT_EQ(thread_success, 0);
 }
 
 TEST_F(SerialPortDiscover_tests, SerialPortDiscover_ConnectedDevice_returns_when_device_whitespace)
 {
-    // Arrange
-    const int timeout_ms = 1000;
-    std::condition_variable cv;
-    std::string actual_device;
-    std::string serial_device_name(" ");
-    std::string expected_device;
-    std::string port0 = CppLinuxSerial::TestUtil::GetInstance().GetDevice0Name();
-    std::string port1 = CppLinuxSerial::TestUtil::GetInstance().GetDevice1Name();
+        // Arrange
+        std::condition_variable cv;
+        std::string actual_device;
+        std::string serial_device_name(" ");
+        std::string expected_device;
+        std::string port0 = CppLinuxSerial::TestUtil::GetInstance().GetDevice0Name();
+        std::string port1 = CppLinuxSerial::TestUtil::GetInstance().GetDevice1Name();
 
-    SerialPortDiscover SerialPortDiscover(device_to_json_key);
-    auto future = std::async(FakeSerialDeviceFunction, port1, serial_device_name+"\n", &cv);
+        SerialPortDiscover SerialPortDiscover(device_to_json_key);
+        auto future = std::async(FakeSerialDeviceFunction, port1, serial_device_name, &cv);
 
-    // Act
-    std::cout << "Wait for notify " << std::endl;
-    std::unique_lock<std::mutex> lk(thread_mutex);
-    cv.wait(lk, []{return fake_serial_ready == true;});
-    std::cout << "received notify " << std::endl;
-    actual_device = SerialPortDiscover.ConnectedDevice(port0, timeout_ms);
-    int thread_success = future.get();
+        wait_notification(cv);
+        
+        // Act
+        actual_device = SerialPortDiscover.ConnectedDevice(port0);
+        int thread_success = future.get();
 
-    // Assert
-    ASSERT_EQ(expected_device, actual_device);
-    ASSERT_EQ(thread_success, 0);
+        // Assert
+        ASSERT_EQ(expected_device, actual_device);
+        ASSERT_EQ(thread_success, 0);
 }
-
 
 TEST_F(SerialPortDiscover_tests, SerialPortDiscover_ConnectedDevice_returns_connected_device)
 {
-    // Arrange
-    const int timeout_ms = 1000;
-    std::condition_variable cv;
-    std::string actual_device;
-    std::string serial_device_name(device_to_json_key.begin()->first);
-    std::string expected_device(device_to_json_key.begin()->second);
-    std::string port0 = CppLinuxSerial::TestUtil::GetInstance().GetDevice0Name();
-    std::string port1 = CppLinuxSerial::TestUtil::GetInstance().GetDevice1Name();
+        // Arrange
+        std::condition_variable cv;
+        std::string actual_device;
+        std::string serial_device_name(device_to_json_key.begin()->first);
+        std::string expected_device(device_to_json_key.begin()->second);
+        std::string port0 = CppLinuxSerial::TestUtil::GetInstance().GetDevice0Name();
+        std::string port1 = CppLinuxSerial::TestUtil::GetInstance().GetDevice1Name();
 
-    SerialPortDiscover SerialPortDiscover(device_to_json_key);
-    // NOTE: DON'T FORGET \n its canonical!
-    auto future = std::async(FakeSerialDeviceFunction, port1, serial_device_name+"\n", &cv);
+        SerialPortDiscover SerialPortDiscover(device_to_json_key);
+        auto future = std::async(FakeSerialDeviceFunction, port1, serial_device_name, &cv);
 
-    // Act
-    std::cout << "Wait for notify " << std::endl;
-    std::unique_lock<std::mutex> lk(thread_mutex);
-    cv.wait(lk, []{return fake_serial_ready == true;});
-    std::cout << "received notify " << std::endl;
-    actual_device = SerialPortDiscover.ConnectedDevice(port0, timeout_ms);
-    int thread_success = future.get();
+        wait_notification(cv);
+        
+        // Act
+        actual_device = SerialPortDiscover.ConnectedDevice(port0);
+        int thread_success = future.get();
 
-    // Assert
-    ASSERT_EQ(expected_device, actual_device);
-    ASSERT_EQ(thread_success, 0);
+        // Assert
+        ASSERT_EQ(expected_device, actual_device);
+        ASSERT_EQ(thread_success, 0);
 }

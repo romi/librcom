@@ -12,10 +12,9 @@ void
 SerialPortIdentification::ConnectedDevices(std::vector<std::string>& serialDevices,
                                            DeviceMap& devices)
 {
-        const int32_t timeout_ms = 500;
         for (const auto& device : serialDevices) {
                 std::string deviceName;
-                deviceName = serialPortDiscover.ConnectedDevice(device, timeout_ms);
+                deviceName = serialPortDiscover.ConnectedDevice(device);
                 if (!deviceName.empty()) {
                         devices.emplace_back(std::make_pair(device, deviceName));
                 }

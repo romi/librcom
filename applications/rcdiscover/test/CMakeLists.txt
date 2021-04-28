@@ -28,6 +28,7 @@ add_executable(rcom_rcdiscover_unit_tests ${SRCS})
 target_link_libraries(  rcom_rcdiscover_unit_tests
                         gtest
                         gmock
+                        romiserial
                         rpp
                         r
                         stdc++fs)
