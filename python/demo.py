@@ -1,6 +1,6 @@
 from client import *
 
-oquam = Client('oquam', 'cnc', 60.0)
+oquam = Client('cnc', 60.0)
 
 oquam.execute('homing')
 

@@ -3,10 +3,10 @@ import websocket
 import json
 
 class Registry:
-    def __init__(self):
+    def __init__(self, ip="127.0.0.1"):
         try:
             self.ws = websocket.WebSocket()
-            self.ws.connect("ws://127.0.0.1:10101")
+            self.ws.connect(f"ws://{ip}:10101")
         except websocket.WebSocketException:
             print("HEADERS: " + str(self.ws.getheaders()))
             raise Exception("Failed to connect")
@@ -35,21 +35,19 @@ class Registry:
             self._assert_timeout()
         return address
             
-    def try_get_address(self, name, topic):
-        reply = self.send_request("list")
-        return self.find_address(reply['list'], name, topic)
+    def try_get_address(self, topic):
+        address = None
+        reply = self.send_get_topic(topic)
+        if reply["success"]:
+            return reply["address"]
+        else:
+            raise Exception(reply["message"])
     
-    def send_request(self, req):
-        request = { "request": req }
+    def send_get_topic(self, topic):
+        request = { "request": req, "topic": topic }
         self.ws.send(json.dumps(request))
         reply = self.ws.recv()
         return json.loads(reply)
-        
-    def find_address(self, node_list, name, topic):
-        for node in node_list:
-            if node['name'] == name and node['topic'] == topic:
-                return node['addr']
-        return None
 
             
 

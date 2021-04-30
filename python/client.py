@@ -6,13 +6,13 @@ from registry import *
 
 class Client:
     
-    def __init__(self, name, interface, timeout=10):
-        self.__connect(name, interface, timeout)
+    def __init__(self, topic, timeout=10):
+        self.__connect(topic, timeout)
 
-    def __connect(self, name, interface, timeout):
+    def __connect(self, topic, timeout):
         try:
             registry = Registry()
-            address = registry.get_address('oquam', 'cnc', timeout)
+            address = registry.get_address(topic, timeout)
             self.ws = websocket.WebSocket()
             self.ws.connect("ws://%s" % address)
         except websocket.WebSocketException:
@@ -23,7 +23,13 @@ class Client:
 
     def execute(self, method, **kwargs):
         request = { 'method': method, 'params': kwargs }
+        self.send(request)
+        return self.recv()
+
+    def send(self, request):
         self.ws.send(json.dumps(request))
+    
+    def recv(self):
         reply = self.ws.recv()
         return json.loads(reply)
     
