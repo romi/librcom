@@ -1,6 +1,6 @@
 codecov:
   fixes:
-  - "/home/runner/work/rcom/rcom/::"
+  - "/home/runner/work/librcom/librcom/::"
   
   require_ci_to_pass: no
 
