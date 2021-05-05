@@ -10,9 +10,9 @@ endfunction()
 
 ############################################################
 
-function(set_romi_build_defaults)
+function(set_romi_build_defaults PI_BUILD)
     if((CMAKE_SYSTEM_PROCESSOR MATCHES ".*arm") OR (CMAKE_SYSTEM_PROCESSOR MATCHES ".*aarch64"))
-        set(PI_BUILD TRUE)
+        set(${PI_BUILD} TRUE PARENT_SCOPE)
         MESSAGE("ARM PROCESSOR DETECTED ${CMAKE_SYSTEM_PROCESSOR}")
     else()
         MESSAGE("X86 PROCESSOR DETECTED ${CMAKE_SYSTEM_PROCESSOR}")
