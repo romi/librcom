@@ -27,7 +27,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 ############################################################
 
-# Everything debug for now this needs to be addressed.
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -36,6 +35,7 @@ set(CMAKE_CXX_FLAGS "${COMMON_COMPILATION_FLAGS}")
 set(CMAKE_C_FLAGS "${COMMON_COMPILATION_FLAGS}")
 
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+
 ############################################################
 
 # Options.
