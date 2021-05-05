@@ -2,6 +2,13 @@
 cmake_minimum_required(VERSION 3.10)
 project(librcom)
 
+############################################################
+
+set_romi_build_defaults()
+output_compile_flags()
+
+############################################################
+
 set(SOURCES
     include/sha1.h
     include/util.h

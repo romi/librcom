@@ -47,8 +47,8 @@ namespace rcom {
         void log_errno()
         {
                 char buf[128];
-                strerror_r(errno, buf, sizeof(buf));
-                r_warn("getifaddrs: %s", buf);
+                auto res = strerror_r(errno, buf, sizeof(buf));
+                r_warn("getifaddrs: %s", res);
         }
         
         // https://stackoverflow.com/questions/2283494/get-ip-address-of-an-interface-on-linux

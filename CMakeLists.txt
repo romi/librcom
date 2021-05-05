@@ -1,17 +1,21 @@
 cmake_minimum_required(VERSION 3.10)
 project(romi-rcom)
 
-MESSAGE("librcom CXX Flags = ${CMAKE_CXX_FLAGS}")
-MESSAGE("librcom C Flags = ${CMAKE_C_FLAGS}")
+############################################################
+
+set(CMAKE_MODULES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
+set(CMAKE_THIRDPARTY_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
+include(${CMAKE_MODULES_DIRECTORY}/RomiFunctions.cmake)
+set_romi_build_defaults()
+output_compile_flags()
+
+############################################################
 
 # The version number.
 set(romi-rcom_VERSION_MAJOR 0)
 set(romi-rcom_VERSION_MINOR 1)
 
 ############################################################
-
-set(CMAKE_MODULES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
-set(CMAKE_THIRDPARTY_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -23,7 +27,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(COMMON_COMPILATION_FLAGS "-Wall -Wextra -Wpedantic -Werror")
-set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${COMMON_COMPILATION_FLAGS}")
 set(CMAKE_C_FLAGS "${COMMON_COMPILATION_FLAGS}")
 
