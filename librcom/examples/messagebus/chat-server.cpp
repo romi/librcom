@@ -66,12 +66,18 @@ public:
 };
 
 
-int main()
+int main(int argc, char **argv)
 {
+        const char *topic = "chat";
+
+        if (argc >= 2)
+                topic = argv[1];
+        
         try {
-                ChatBus chat;
-                rcom::MessageHub chat_hub("chat", chat);
-                chat.hub_ = &chat_hub;
+                std::shared_ptr<ChatBus> chat = std::make_shared<ChatBus>();
+                std::shared_ptr<rcom::IMessageListener> listener = chat;
+                rcom::MessageHub chat_hub(topic, listener);
+                chat->hub_ = &chat_hub;
                 auto clock = rpp::ClockAccessor::GetInstance();
 
                 std::signal(SIGINT, SignalHandler);

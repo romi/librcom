@@ -61,7 +61,8 @@ public:
 int main()
 {
         try {
-                MessageListener listener;
+                std::shared_ptr<rcom::IMessageListener> listener
+                        = std::make_shared<MessageListener>();
                 rcom::MessageHub message_hub("speed", listener);
                 auto clock = rpp::ClockAccessor::GetInstance();
 

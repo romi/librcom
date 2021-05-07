@@ -64,7 +64,8 @@ public:
 int main()
 {
         try {
-                HelloWorldListener hello_world;
+                std::shared_ptr<rcom::IMessageListener> hello_world
+                        = std::make_shared<HelloWorldListener>();
                 rcom::MessageHub message_hub("hello-world", hello_world);
                 auto clock = rpp::ClockAccessor::GetInstance();
 

@@ -34,7 +34,7 @@
 #include <WebSocketServer.h>
 #include <ServerSocket.h>
 #include <Address.h>
-#include <Clock.h>
+#include <ClockAccessor.h>
 
 std::atomic<bool> quit(false);
 
@@ -61,14 +61,15 @@ int main()
                 r_log_init();
                 r_log_set_app("rcom-registry");
         
-                rpp::Linux linux;
-                rpp::Clock clock;
-                rcom::SocketFactory factory(linux, clock);
+                std::shared_ptr<rcom::ISocketFactory> factory
+                        = std::make_shared<rcom::SocketFactory>();
                 rcom::Registry registry;
                 rcom::Address address(10101);
+                std::unique_ptr<rpp::ILinux> linux = std::make_unique<rpp::Linux>();
                 std::unique_ptr<rcom::IServerSocket> server_socket
                         = std::make_unique<rcom::ServerSocket>(linux, address);
-                rcom::RegistryServer registry_server(registry);
+                std::shared_ptr<rcom::IMessageListener> registry_server
+                        = std::make_shared<rcom::RegistryServer>(registry);
                 rcom::WebSocketServer server(server_socket, factory, registry_server);
 
                 std::signal(SIGSEGV, SignalHandler);
@@ -80,7 +81,7 @@ int main()
                 
                 while (!quit) {
                         server.handle_events();
-                        clock.sleep(0.050);
+                        rpp::ClockAccessor::GetInstance()->sleep(0.050);
                 }
                 
         } catch (JSONError& je) {

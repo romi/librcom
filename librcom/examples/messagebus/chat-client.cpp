@@ -105,10 +105,15 @@ void handle_user_messages(rcom::MessageLink *link)
         }
 }
 
-int main()
+int main(int argc, char **argv)
 {
+        const char *topic = "chat";
+
+        if (argc >= 2)
+                topic = argv[1];
+        
         try {
-                rcom::MessageLink link("chat");
+                rcom::MessageLink link(topic);
                 rpp::MemBuffer message;
 
                 std::signal(SIGINT, SignalHandler);

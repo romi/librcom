@@ -25,6 +25,7 @@
 #define _LIBRCOM_BASE_SOCKET_H_
 
 #include <string>
+#include <memory>
 #include <ILinux.h>
 #include "IAddress.h"
 #include "ISocket.h"
@@ -33,15 +34,15 @@ namespace rcom {
 
         class BaseSocket {
         protected:
-                rpp::ILinux& linux_;
+                std::unique_ptr<rpp::ILinux> linux_;
                 int sockfd_;
                 
                 WaitStatus do_wait(double timeout);
                 
         public:
 
-                BaseSocket(rpp::ILinux& linux);
-                BaseSocket(rpp::ILinux& linux, int sockfd);
+                BaseSocket(std::unique_ptr<rpp::ILinux>& linux);
+                BaseSocket(std::unique_ptr<rpp::ILinux>& linux, int sockfd);
                 virtual ~BaseSocket();
                         
                 bool listen(IAddress& address);
