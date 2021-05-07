@@ -31,14 +31,16 @@
 
 namespace rcom {
 
-        BaseSocket::BaseSocket(rpp::ILinux& linux)
-                : linux_(linux), sockfd_(kInvalidSocket)
+        BaseSocket::BaseSocket(std::unique_ptr<rpp::ILinux>& linux)
+                : linux_(), sockfd_(kInvalidSocket)
         {
+                linux_ = std::move(linux);
         }
 
-        BaseSocket::BaseSocket(rpp::ILinux& linux, int sockfd)
-                : linux_(linux), sockfd_(sockfd)
+        BaseSocket::BaseSocket(std::unique_ptr<rpp::ILinux>& linux, int sockfd)
+                : linux_(), sockfd_(sockfd)
         {
+                linux_ = std::move(linux);
         }
 
         BaseSocket::~BaseSocket()
@@ -55,7 +57,7 @@ namespace rcom {
                         // Using MSG_NOSIGNAL to prevent SIGPIPE signals in
                         // case the client closes the connection before all
                         // the data is sent.
-                        ssize_t n = linux_.send(sockfd_, buffer + sent,
+                        ssize_t n = linux_->send(sockfd_, buffer + sent,
                                                 length - sent, MSG_NOSIGNAL);
                         
                         if (n < 0) {
@@ -83,7 +85,7 @@ namespace rcom {
 
                         size_t requested = length - received;
                         
-                        ssize_t n = linux_.recv(sockfd_, buffer + received, requested, 0);
+                        ssize_t n = linux_->recv(sockfd_, buffer + received, requested, 0);
                         
                         if (n < -1) {
                                 // Error
@@ -108,11 +110,11 @@ namespace rcom {
                 bool success = false;
                 socklen_t addrlen = sizeof(struct sockaddr_in);
                 struct sockaddr_in addr = address.get_sockaddr();
-                int sockfd = linux_.socket(AF_INET, SOCK_STREAM, 0);
+                int sockfd = linux_->socket(AF_INET, SOCK_STREAM, 0);
                 
                 if (sockfd != kInvalidSocket) {
                         
-                        int ret = linux_.connect(sockfd, (struct sockaddr *) &addr, addrlen);
+                        int ret = linux_->connect(sockfd, (struct sockaddr *) &addr, addrlen);
                         
                         if (ret == 0) {
                                 sockfd_ = sockfd;
@@ -120,7 +122,7 @@ namespace rcom {
 
                         } else {
                                 r_err("Socket::connect: failed to bind the socket");
-                                linux_.close(sockfd);
+                                linux_->close(sockfd);
                         }
                 } else {
                         r_err("Socket::connect: failed to create the socket");
@@ -136,13 +138,13 @@ namespace rcom {
                 struct sockaddr_in addr = address.get_sockaddr();
                 uint32_t socklen = sizeof(struct sockaddr_in);
 
-                sockfd_ = linux_.socket(AF_INET, SOCK_STREAM, 0);
+                sockfd_ = linux_->socket(AF_INET, SOCK_STREAM, 0);
                 if (sockfd_ != kInvalidSocket) {
                         
-                        ret = linux_.bind(sockfd_, (struct sockaddr *) &addr, socklen);
+                        ret = linux_->bind(sockfd_, (struct sockaddr *) &addr, socklen);
                         if (ret == 0) {
         
-                                ret = linux_.listen(sockfd_, 10);
+                                ret = linux_->listen(sockfd_, 10);
                                 if (ret == 0) {
                                         success = true;
                                         
@@ -174,7 +176,7 @@ namespace rcom {
                 WaitStatus wait_status = wait(timeout_in_seconds);
                 
                 if (wait_status == kWaitOK) {
-                        clientfd = linux_.accept(sockfd_, (struct sockaddr*) &addr, &addrlen);
+                        clientfd = linux_->accept(sockfd_, (struct sockaddr*) &addr, &addrlen);
                         if (clientfd < 0) {
                                 // Server socket is probably being closed
                                 // FIXME: is this true?
@@ -197,7 +199,7 @@ namespace rcom {
                 uint32_t socklen = sizeof(local_addr);
                 memset((char *) &local_addr, 0, socklen);
                 
-                linux_.getsockname(sockfd_, (struct sockaddr*) &local_addr, &socklen);
+                linux_->getsockname(sockfd_, (struct sockaddr*) &local_addr, &socklen);
                 
                 address.set(inet_ntoa(local_addr.sin_addr),
                             ntohs(local_addr.sin_port));
@@ -220,7 +222,7 @@ namespace rcom {
                 fds[0].fd = sockfd_;
                 fds[0].events = POLLIN;
                 
-                int pollrc = linux_.poll(fds, 1, timeout_ms);
+                int pollrc = linux_->poll(fds, 1, timeout_ms);
                 if (pollrc < 0) {
                         r_err("do_wait: poll error %d", errno);
                         
@@ -236,7 +238,7 @@ namespace rcom {
         
         void BaseSocket::set_nodelay(int value)
         {
-                linux_.setsockopt(sockfd_, IPPROTO_TCP, TCP_NODELAY,
+                linux_->setsockopt(sockfd_, IPPROTO_TCP, TCP_NODELAY,
                                  (char *) &value, sizeof(int));
         }        
 
@@ -245,13 +247,13 @@ namespace rcom {
                 ssize_t n;
                 char buf[512];
                 if (sockfd_ != kInvalidSocket) {
-                        linux_.shutdown(sockfd_, SHUT_RDWR);
+                        linux_->shutdown(sockfd_, SHUT_RDWR);
                         while (true) {
-                                n = linux_.recv(sockfd_, buf, 512, 0);
+                                n = linux_->recv(sockfd_, buf, 512, 0);
                                 if (n <= 0)
                                         break;
                         }
-                        linux_.close(sockfd_);
+                        linux_->close(sockfd_);
                         sockfd_ = kInvalidSocket;
                 }
         }

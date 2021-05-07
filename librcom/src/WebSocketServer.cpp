@@ -29,8 +29,8 @@
 namespace rcom {
         
         WebSocketServer::WebSocketServer(std::unique_ptr<IServerSocket>& server_socket,
-                                         ISocketFactory& factory,
-                                         IMessageListener& listener)
+                                         std::shared_ptr<ISocketFactory> factory,
+                                         std::shared_ptr<IMessageListener> listener)
                 : server_socket_(),
                   factory_(factory),
                   listener_(listener),
@@ -89,7 +89,7 @@ namespace rcom {
                 append(sockfd);
                 // // lock
                 // IWebSocket& websocket = append(sockfd);
-                // listener_.onconnect(*this, websocket);
+                // listener_->onconnect(*this, websocket);
                 // // unlock
         }
 
@@ -125,7 +125,7 @@ namespace rcom {
                     || status == kRecvBinary) {
                         MessageType type;
                         type = (status == kRecvText)? kTextMessage : kBinaryMessage;
-                        listener_.onmessage(*links_[index], message_, type);
+                        listener_->onmessage(*links_[index], message_, type);
                                                 
                 } else if (status == kRecvError) {
                         r_err("WebSocketServer::handle_new_messages: recv failed. "
@@ -163,7 +163,7 @@ namespace rcom {
 
         IWebSocket& WebSocketServer::append(int sockfd)
         {
-                links_.emplace_back(factory_.new_server_side_websocket(sockfd));
+                links_.emplace_back(factory_->new_server_side_websocket(sockfd));
                 return *links_.back();
         }
 
@@ -175,5 +175,10 @@ namespace rcom {
         size_t WebSocketServer::count_links()
         {
                 return links_.size();
+        }
+        
+        IWebSocket& WebSocketServer::get_link(size_t index)
+        {
+                return *links_[index];
         }
 }

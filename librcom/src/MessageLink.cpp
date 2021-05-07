@@ -31,9 +31,7 @@
 namespace rcom {
 
         MessageLink::MessageLink(const std::string& topic, double timeout)
-                : linux_(),
-                  clock_(),
-                  factory_(linux_, clock_),
+                : factory_(),
                   websocket_(),
                   topic_(topic),
                   recv_status_(kRecvText)
@@ -75,7 +73,7 @@ namespace rcom {
                 RegistryServer::get_address(registry_address);
                 std::unique_ptr<IWebSocket> registry_socket
                         = factory_.new_client_side_websocket(registry_address);
-                RegistryProxy registry(registry_socket, clock_);
+                RegistryProxy registry(registry_socket);
                 return registry.get(topic_, address, timeout);
         }
 
@@ -104,5 +102,10 @@ namespace rcom {
         bool MessageLink::send(rpp::MemBuffer& message, MessageType type)
         {
                 return websocket_->send(message, type);
+        }
+
+        bool MessageLink::is_connected()
+        {
+                return websocket_->is_connected();
         }
 }

@@ -27,7 +27,7 @@
 #include "IWebSocket.h"
 
 namespace rcom {
-        
+
         class IMessageListener
         {
         public:

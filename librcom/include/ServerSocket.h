@@ -38,7 +38,7 @@ namespace rcom {
 
         public:
                 
-                ServerSocket(rpp::ILinux& linux, IAddress& address);                
+                ServerSocket(std::unique_ptr<rpp::ILinux>& linux, IAddress& address);
                 ~ServerSocket() override = default;
                 
                 int accept(double timeout_in_seconds) override;

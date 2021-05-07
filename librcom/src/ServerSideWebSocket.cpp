@@ -27,9 +27,8 @@
 namespace rcom {
         
         ServerSideWebSocket::ServerSideWebSocket(std::unique_ptr<ISocket>& socket,
-                                                 IRequestParser& parser,
-                                                 rpp::IClock& clock)
-                : WebSocket(socket, clock)
+                                                 IRequestParser& parser)
+                : WebSocket(socket)
         {
                 if (!handshake(parser)) {
                         r_err("ServerSideWebSocket::handhake failed");

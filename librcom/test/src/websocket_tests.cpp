@@ -1,5 +1,6 @@
 #include <iostream>
 #include <r.h>
+#include <ClockAccessor.h>
 #include "gtest/gtest.h"
 
 #include "../mocks/Socket.mock.h"
@@ -38,7 +39,7 @@ public:
         MockRequest mock_request_;
         MockResponseParser mock_response_parser_;
         MockResponse mock_response_;
-        MockClock mock_clock_;
+        std::shared_ptr<MockClock> mock_clock_;
         MemBuffer input_data_;
         size_t input_data_offset_;
         vector<MemBuffer> output_data_;
@@ -132,10 +133,16 @@ protected:
                 response_accept_header_value_ = "ICX+Yqv66kxgM0FcWaLWlFLwTAI=";
                 
                 for (int i = 0; i < 64; i++)
-                        memcpy(&fill_buffer_[i*16], "0123456789abcdef", 16);                
+                        memcpy(&fill_buffer_[i*16], "0123456789abcdef", 16);
+
+                mock_clock_ = std::make_shared<MockClock>();
+                std::shared_ptr<IClock> gClock = mock_clock_;
+                rpp::ClockAccessor::SetInstance(gClock);
         }
 
-        ~websocket_tests() override = default;
+        ~websocket_tests() override {
+                rpp::ClockAccessor::SetInstance(nullptr);
+        }
 
         void SetUp() override {
                 RESET_FAKE(r_err);
@@ -178,7 +185,7 @@ protected:
                         .WillRepeatedly(ReturnRef(mock_request_));
                 
                 // clock
-                EXPECT_CALL(mock_clock_, time())
+                EXPECT_CALL(*mock_clock_, time())
                         .WillRepeatedly(Return(0.0));
                 
                 // request
@@ -192,7 +199,7 @@ protected:
                 
                 std::unique_ptr<ISocket> socket = std::move(mock_socket);
 
-                websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_, mock_clock_);
+                websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_);
         }
 
         
@@ -289,7 +296,7 @@ TEST_F(websocket_tests, new_server_side_websocket_throws_error_on_failed_parse)
         
         try {
                 std::unique_ptr<ServerSideWebSocket> websocket
-                        = make_unique<ServerSideWebSocket>(socket, mock_request_parser_, mock_clock_);
+                        = make_unique<ServerSideWebSocket>(socket, mock_request_parser_);
 
                 FAIL() << "Expected std::runtime_error";
                 
@@ -326,7 +333,7 @@ TEST_F(websocket_tests, new_server_side_websocket_throws_error_if_not_websocket)
         
         try {
                 std::unique_ptr<ServerSideWebSocket> websocket
-                        = make_unique<ServerSideWebSocket>(socket, mock_request_parser_, mock_clock_);
+                        = make_unique<ServerSideWebSocket>(socket, mock_request_parser_);
 
                 FAIL() << "Expected std::runtime_error";
                 
@@ -372,7 +379,7 @@ TEST_F(websocket_tests, new_server_side_websocket_throws_error_if_send_fails)
         
         try {
                 std::unique_ptr<ServerSideWebSocket> websocket
-                        = make_unique<ServerSideWebSocket>(socket, mock_request_parser_, mock_clock_);
+                        = make_unique<ServerSideWebSocket>(socket, mock_request_parser_);
 
                 FAIL() << "Expected std::runtime_error";
                 
@@ -425,7 +432,7 @@ TEST_F(websocket_tests, new_server_side_websocket_throws_error_if_read_fails)
         
         try {
                 std::unique_ptr<ServerSideWebSocket> websocket
-                        = make_unique<ServerSideWebSocket>(socket, mock_request_parser_, mock_clock_);
+                        = make_unique<ServerSideWebSocket>(socket, mock_request_parser_);
 
                 FAIL() << "Expected std::runtime_error";
                 
@@ -469,8 +476,8 @@ TEST_F(websocket_tests, successfull_creation_and_delete_of_client_side_websocket
         
         EXPECT_CALL(*mock_socket, close());
                 
-        EXPECT_CALL(mock_clock_, sleep(_));
-        EXPECT_CALL(mock_clock_, time())
+        EXPECT_CALL(*mock_clock_, sleep(_));
+        EXPECT_CALL(*mock_clock_, time())
                 .WillRepeatedly(Return(0.0));
 
         r_random_fake.custom_fake = websocket_tests::fake_r_random;
@@ -482,7 +489,7 @@ TEST_F(websocket_tests, successfull_creation_and_delete_of_client_side_websocket
         
         // Act
         std::unique_ptr<ClientSideWebSocket> websocket
-                = make_unique<ClientSideWebSocket>(socket, mock_response_parser_, remote_address, mock_clock_);
+                = make_unique<ClientSideWebSocket>(socket, mock_response_parser_, remote_address);
         websocket->close(kCloseGoingAway);
         
         // Assert
@@ -518,7 +525,7 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_send_fails)
                 .WillOnce(Return(false));
 
         EXPECT_CALL(*mock_socket, close());
-        EXPECT_CALL(mock_clock_, sleep(_));
+        EXPECT_CALL(*mock_clock_, sleep(_));
         
         r_random_fake.custom_fake = websocket_tests::fake_r_random;
                                                            
@@ -529,7 +536,7 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_send_fails)
         try {
                 std::unique_ptr<ClientSideWebSocket> websocket
                         = make_unique<ClientSideWebSocket>(socket, mock_response_parser_,
-                                                           remote_address, mock_clock_);
+                                                           remote_address);
 
                 FAIL() << "Expected std::runtime_error";
                 
@@ -567,7 +574,7 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_on_failed_parse)
         try {
                 std::unique_ptr<ClientSideWebSocket> websocket
                         = make_unique<ClientSideWebSocket>(socket, mock_response_parser_,
-                                                           remote_address, mock_clock_);
+                                                           remote_address);
 
                 FAIL() << "Expected std::runtime_error";
                 
@@ -611,7 +618,7 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_not_websocket)
         try {
                 std::unique_ptr<ClientSideWebSocket> websocket
                         = make_unique<ClientSideWebSocket>(socket, mock_response_parser_,
-                                                           remote_address, mock_clock_);
+                                                           remote_address);
 
                 FAIL() << "Expected std::runtime_error";
                 

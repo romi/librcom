@@ -25,7 +25,6 @@
 #define _LIBRCOM_MESSAGE_LINK_H_
 
 #include <memory>
-#include <Linux.h>
 #include "IMessageLink.h"
 #include "Clock.h"
 #include "SocketFactory.h"
@@ -38,9 +37,6 @@ namespace rcom {
         {
         protected:
 
-                rpp::Linux linux_;
-                //TBD: Not testable use ClockAccessor.
-                rpp::Clock clock_;
                 SocketFactory factory_;
                 std::unique_ptr<IWebSocket> websocket_;
                 std::string topic_;
@@ -60,6 +56,7 @@ namespace rcom {
                 bool send(rpp::MemBuffer& message,
                           MessageType type = kTextMessage) override;
                 RecvStatus recv_status() override;
+                bool is_connected() override;
         };
 }
 

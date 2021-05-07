@@ -26,7 +26,6 @@
 
 #include "WebSocket.h"
 #include "IResponseParser.h"
-#include <IClock.h>
 
 namespace rcom {
 
@@ -61,8 +60,7 @@ namespace rcom {
                 
                 ClientSideWebSocket(std::unique_ptr<ISocket>& socket,
                                     IResponseParser& parser,
-                                    IAddress& remote_address,
-                                    rpp::IClock& clock);
+                                    IAddress& remote_address);
                 
                 virtual ~ClientSideWebSocket() override;
         };

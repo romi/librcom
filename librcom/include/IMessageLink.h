@@ -42,6 +42,7 @@ namespace rcom {
                                   MessageType type = kTextMessage) = 0;
 
                 virtual RecvStatus recv_status() = 0;
+                virtual bool is_connected() = 0;
         };
 }
 

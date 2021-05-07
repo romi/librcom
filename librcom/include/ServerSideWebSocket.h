@@ -55,8 +55,7 @@ namespace rcom {
         public:
                 
                 ServerSideWebSocket(std::unique_ptr<ISocket>& socket,
-                                    IRequestParser& parser,
-                                    rpp::IClock& clock);
+                                    IRequestParser& parser);
                 
                 virtual ~ServerSideWebSocket() override;
         };

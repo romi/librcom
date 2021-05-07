@@ -20,8 +20,10 @@ public:
         
 protected:
 
-        MockSocketFactory factory_;
-        MockMessageListener listener_;
+        std::shared_ptr<MockSocketFactory> mock_factory_;
+        std::shared_ptr<rcom::ISocketFactory> factory_;
+        std::shared_ptr<MockMessageListener> mock_listener_;
+        std::shared_ptr<rcom::IMessageListener> listener_;
         rpp::MemBuffer read_data_;
         size_t current_read_char_;
 
@@ -32,7 +34,16 @@ protected:
                                                                          0x00, 0x00, 0x00, 0x00,
                                                                          0x03, 0xe9 };
         
-        websocketserver_tests() : read_data_(), current_read_char_(0) {}
+        websocketserver_tests()
+                : mock_factory_(),
+                  factory_(),
+                  read_data_(),
+                  current_read_char_(0) {
+                mock_factory_ = std::make_shared<MockSocketFactory>();
+                factory_ = mock_factory_;
+                mock_listener_ = std::make_shared<MockMessageListener>();
+                listener_ = mock_listener_;
+        }
         
         ~websocketserver_tests() override = default;
 
@@ -97,7 +108,7 @@ TEST_F(websocketserver_tests, accepts_new_connections_and_calls_onconnect)
                 .WillRepeatedly(Return(kRecvTimeOut));
         set_read_data(client_1001_close_handshake, sizeof(client_1001_close_handshake)); 
 
-        EXPECT_CALL(factory_, new_server_side_websocket(_))
+        EXPECT_CALL(*mock_factory_, new_server_side_websocket(_))
                 .WillOnce(Return(ByMove(unique_ptr<IWebSocket>(websocket))));
 
         // Act
@@ -126,7 +137,7 @@ TEST_F(websocketserver_tests, close_message_removes_link)
         EXPECT_CALL(*websocket, recv(_,_))
                 .WillOnce(Return(kRecvClosed));
 
-        EXPECT_CALL(factory_, new_server_side_websocket(_))
+        EXPECT_CALL(*mock_factory_, new_server_side_websocket(_))
                 .WillOnce(Return(ByMove(unique_ptr<IWebSocket>(websocket))));
 
         // Act
@@ -156,7 +167,7 @@ TEST_F(websocketserver_tests, recv_error_closes_and_removes_link)
                 .WillOnce(Return(kRecvError));
         EXPECT_CALL(*websocket, close(_));
 
-        EXPECT_CALL(factory_, new_server_side_websocket(_))
+        EXPECT_CALL(*mock_factory_, new_server_side_websocket(_))
                 .WillOnce(Return(ByMove(unique_ptr<IWebSocket>(websocket))));
         
         // Act
@@ -183,7 +194,7 @@ TEST_F(websocketserver_tests, webserver_logs_error_when_factory_throws_exception
                 .WillRepeatedly(Return(-1));
         unique_ptr<IServerSocket> i_server_socket(server_socket);
 
-        EXPECT_CALL(factory_, new_server_side_websocket(_))
+        EXPECT_CALL(*mock_factory_, new_server_side_websocket(_))
                 .WillOnce(ThrowRuntimeException());        
 
         // Act
@@ -215,7 +226,7 @@ TEST_F(websocketserver_tests, failed_send_removes_link)
         EXPECT_CALL(*websocket, close(_))
                 .WillRepeatedly(Invoke(this, &websocketserver_tests::debug_close));
 
-        EXPECT_CALL(factory_, new_server_side_websocket(_))
+        EXPECT_CALL(*mock_factory_, new_server_side_websocket(_))
                 .WillOnce(Return(ByMove(unique_ptr<IWebSocket>(websocket))));
         
         rpp::MemBuffer message;

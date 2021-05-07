@@ -28,12 +28,12 @@
 
 namespace rcom {
 
-        Socket::Socket(rpp::ILinux& linux, int sockfd)
+        Socket::Socket(std::unique_ptr<rpp::ILinux>& linux, int sockfd)
                 : socket_(linux, sockfd)
         {
         }
 
-        Socket::Socket(rpp::ILinux& linux, IAddress& address)
+        Socket::Socket(std::unique_ptr<rpp::ILinux>& linux, IAddress& address)
                 : socket_(linux)
         {
                 if (!socket_.connect(address)) {

@@ -27,7 +27,6 @@
 #include <memory>
 #include "ISocket.h"
 #include "IWebSocket.h"
-#include "IClock.h"
 
 #include <endian.h>
 #define htonll(_x) htobe64(_x)
@@ -88,7 +87,6 @@ namespace rcom {
         protected:
                 
                 std::unique_ptr<ISocket> socket_;
-                rpp::IClock& clock_;
 
                 // Used by send()
                 rpp::MemBuffer output_message_buffer_;
@@ -103,7 +101,7 @@ namespace rcom {
                 
         public:
                 
-                WebSocket(std::unique_ptr<ISocket>& socket, rpp::IClock& clock);
+                WebSocket(std::unique_ptr<ISocket>& socket);
                 virtual ~WebSocket() override;
 
                 RecvStatus recv(rpp::MemBuffer& message, double timeout = 0.0);

@@ -29,7 +29,6 @@
 #include <JsonCpp.h>
 #include "IRegistry.h"
 #include "ISocketFactory.h"
-#include "IClock.h"
 
 namespace rcom {
 
@@ -37,7 +36,6 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IWebSocket> websocket_;
-                rpp::IClock& clock_;
                         
                 void make_register_request(rpp::MemBuffer& request,
                                            const std::string& topic,
@@ -57,7 +55,7 @@ namespace rcom {
                 bool get_address(JsonCpp& json, std::string& address_string);
 
         public:
-                RegistryProxy(std::unique_ptr<IWebSocket>& websocket, rpp::IClock& clock);
+                RegistryProxy(std::unique_ptr<IWebSocket>& websocket);
                 ~RegistryProxy() override;
 
                 bool set(const std::string& topic, IAddress& address) override; 

@@ -29,7 +29,7 @@
 
 namespace rcom {
         
-        ServerSocket::ServerSocket(rpp::ILinux& linux, IAddress& address)
+        ServerSocket::ServerSocket(std::unique_ptr<rpp::ILinux>& linux, IAddress& address)
                 : socket_(linux)
         {
                 if (!socket_.listen(address))

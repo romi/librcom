@@ -41,6 +41,7 @@ namespace rcom {
                                        MessageType type = kTextMessage) = 0;
                 virtual void get_address(IAddress& address) = 0;
                 virtual size_t count_links() = 0;
+                virtual IWebSocket& get_link(size_t index) = 0;
         };
 }
 

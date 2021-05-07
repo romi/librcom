@@ -23,6 +23,7 @@
  */
 #include <stdexcept>
 #include <r.h>
+#include <ClockAccessor.h>
 #include "ClientSideWebSocket.h"
 #include "util.h"
 
@@ -30,9 +31,8 @@ namespace rcom {
 
         ClientSideWebSocket::ClientSideWebSocket(std::unique_ptr<ISocket>& socket,
                                                  IResponseParser& parser,
-                                                 IAddress& remote_address,
-                                                 rpp::IClock& clock)
-                : WebSocket(socket, clock)
+                                                 IAddress& remote_address)
+                : WebSocket(socket)
         {
                 if (!handshake(parser, remote_address)) {
                         r_err("ClientSideWebSocket::handhake failed");
@@ -133,7 +133,7 @@ namespace rcom {
                    most normal cases, SHOULD be closed first by the
                    server, so that it holds the TIME_WAIT state and
                    not the client" */
-                clock_.sleep(0.5);        
+                rpp::ClockAccessor::GetInstance()->sleep(0.5);        
                 socket_->close();
         }
 

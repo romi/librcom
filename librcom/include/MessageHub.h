@@ -27,20 +27,15 @@
 #include <memory>
 #include <Linux.h>
 #include "SocketFactory.h"
-#include "Clock.h"
 #include "IMessageHub.h"
 #include "IWebSocketServer.h"
 #include "IMessageListener.h"
 
 namespace rcom {
 
-        class MessageHub : public IMessageHub, public IMessageListener
+        class MessageHub : public IMessageHub
         {
         protected:
-                rpp::Linux linux_;
-                // TBD: Not testable. Needs to use ClockAccessor.
-                rpp::Clock clock_;
-                SocketFactory factory_;
                 std::unique_ptr<IWebSocketServer> server_;
                 std::string topic_;
                 
@@ -49,7 +44,7 @@ namespace rcom {
         public:
                 
                 MessageHub(const std::string& topic,
-                           IMessageListener& listener);
+                           std::shared_ptr<IMessageListener> listener);
 
                 /* This constructor is used for publisher-subscriber
                  * patterns in which the message hub does not expect
@@ -62,10 +57,6 @@ namespace rcom {
                 void broadcast(rpp::MemBuffer& message,
                                IWebSocket* exclude = nullptr,
                                MessageType type = kTextMessage) override;
-
-                void onmessage(IWebSocket& link,
-                               rpp::MemBuffer& message,
-                               MessageType type) override;
         };
 }
 

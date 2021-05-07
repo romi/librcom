@@ -26,18 +26,13 @@
 
 #include <ILinux.h>
 #include "ISocketFactory.h"
-#include "Clock.h"
 
 namespace rcom {
         
         class SocketFactory : public ISocketFactory
         {
-        protected:
-                rpp::ILinux& linux_;
-                rpp::IClock& clock_;
-                
         public:
-                SocketFactory(rpp::ILinux& linux, rpp::IClock& clock);
+                SocketFactory();
                 virtual ~SocketFactory() override = default;
 
                 std::unique_ptr<IWebSocket>

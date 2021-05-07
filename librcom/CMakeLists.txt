@@ -9,6 +9,7 @@ set(SOURCES
     include/Address.h
     include/BaseSocket.h
     include/ClientSideWebSocket.h
+    include/DummyMessageListener.h
     include/HttpParser.h
     include/IAddress.h
     include/IHttpParserListener.h

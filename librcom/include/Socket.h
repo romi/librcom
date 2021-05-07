@@ -40,8 +40,8 @@ namespace rcom {
 
         public:
 
-                Socket(rpp::ILinux& linux, int sockfd);
-                Socket(rpp::ILinux& linux, IAddress& address);
+                Socket(std::unique_ptr<rpp::ILinux>& linux, int sockfd);
+                Socket(std::unique_ptr<rpp::ILinux>& linux, IAddress& address);
                 ~Socket() override = default;
                 
                 void close() override;

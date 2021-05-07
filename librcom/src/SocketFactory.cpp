@@ -22,6 +22,7 @@
 
  */
 #include <memory>
+#include <Linux.h>
 #include "SocketFactory.h"
 #include "Socket.h"
 #include "ServerSocket.h"
@@ -32,12 +33,10 @@
 #include "RequestParser.h"
 #include "ServerSideWebSocket.h"
 #include "ClientSideWebSocket.h"
-//#include "MessageLink.h"
 
 namespace rcom {
         
-        SocketFactory::SocketFactory(rpp::ILinux& linux, rpp::IClock& clock)
-                : linux_(linux), clock_(clock)
+        SocketFactory::SocketFactory()
         {
         }
 
@@ -46,8 +45,9 @@ namespace rcom {
         {
                 Request request;
                 RequestParser parser(request);
-                std::unique_ptr<ISocket> socket = std::make_unique<Socket>(linux_, sockfd);
-                return std::make_unique<ServerSideWebSocket>(socket, parser, clock_);
+                std::unique_ptr<rpp::ILinux> linux = std::make_unique<rpp::Linux>();
+                std::unique_ptr<ISocket> socket = std::make_unique<Socket>(linux, sockfd);
+                return std::make_unique<ServerSideWebSocket>(socket, parser);
         }
         
         std::unique_ptr<IWebSocket>
@@ -55,8 +55,9 @@ namespace rcom {
         {
                 Response response;
                 ResponseParser parser(response);
+                std::unique_ptr<rpp::ILinux> linux = std::make_unique<rpp::Linux>();
                 std::unique_ptr<ISocket> socket
-                        = std::make_unique<Socket>(linux_, remote_address);
-                return std::make_unique<ClientSideWebSocket>(socket, parser, remote_address, clock_);
+                        = std::make_unique<Socket>(linux, remote_address);
+                return std::make_unique<ClientSideWebSocket>(socket, parser, remote_address);
         }
 }

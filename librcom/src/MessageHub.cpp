@@ -30,16 +30,14 @@
 #include "RegistryServer.h"
 #include "RegistryProxy.h"
 #include "ServerSocket.h"
-#include "Clock.h"
 #include "util.h"
+#include "DummyMessageListener.h"
 
 namespace rcom {
         
-        MessageHub::MessageHub(const std::string& topic, IMessageListener& listener)
-                : linux_(),
-                  clock_(),
-                  factory_(linux_, clock_),
-                  server_(),
+        MessageHub::MessageHub(const std::string& topic,
+                               std::shared_ptr<IMessageListener> listener)
+                : server_(),
                   topic_(topic)
         {
                 if (!is_valid_topic(topic)) {
@@ -47,11 +45,20 @@ namespace rcom {
                         throw std::runtime_error("MessageHub: Invalid topic");
                 }
 
-                Address address(0);                
-                std::unique_ptr<IServerSocket> server_socket
-                        = std::make_unique<ServerSocket>(linux_, address);
+                Address address(0);
                 
-                server_ = std::make_unique<WebSocketServer>(server_socket, factory_, listener);
+                std::unique_ptr<rpp::ILinux> linux
+                        = std::make_unique<rpp::Linux>();
+                
+                std::unique_ptr<IServerSocket> server_socket
+                        = std::make_unique<ServerSocket>(linux, address);
+                
+                std::shared_ptr<ISocketFactory> factory
+                        = std::make_shared<SocketFactory>();
+                
+                server_ = std::make_unique<WebSocketServer>(server_socket,
+                                                            factory,
+                                                            listener);
                 
                 if (!register_topic()) {
                         r_err("MessageHub: Registration failed: topic '%s'", topic.c_str());
@@ -60,7 +67,7 @@ namespace rcom {
         }
         
         MessageHub::MessageHub(const std::string& topic)
-                : MessageHub(topic, *this)
+                : MessageHub(topic, std::make_shared<DummyMessageListener>())
         {
         }
         
@@ -78,11 +85,12 @@ namespace rcom {
                 Address registry_address;                
                 RegistryServer::get_address(registry_address);
 
+                SocketFactory factory;
+                
                 std::unique_ptr<IWebSocket> registry_socket
-                        = factory_.new_client_side_websocket(registry_address);
+                        = factory.new_client_side_websocket(registry_address);
 
-
-                RegistryProxy registry(registry_socket, clock_);
+                RegistryProxy registry(registry_socket);
                 
                 Address my_address;
                 server_->get_address(my_address);
@@ -100,15 +108,5 @@ namespace rcom {
                                    MessageType type)
         {
                 server_->broadcast(message, exclude, type);
-        }
-
-        void MessageHub::onmessage(IWebSocket& link,
-                                   rpp::MemBuffer& message,
-                                   MessageType type)
-        {
-                (void) link;
-                (void) message;
-                (void) type;
-                r_warn("MessageHub::onmessage: Received unhandled message");
         }
 }

@@ -23,14 +23,13 @@
  */
 #include <algorithm>
 #include <r.h>
+#include <ClockAccessor.h>
 #include "RegistryProxy.h"
-#include "IClock.h"
 
 namespace rcom {
 
-        RegistryProxy::RegistryProxy(std::unique_ptr<IWebSocket>& websocket,
-                                     rpp::IClock& clock)
-                : websocket_(), clock_(clock)
+        RegistryProxy::RegistryProxy(std::unique_ptr<IWebSocket>& websocket)
+                : websocket_()
         {
                 websocket_ = std::move(websocket);
         }
@@ -65,7 +64,7 @@ namespace rcom {
                 bool success = false;
                 bool timed_out = false;
                 rpp::MemBuffer request;
-                double start_time = clock_.time();
+                double start_time = rpp::ClockAccessor::GetInstance()->time();
 
                 make_get_request(request, topic);
                 
@@ -74,12 +73,13 @@ namespace rcom {
                         success = (send_request(request)
                                    && read_address(address));
                         
-                        double time_passed = clock_.time() - start_time;
+                        double now = rpp::ClockAccessor::GetInstance()->time();
+                        double time_passed = now - start_time;
                         timed_out = (time_passed >= timeout);
                         
                         if (!success && !timeout) {
                                 double duration = std::min(0.5, timeout - time_passed);
-                                clock_.sleep(duration);
+                                rpp::ClockAccessor::GetInstance()->sleep(duration);
                         }
                 }
                 return success;

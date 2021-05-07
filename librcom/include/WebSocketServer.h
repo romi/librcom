@@ -37,8 +37,8 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IServerSocket> server_socket_;
-                ISocketFactory& factory_;
-                IMessageListener& listener_;
+                std::shared_ptr<ISocketFactory> factory_;
+                std::shared_ptr<IMessageListener> listener_;
                 std::vector<std::unique_ptr<IWebSocket>> links_;
                 rpp::MemBuffer message_;
                 std::vector<size_t> to_close_;
@@ -58,8 +58,8 @@ namespace rcom {
                 
         public:
                 WebSocketServer(std::unique_ptr<IServerSocket>& server_socket,
-                                ISocketFactory& factory,
-                                IMessageListener& listener);
+                                std::shared_ptr<ISocketFactory> factory,
+                                std::shared_ptr<IMessageListener> listener);
                 virtual ~WebSocketServer();
 
                 void handle_events() override;
@@ -68,6 +68,7 @@ namespace rcom {
                                MessageType type = kTextMessage) override;
                 void get_address(IAddress& address) override;
                 size_t count_links() override;
+                IWebSocket& get_link(size_t index) override;
         };
 }
 
