@@ -42,6 +42,6 @@ if (BUILD_COVERAGE)
         SETUP_TARGET_FOR_COVERAGE_LCOV(
                             NAME librcom_unit_tests_coverage
                             EXECUTABLE ctest -V ${n_cores} -R "librcom"
-                            EXCLUDE "src/rcom-registry.cpp"
+                            EXCLUDE "src/rcom-registry.cpp" "include/*" "examples/*"
                             DEPENDENCIES librcom_unit_tests)
 endif()
