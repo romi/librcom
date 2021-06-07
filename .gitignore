@@ -4,3 +4,4 @@ thirdparty
 libr
 examples/*/*_main.c
 *__pycache__*
+*~
