@@ -91,8 +91,9 @@ if (BUILD_COVERAGE AND BUILD_TESTS)
     set( COVERAGE_EXCLUDES
             "/usr/*"
             "${CMAKE_SOURCE_DIR}/thirdparty/*"
-            "*test/*"
-            "*include/*")
+            "${CMAKE_SOURCE_DIR}/libr/*"
+            "*test/*")
+
     append_coverage_compiler_flags()
 
 endif()
