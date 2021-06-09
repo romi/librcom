@@ -81,7 +81,7 @@ int main()
                 
                 while (!quit) {
                         server.handle_events();
-                        rpp::ClockAccessor::GetInstance()->sleep(0.050);
+                        rpp::ClockAccessor::GetInstance()->sleep(0.020);
                 }
                 
         } catch (JSONError& je) {
