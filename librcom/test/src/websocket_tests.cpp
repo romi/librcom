@@ -473,10 +473,12 @@ TEST_F(websocket_tests, successfull_creation_and_delete_of_client_side_websocket
         EXPECT_CALL(*mock_socket, read(_,_))
                 .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_input),
                                       Return(true)));
+
+        EXPECT_CALL(*mock_socket, is_endpoint_connected())
+                .WillOnce(Return(false));
         
         EXPECT_CALL(*mock_socket, close());
-                
-        EXPECT_CALL(*mock_clock_, sleep(_));
+
         EXPECT_CALL(*mock_clock_, time())
                 .WillRepeatedly(Return(0.0));
 
@@ -515,6 +517,78 @@ TEST_F(websocket_tests, successfull_creation_and_delete_of_client_side_websocket
                          sizeof(client_1001_close_handshake)), 0);
 }
 
+TEST_F(websocket_tests, when_endpoint_connected_close_connection_waits_for_disconnected_endpoint)
+{
+    // Arrange
+
+    std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
+
+    EXPECT_CALL(mock_response_parser_, parse(_))
+            .WillOnce(Return(true))
+            .RetiresOnSaturation();
+
+    EXPECT_CALL(mock_response_parser_, response())
+            .WillRepeatedly(ReturnRef(mock_response_));
+
+    EXPECT_CALL(mock_response_, is_websocket(_))
+            .WillRepeatedly(Return(true));
+
+    EXPECT_CALL(*mock_socket, send(_))
+            .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_output),
+                                  Return(true)));
+
+    EXPECT_CALL(*mock_socket, wait(_))
+            .WillRepeatedly(Return(WaitStatus::kWaitOK));
+
+    EXPECT_CALL(*mock_socket, read(_,_))
+            .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_input),
+                                  Return(true)));
+
+    EXPECT_CALL(*mock_socket, is_endpoint_connected())
+            .WillOnce(Return(true))
+            .WillOnce(Return(false));
+
+    EXPECT_CALL(*mock_socket, close());
+
+    EXPECT_CALL(*mock_clock_, time())
+            .WillRepeatedly(Return(0.0));
+
+    r_random_fake.custom_fake = websocket_tests::fake_r_random;
+
+    input_append_server_1001_close_handshake();
+
+    std::unique_ptr<ISocket> socket = std::move(mock_socket);
+    Address remote_address;
+
+    // Act
+    std::unique_ptr<ClientSideWebSocket> websocket
+            = make_unique<ClientSideWebSocket>(socket, mock_response_parser_, remote_address);
+    websocket->close(kCloseGoingAway);
+
+    // Assert
+
+    ASSERT_EQ(output_data_.size(), 2);
+
+    // HTTP handshake
+    ASSERT_EQ(output_data_[0].tostring()
+                      .find("GET / HTTP/1.1"), 0);
+    ASSERT_NE(output_data_[0].tostring().find("Connection: Upgrade"),
+              std::string::npos);
+    ASSERT_NE(output_data_[0].tostring().find("Upgrade: websocket"),
+              std::string::npos);
+    ASSERT_NE(output_data_[0].tostring().find("Sec-WebSocket-Version: 13"),
+              std::string::npos);
+    ASSERT_NE(output_data_[0].tostring().find("Sec-WebSocket-Key"),
+              std::string::npos);
+
+    // Close message
+    ASSERT_EQ(output_data_[1].size(), sizeof(client_1001_close_handshake));
+    ASSERT_EQ(memcmp(output_data_[1].data().data(),
+                     client_1001_close_handshake,
+                     sizeof(client_1001_close_handshake)), 0);
+}
+
+
 TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_send_fails)
 {
         // Arrange
@@ -524,8 +598,11 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_send_fails)
         EXPECT_CALL(*mock_socket, send(_))
                 .WillOnce(Return(false));
 
+        EXPECT_CALL(*mock_socket, is_endpoint_connected())
+                .WillOnce(Return(false));
+
         EXPECT_CALL(*mock_socket, close());
-        EXPECT_CALL(*mock_clock_, sleep(_));
+        EXPECT_CALL(*mock_clock_, time());
         
         r_random_fake.custom_fake = websocket_tests::fake_r_random;
                                                            

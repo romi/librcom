@@ -54,7 +54,7 @@ namespace rcom {
                 void close();
                 
                 bool is_connected() const;
-                bool is_endpoint_connected();
+                bool is_endpoint_connected() const;
                 void get_address(IAddress& address);
                 void set_nodelay(int value);
         };

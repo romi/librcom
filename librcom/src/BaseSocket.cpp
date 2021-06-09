@@ -193,7 +193,7 @@ namespace rcom {
                 return (sockfd_ != kInvalidSocket);
         }
 
-        bool BaseSocket::is_endpoint_connected() {
+        bool BaseSocket::is_endpoint_connected() const {
             char buffer[32];
             bool connected = true;
             // if recv returns zero, that means the connection has been closed:
