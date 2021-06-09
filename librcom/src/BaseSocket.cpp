@@ -21,7 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include <sys/select.h>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -168,7 +168,7 @@ namespace rcom {
         int BaseSocket::accept(double timeout_in_seconds)
         {
                 uint32_t addrlen = sizeof(struct sockaddr_in);
-                struct sockaddr_in addr;
+                struct sockaddr_in addr{};
                 int clientfd = kInvalidSocket;
                 
                 // The code waits for incoming connections for one
@@ -188,14 +188,24 @@ namespace rcom {
                 return clientfd;
         }
 
-        bool BaseSocket::is_connected()
+        bool BaseSocket::is_connected() const
         {
                 return (sockfd_ != kInvalidSocket);
         }
 
+        bool BaseSocket::is_endpoint_connected() {
+            char buffer[32];
+            bool connected = true;
+            // if recv returns zero, that means the connection has been closed:
+            if (recv(sockfd_, buffer, sizeof(buffer), MSG_PEEK | MSG_DONTWAIT) == 0)
+                connected = false;
+//            r_debug("BaseSocket::is_endpoint_connected() socketfd = %d = %s", sockfd_, (connected ? "true" : "false"));
+            return connected;
+        }
+
         void BaseSocket::get_address(IAddress& address)
         {
-                struct sockaddr_in local_addr;
+                struct sockaddr_in local_addr{};
                 uint32_t socklen = sizeof(local_addr);
                 memset((char *) &local_addr, 0, socklen);
                 

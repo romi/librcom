@@ -9,6 +9,7 @@ class MockSocket : public rcom::ISocket
 public:
         MOCK_METHOD(void, close, (), (override));
         MOCK_METHOD(bool, is_connected, (), (override));
+        MOCK_METHOD(bool, is_endpoint_connected, (), (override));
         MOCK_METHOD(bool, send, (rpp::MemBuffer& buffer), (override));
         MOCK_METHOD(bool, send, (const uint8_t *buffer, size_t length), (override));
         MOCK_METHOD(bool, read, (uint8_t *buffer, size_t length), (override));

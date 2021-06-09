@@ -170,7 +170,7 @@ namespace rcom {
 
         void RegistryServer::send_fail(IWebSocket& websocket, const std::string& message)
         {
-                r_warn("RegistryServer: Failure: %s: %s", message.c_str());
+                r_warn("RegistryServer: Failure: %s", message.c_str());
                 response_.clear();
                 response_.printf("{\"success\":false, \"message\":\"%s\"}",
                                  message.c_str());

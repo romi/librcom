@@ -133,7 +133,19 @@ namespace rcom {
                    most normal cases, SHOULD be closed first by the
                    server, so that it holds the TIME_WAIT state and
                    not the client" */
-                rpp::ClockAccessor::GetInstance()->sleep(0.5);        
+                double timeout = 0.5;
+                bool timed_out = false;
+                double start_time = rpp::ClockAccessor::GetInstance()->time();
+                while (socket_->is_endpoint_connected() && !timed_out) {
+                    double now = rpp::ClockAccessor::GetInstance()->time();
+                    double time_passed = now - start_time;
+                    timed_out = (time_passed >= timeout);
+
+                    if (!timed_out) {
+                        double duration = std::min(0.1, timeout - time_passed);
+                        rpp::ClockAccessor::GetInstance()->sleep(duration);
+                    }
+                }
                 socket_->close();
         }
 

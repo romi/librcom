@@ -48,7 +48,11 @@ namespace rcom {
         {
                 return socket_.is_connected();
         }
-                          
+
+        bool Socket::is_endpoint_connected() {
+            return socket_.is_endpoint_connected();
+        }
+
         void Socket::close()
         {
                 socket_.close();

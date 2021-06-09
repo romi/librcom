@@ -61,6 +61,7 @@ namespace rcom {
         {
                 handle_new_connections();
                 handle_new_messages();
+                remove_closed_links();
         }
 
         void WebSocketServer::handle_new_connections()
@@ -100,7 +101,6 @@ namespace rcom {
                                 handle_new_messages(i);
                         }
                 }
-                remove_closed_links();
         }
 
         void WebSocketServer::remove_closed_links()
@@ -109,6 +109,8 @@ namespace rcom {
                 links_.erase(std::remove_if(links_.begin(), 
                                             links_.end(),
                                             [](std::unique_ptr<IWebSocket> const& ws) {
+//                                                    if (!ws->is_connected())
+//                                                        r_info("remove_closed_links::removing ws");
                                                     return !ws->is_connected();
                                             }), 
                              links_.end()); 
@@ -133,7 +135,7 @@ namespace rcom {
                         close(index, kCloseInternalError);
                         
                 } else if (status == kRecvClosed) {
-                        // Will be removed
+                    r_err("WebSocketServer::handle_new_messages: kRecvClose. Socket will be removed.");
                 }
         }
 

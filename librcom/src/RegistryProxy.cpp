@@ -77,7 +77,7 @@ namespace rcom {
                         double time_passed = now - start_time;
                         timed_out = (time_passed >= timeout);
                         
-                        if (!success && !timeout) {
+                        if (!success && !timed_out) {
                                 double duration = std::min(0.5, timeout - time_passed);
                                 rpp::ClockAccessor::GetInstance()->sleep(duration);
                         }

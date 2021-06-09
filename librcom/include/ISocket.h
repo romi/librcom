@@ -47,6 +47,7 @@ namespace rcom {
                 
                 virtual void close() = 0;
                 virtual bool is_connected() = 0;
+                virtual bool is_endpoint_connected() = 0;
 
                 /* Returns true if the data was sucessfully written
                  * and false in case of error. */

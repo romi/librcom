@@ -28,6 +28,8 @@
 
 namespace rcom {
 
+        const double parse_timeout_seconds = 5.0;
+
         HttpParser::HttpParser()
                 : state_(HttpParser::kErrorState),
                   status_code_(),
@@ -54,7 +56,7 @@ namespace rcom {
                 buffer_.clear();
 
                 while (true) {
-                        WaitStatus status = socket.wait(1.0);
+                        WaitStatus status = socket.wait(parse_timeout_seconds);
                         if (status == kWaitOK) {
                                 success = read_char(socket);
                                 if (!success)

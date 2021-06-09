@@ -46,6 +46,7 @@ namespace rcom {
                 
                 void close() override;
                 bool is_connected() override;
+                bool is_endpoint_connected() override;
                 
                 bool send(rpp::MemBuffer& buffer) override;
                 bool send(const uint8_t *buffer, size_t length) override;

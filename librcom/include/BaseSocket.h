@@ -53,7 +53,8 @@ namespace rcom {
                 WaitStatus wait(double timeout);
                 void close();
                 
-                bool is_connected();
+                bool is_connected() const;
+                bool is_endpoint_connected();
                 void get_address(IAddress& address);
                 void set_nodelay(int value);
         };
