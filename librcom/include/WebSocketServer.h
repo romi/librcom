@@ -63,9 +63,7 @@ namespace rcom {
                 virtual ~WebSocketServer();
 
                 void handle_events() override;
-                void broadcast(rpp::MemBuffer& message,
-                               IWebSocket* exclude = nullptr,
-                               MessageType type = kTextMessage) override;
+                void broadcast(rpp::MemBuffer &message, MessageType type, IWebSocket *exclude) override;
                 void get_address(IAddress& address) override;
                 size_t count_links() override;
                 IWebSocket& get_link(size_t index) override;

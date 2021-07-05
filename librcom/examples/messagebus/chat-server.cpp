@@ -61,7 +61,7 @@ public:
                 std::cout << "> " << message.tostring() << std::endl;
                 /* Broadcast the incoming message to all connected
                  * clients but exclude the sender. */
-                hub_->broadcast(message, &websocket);
+            hub_->broadcast(message, rcom::kTextMessage, &websocket);
         }
 };
 

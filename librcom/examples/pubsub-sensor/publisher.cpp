@@ -75,7 +75,7 @@ void broadcast_sensor_value(rcom::MessageHub& hub)
         double temperature = get_sensor_value();
         rpp::MemBuffer message;
         message.printf("The temperature is %.1f °C", temperature);
-        hub.broadcast(message);
+        hub.broadcast(message, rcom::kTextMessage, nullptr);
 }
 
 int main()

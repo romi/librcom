@@ -44,19 +44,17 @@ namespace rcom {
         public:
                 
                 MessageHub(const std::string& topic,
-                           std::shared_ptr<IMessageListener> listener);
+                           const std::shared_ptr<IMessageListener>& listener);
 
                 /* This constructor is used for publisher-subscriber
                  * patterns in which the message hub does not expect
                  * to receive any messages from the subscribers. */
-                MessageHub(const std::string& topic);
-                virtual ~MessageHub();
+                explicit MessageHub(const std::string& topic);
+                ~MessageHub() override;
 
                 std::string& topic() override;
                 void handle_events() override;
-                void broadcast(rpp::MemBuffer& message,
-                               IWebSocket* exclude = nullptr,
-                               MessageType type = kTextMessage) override;
+                void broadcast(rpp::MemBuffer &message, MessageType type, IWebSocket *exclude) override;
         };
 }
 

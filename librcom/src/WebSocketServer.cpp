@@ -139,9 +139,7 @@ namespace rcom {
                 }
         }
 
-        void WebSocketServer::broadcast(rpp::MemBuffer& message,
-                                        IWebSocket* exclude,
-                                        MessageType type)
+        void WebSocketServer::broadcast(rpp::MemBuffer& message, MessageType type, IWebSocket *exclude)
         {
                 for (size_t i = 0; i < links_.size(); i++) {
                         if (exclude != links_[i].get()) {

@@ -36,7 +36,7 @@
 namespace rcom {
         
         MessageHub::MessageHub(const std::string& topic,
-                               std::shared_ptr<IMessageListener> listener)
+                               const std::shared_ptr<IMessageListener>& listener)
                 : server_(),
                   topic_(topic)
         {
@@ -103,10 +103,8 @@ namespace rcom {
                 server_->handle_events();
         }
 
-        void MessageHub::broadcast(rpp::MemBuffer& message,
-                                   IWebSocket* exclude,
-                                   MessageType type)
+        void MessageHub::broadcast(rpp::MemBuffer &message, MessageType type, IWebSocket *exclude)
         {
-                server_->broadcast(message, exclude, type);
+            server_->broadcast(message, type, exclude);
         }
 }

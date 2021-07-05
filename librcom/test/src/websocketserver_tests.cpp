@@ -236,7 +236,7 @@ TEST_F(websocketserver_tests, failed_send_removes_link)
         unique_ptr<WebSocketServer> server
                 = make_unique<WebSocketServer>(i_server_socket, factory_, listener_);
         server->handle_events();
-        server->broadcast(message);
+        server->broadcast(message, kTextMessage, nullptr);
         
         // Assert
 }
