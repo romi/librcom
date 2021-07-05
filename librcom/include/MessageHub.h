@@ -40,17 +40,21 @@ namespace rcom {
                 std::string topic_;
                 
                 bool register_topic();
-                
+                void BuildWebServerSocket(const std::shared_ptr<IMessageListener> &listener, uint16_t port);
+
         public:
                 
                 MessageHub(const std::string& topic,
                            const std::shared_ptr<IMessageListener>& listener);
 
+                MessageHub(const std::string& topic,
+                       const std::shared_ptr<IMessageListener>& listener, uint16_t port);
+
                 /* This constructor is used for publisher-subscriber
                  * patterns in which the message hub does not expect
                  * to receive any messages from the subscribers. */
                 explicit MessageHub(const std::string& topic);
-                ~MessageHub() override;
+                ~MessageHub() override = default;
 
                 std::string& topic() override;
                 void handle_events() override;

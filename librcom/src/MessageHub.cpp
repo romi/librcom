@@ -35,76 +35,84 @@
 
 namespace rcom {
         
-        MessageHub::MessageHub(const std::string& topic,
-                               const std::shared_ptr<IMessageListener>& listener)
-                : server_(),
-                  topic_(topic)
-        {
-                if (!is_valid_topic(topic)) {
-                        r_err("MessageHub: Invalid topic: %s", topic.c_str());
-                        throw std::runtime_error("MessageHub: Invalid topic");
-                }
+    MessageHub::MessageHub(const std::string& topic,
+                           const std::shared_ptr<IMessageListener>& listener) : MessageHub(topic, listener, 0)
 
-                Address address(0);
-                
-                std::unique_ptr<rpp::ILinux> linux
-                        = std::make_unique<rpp::Linux>();
-                
-                std::unique_ptr<IServerSocket> server_socket
-                        = std::make_unique<ServerSocket>(linux, address);
-                
-                std::shared_ptr<ISocketFactory> factory
-                        = std::make_shared<SocketFactory>();
-                
-                server_ = std::make_unique<WebSocketServer>(server_socket,
-                                                            factory,
-                                                            listener);
-                
-                if (!register_topic()) {
-                        r_err("MessageHub: Registration failed: topic '%s'", topic.c_str());
-                        throw std::runtime_error("MessageHub: Registration failed");
-                }
-        }
-        
-        MessageHub::MessageHub(const std::string& topic)
-                : MessageHub(topic, std::make_shared<DummyMessageListener>())
-        {
-        }
-        
-        std::string& MessageHub::topic()
-        {
-                return topic_;
-        }
-        
-        MessageHub::~MessageHub()
-        {
+    {
+
+    }
+
+    MessageHub::MessageHub(const std::string &topic, const std::shared_ptr<IMessageListener> &listener, uint16_t port)
+            : server_(),
+              topic_(topic)
+    {
+        if (!is_valid_topic(topic)) {
+            r_err("MessageHub: Invalid topic: %s", topic.c_str());
+            throw std::runtime_error("MessageHub: Invalid topic");
         }
 
-        bool MessageHub::register_topic()
-        {
-                Address registry_address;                
-                RegistryServer::get_address(registry_address);
+        BuildWebServerSocket(listener, port);
 
-                SocketFactory factory;
-                
-                std::unique_ptr<IWebSocket> registry_socket
-                        = factory.new_client_side_websocket(registry_address);
-
-                RegistryProxy registry(registry_socket);
-                
-                Address my_address;
-                server_->get_address(my_address);
-
-                return registry.set(topic_, my_address);
+        if (!register_topic()) {
+            r_err("MessageHub: Registration failed: topic '%s'", topic.c_str());
+            throw std::runtime_error("MessageHub: Registration failed");
         }
+    }
 
-        void MessageHub::handle_events()
-        {
-                server_->handle_events();
-        }
+    void MessageHub::BuildWebServerSocket(const std::shared_ptr<IMessageListener> &listener, uint16_t port)
+    {
+        Address address(port);
+        std::unique_ptr<rpp::ILinux> linux
+                = std::make_unique<rpp::Linux>();
 
-        void MessageHub::broadcast(rpp::MemBuffer &message, MessageType type, IWebSocket *exclude)
-        {
-            server_->broadcast(message, type, exclude);
-        }
+        std::unique_ptr<IServerSocket> server_socket
+                = std::make_unique<ServerSocket>(linux, address);
+
+        std::shared_ptr<ISocketFactory> factory
+                = std::make_shared<SocketFactory>();
+
+        server_ = std::make_unique<WebSocketServer>(server_socket,
+                                                    factory,
+                                                    listener);
+    }
+
+    MessageHub::MessageHub(const std::string& topic)
+            : MessageHub(topic, std::make_shared<DummyMessageListener>())
+    {
+    }
+
+    std::string& MessageHub::topic()
+    {
+            return topic_;
+    }
+
+    bool MessageHub::register_topic()
+    {
+            Address registry_address;
+            RegistryServer::get_address(registry_address);
+
+            SocketFactory factory;
+
+            std::unique_ptr<IWebSocket> registry_socket
+                    = factory.new_client_side_websocket(registry_address);
+
+            RegistryProxy registry(registry_socket);
+
+            Address my_address;
+            server_->get_address(my_address);
+
+            return registry.set(topic_, my_address);
+    }
+
+    void MessageHub::handle_events()
+    {
+            server_->handle_events();
+    }
+
+    void MessageHub::broadcast(rpp::MemBuffer &message, MessageType type, IWebSocket *exclude)
+    {
+        server_->broadcast(message, type, exclude);
+    }
+
+
 }
