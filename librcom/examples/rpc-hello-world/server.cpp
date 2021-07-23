@@ -56,7 +56,7 @@ public:
                 std::cout << "Client says '" << message.tostring() << "'" << std::endl;
                 rpp::MemBuffer reply;
                 reply.append_string("world");
-                websocket.send(reply);
+                websocket.send(reply, rcom::kTextMessage);
         }
 };
 

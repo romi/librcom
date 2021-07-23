@@ -186,7 +186,7 @@ namespace rcom {
 
         void RegistryServer::send_response(IWebSocket& websocket)
         {
-                if (!websocket.send(response_)) {
+                if (!websocket.send(response_, kTextMessage)) {
                         r_err("RegistryServer: IWebSocket.send failed");
                 }
         }

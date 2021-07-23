@@ -54,7 +54,7 @@ public:
                        rpp::MemBuffer& message,
                        rcom::MessageType type) override {
                 (void) type; // Tell the compiler it's not used
-                websocket.send(message);
+                websocket.send(message, rcom::kTextMessage);
         }
 };
 

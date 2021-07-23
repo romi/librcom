@@ -110,7 +110,7 @@ namespace rcom {
                 
         bool RegistryProxy::send_request(rpp::MemBuffer& request)
         {
-                return websocket_->send(request);
+                return websocket_->send(request, kTextMessage);
         }
 
         bool RegistryProxy::response_is_success(const std::string& method)
