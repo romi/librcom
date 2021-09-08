@@ -130,10 +130,13 @@ namespace rcom {
         bool Request::connection_header_is_upgrade()
         {
                 std::string header_value;
-                
+
+                // Firefox sends "keep-alive, Upgrade" for the
+                // Connexion header. So we simple check for the
+                // presence of Upgrade in the header value.
                 bool valid = (get_header_value("Connection", header_value)
-                              && (header_value.compare("Upgrade") == 0
-                                  || header_value.compare("upgrade") == 0));
+                              && (header_value.find("Upgrade") != std::string::npos
+                                  || header_value.find("upgrade") != std::string::npos));
         
                 if (!valid) {
                         r_warn("Request: Bad Connection header");
