@@ -20,7 +20,7 @@
   along with this program.  If not, see
   <http://www.gnu.org/licenses/>.
 
- */
+*/
 #include <r.h>
 #include <algorithm>
 #include "RawMessageHub.h"
@@ -35,80 +35,88 @@
 
 namespace rcom {
 
-    RawMessageHub::RawMessageHub(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener) : RawMessageHub(topic, listener, 0)
+        RawMessageHub::RawMessageHub(const std::string& topic,
+                                     const std::shared_ptr<IMessageListener>& listener)
+                : RawMessageHub(topic, listener, 0)
+        {
 
-    {
-
-    }
-
-    RawMessageHub::RawMessageHub(const std::string &topic, const std::shared_ptr<IMessageListener> &listener, uint16_t port)
-            : server_(),
-              topic_(topic)
-    {
-        if (!is_valid_topic(topic)) {
-            r_err("RawMessageHub: Invalid topic: %s", topic.c_str());
-            throw std::runtime_error("RawMessageHub: Invalid topic");
         }
 
-        BuildWebServerSocket(listener, port);
+        RawMessageHub::RawMessageHub(const std::string &topic,
+                                     const std::shared_ptr<IMessageListener> &listener,
+                                     uint16_t port)
+                : server_(),
+                  topic_(topic)
+        {
+                if (!is_valid_topic(topic)) {
+                        r_err("RawMessageHub: Invalid topic: %s", topic.c_str());
+                        throw std::runtime_error("RawMessageHub: Invalid topic");
+                }
 
-    }
+                BuildWebServerSocket(listener, port);
 
-    void RawMessageHub::BuildWebServerSocket(const std::shared_ptr<IMessageListener> &listener, uint16_t port)
-    {
-        Address address(port);
-        std::unique_ptr<rpp::ILinux> linux
-                = std::make_unique<rpp::Linux>();
+        }
 
-        std::unique_ptr<IServerSocket> server_socket
-                = std::make_unique<ServerSocket>(linux, address);
+        void RawMessageHub::BuildWebServerSocket(const std::shared_ptr<IMessageListener> &listener, uint16_t port)
+        {
+                Address address(port);
+                std::unique_ptr<rpp::ILinux> linux
+                        = std::make_unique<rpp::Linux>();
 
-        std::shared_ptr<ISocketFactory> factory
-                = std::make_shared<SocketFactory>();
+                std::unique_ptr<IServerSocket> server_socket
+                        = std::make_unique<ServerSocket>(linux, address);
 
-        server_ = std::make_unique<WebSocketServer>(server_socket,
-                                                    factory,
-                                                    listener);
-    }
+                std::shared_ptr<ISocketFactory> factory
+                        = std::make_shared<SocketFactory>();
 
-    RawMessageHub::RawMessageHub(const std::string& topic)
-            : RawMessageHub(topic, std::make_shared<DummyMessageListener>())
-    {
-    }
+                server_ = std::make_unique<WebSocketServer>(server_socket,
+                                                            factory,
+                                                            listener);
+        }
 
-    std::string& RawMessageHub::topic()
-    {
-            return topic_;
-    }
+        RawMessageHub::RawMessageHub(const std::string& topic)
+                : RawMessageHub(topic, std::make_shared<DummyMessageListener>())
+        {
+        }
 
-    bool RawMessageHub::register_topic()
-    {
-            Address registry_address;
-            RegistryServer::get_address(registry_address);
+        std::string& RawMessageHub::topic()
+        {
+                return topic_;
+        }
 
-            SocketFactory factory;
+        bool RawMessageHub::register_topic()
+        {
+                Address registry_address;
+                RegistryServer::get_address(registry_address);
 
-            std::unique_ptr<IWebSocket> registry_socket
-                    = factory.new_client_side_websocket(registry_address);
+                SocketFactory factory;
 
-            RegistryProxy registry(registry_socket);
+                std::unique_ptr<IWebSocket> registry_socket
+                        = factory.new_client_side_websocket(registry_address);
 
-            Address my_address;
-            server_->get_address(my_address);
+                RegistryProxy registry(registry_socket);
 
-            return registry.set(topic_, my_address);
-    }
+                Address my_address;
+                server_->get_address(my_address);
 
-    void RawMessageHub::handle_events()
-    {
-            server_->handle_events();
-    }
+                return registry.set(topic_, my_address);
+        }
 
-    void RawMessageHub::broadcast(rpp::MemBuffer &message, MessageType type, IWebSocket *exclude)
-    {
-        server_->broadcast(message, type, exclude);
-    }
+        void RawMessageHub::handle_events()
+        {
+                server_->handle_events();
+        }
 
+        void RawMessageHub::broadcast(rpp::MemBuffer &message,
+                                      MessageType type,
+                                      IWebSocket *exclude)
+        {
+                server_->broadcast(message, type, exclude);
+        }
+
+        size_t RawMessageHub::count_links()
+        {
+                return server_->count_links();
+        }
 
 }

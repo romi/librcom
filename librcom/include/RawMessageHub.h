@@ -58,7 +58,9 @@ namespace rcom {
 
             std::string& topic() override;
             void handle_events() override;
-            void broadcast(rpp::MemBuffer &message, MessageType type, IWebSocket *exclude) override;
+            void broadcast(rpp::MemBuffer &message, MessageType type,
+                           IWebSocket *exclude) override;
+            size_t count_links() override;
         };
 }
 
