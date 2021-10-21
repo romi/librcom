@@ -26,7 +26,7 @@ target_link_libraries(librcom_unit_tests
                         gmock
                         rmocks
                         rppmocks
-                        rcompp-lite
+                        rcom
                         r)
  
 target_include_directories(librcom_unit_tests

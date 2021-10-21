@@ -73,9 +73,9 @@ set(SOURCES
     src/WebSocketServer.cpp
 )
 
-add_library(rcompp-lite SHARED ${SOURCES})
-target_include_directories(rcompp-lite PUBLIC include)
-target_link_libraries(rcompp-lite m rpp)
+add_library(rcom SHARED ${SOURCES})
+target_include_directories(rcom PUBLIC include)
+target_link_libraries(rcom m rpp)
 
 add_subdirectory(test/mocks)
 
