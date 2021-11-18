@@ -24,6 +24,7 @@
 #include <IMessageListener.h>
 #include <syslog.h>
 #include <atomic>
+#include <WebSocketServerFactory.h>
 
 std::atomic<bool> quit(false);
 
@@ -74,9 +75,10 @@ int main(int argc, char **argv)
                 topic = argv[1];
         
         try {
+                auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
                 std::shared_ptr<ChatBus> chat = std::make_shared<ChatBus>();
                 std::shared_ptr<rcom::IMessageListener> listener = chat;
-                rcom::MessageHub chat_hub(topic, listener);
+                rcom::MessageHub chat_hub(topic, listener, webserver_socket_factory);
                 chat->hub_ = &chat_hub;
                 auto clock = rpp::ClockAccessor::GetInstance();
 

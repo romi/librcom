@@ -29,6 +29,8 @@
 #include "ISocket.h"
 #include "IServerSocket.h"
 #include "IWebSocket.h"
+#include "IMessageListener.h"
+#include "IWebSocketServer.h"
 
 namespace rcom {
         
@@ -43,9 +45,6 @@ namespace rcom {
                 virtual std::unique_ptr<IWebSocket>
                         new_client_side_websocket(IAddress& remote_address) = 0;
         };
-
-        ISocketFactory& get_socket_factory();
-        void set_socket_factory(ISocketFactory& factory);
 }
 
 #endif // _LIBRCOM_I_SOCKET_FACTORY_H_

@@ -32,51 +32,46 @@
 #include "ServerSocket.h"
 #include "util.h"
 #include "DummyMessageListener.h"
+#include "IWebSocketServerFactory.h"
 
 namespace rcom {
 
         RawMessageHub::RawMessageHub(const std::string& topic,
-                                     const std::shared_ptr<IMessageListener>& listener)
-                : RawMessageHub(topic, listener, 0)
+                                     const std::shared_ptr<IMessageListener>& listener,
+                                     const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory)
+                : RawMessageHub(topic, listener, webSocketServerFactory, 0)
         {
 
         }
 
         RawMessageHub::RawMessageHub(const std::string &topic,
                                      const std::shared_ptr<IMessageListener> &listener,
+                                     const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory,
                                      uint16_t port)
                 : server_(),
+                  webSocketServerFactory_(webSocketServerFactory),
                   topic_(topic)
         {
-                if (!is_valid_topic(topic)) {
-                        r_err("RawMessageHub: Invalid topic: %s", topic.c_str());
-                        throw std::runtime_error("RawMessageHub: Invalid topic");
+            try {
+                if (nullptr == webSocketServerFactory_)
+                {
+                    throw std::invalid_argument("webSocketServerFactory_");
                 }
-
-                BuildWebServerSocket(listener, port);
-
-        }
-
-        void RawMessageHub::BuildWebServerSocket(const std::shared_ptr<IMessageListener> &listener, uint16_t port)
-        {
-                Address address(port);
-                std::unique_ptr<rpp::ILinux> linux
-                        = std::make_unique<rpp::Linux>();
-
-                std::unique_ptr<IServerSocket> server_socket
-                        = std::make_unique<ServerSocket>(linux, address);
-
-                std::shared_ptr<ISocketFactory> factory
-                        = std::make_shared<SocketFactory>();
-
-                server_ = std::make_unique<WebSocketServer>(server_socket,
-                                                            factory,
-                                                            listener);
-        }
-
-        RawMessageHub::RawMessageHub(const std::string& topic)
-                : RawMessageHub(topic, std::make_shared<DummyMessageListener>())
-        {
+                if (!is_valid_topic(topic)) {
+                    std::string error("topic: ");
+                    error += topic;
+                    throw std::invalid_argument(error.c_str());
+                }
+                server_ = webSocketServerFactory_->new_web_socket_server(listener, port);
+                if (nullptr == server_)
+                {
+                    throw std::invalid_argument("server_");
+                }
+            }
+            catch (std::invalid_argument& e){
+                r_err("RawMessageHub: Invalid argument: %s", e.what());
+                throw;
+            }
         }
 
         std::string& RawMessageHub::topic()

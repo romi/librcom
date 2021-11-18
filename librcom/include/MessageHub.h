@@ -38,15 +38,15 @@ namespace rcom {
         public:
                 
                 MessageHub(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener);
-
-//                MessageHub(const std::string& topic,
-//                       const std::shared_ptr<IMessageListener>& listener, uint16_t port);
+                           const std::shared_ptr<IMessageListener>& listener,
+                           const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory);
 
                 /* This constructor is used for publisher-subscriber
                  * patterns in which the message hub does not expect
                  * to receive any messages from the subscribers. */
-                explicit MessageHub(const std::string& topic);
+                /* Should really be a different class if it's not a HUB. REFACTOR */
+                explicit MessageHub(const std::string& topic,
+                                    const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory);
                 ~MessageHub() override = default;
         };
 }

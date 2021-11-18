@@ -23,6 +23,7 @@
 #include <MessageHub.h>
 #include <IMessageListener.h>
 #include <ClockAccessor.h>
+#include <WebSocketServerFactory.h>
 
 #include <syslog.h>
 #include <atomic>
@@ -61,9 +62,10 @@ public:
 int main()
 {
         try {
+                auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
                 std::shared_ptr<rcom::IMessageListener> listener
                         = std::make_shared<MessageListener>();
-                rcom::MessageHub message_hub("speed", listener);
+                rcom::MessageHub message_hub("speed", listener, webserver_socket_factory);
                 auto clock = rpp::ClockAccessor::GetInstance();
 
                 std::signal(SIGINT, SignalHandler);

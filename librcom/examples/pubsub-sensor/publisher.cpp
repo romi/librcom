@@ -18,12 +18,13 @@
 
  */
 #include <iostream>
-#include <signal.h>
-#include <stdlib.h>
+#include <csignal>
+#include <cstdlib>
 #include <log.h>
 #include <ClockAccessor.h>
 #include <MessageHub.h>
 #include <IMessageListener.h>
+#include <WebSocketServerFactory.h>
 
 #include <syslog.h>
 #include <atomic>
@@ -80,8 +81,10 @@ void broadcast_sensor_value(rcom::MessageHub& hub)
 
 int main()
 {
+
         try {
-                rcom::MessageHub hub("sensor");
+            auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
+                rcom::MessageHub hub("sensor", webserver_socket_factory);
                 auto clock = rpp::ClockAccessor::GetInstance();
                 std::signal(SIGINT, SignalHandler);
 

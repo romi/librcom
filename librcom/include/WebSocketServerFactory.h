@@ -21,27 +21,35 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_SOCKET_FACTORY_H_
-#define _LIBRCOM_SOCKET_FACTORY_H_
+#ifndef _LIBRCOM_WEB_SOCKET_SERVER_FACTORY_H_
+#define _LIBRCOM_WEB_SOCKET_SERVER_FACTORY_H_
 
-#include <ILinux.h>
+#include <memory>
+#include "IAddress.h"
+#include "ISocket.h"
+#include "IServerSocket.h"
+#include "IWebSocket.h"
+#include "IMessageListener.h"
+#include "IWebSocketServerFactory.h"
 #include "ISocketFactory.h"
 
 namespace rcom {
         
-        class SocketFactory : public ISocketFactory
+        class WebSocketServerFactory : public IWebSocketServerFactory
         {
         public:
-                SocketFactory();
-                ~SocketFactory() override = default;
+                explicit WebSocketServerFactory( const std::shared_ptr<ISocketFactory>& socket_factory);
+                ~WebSocketServerFactory() override = default;
 
-                std::unique_ptr<IWebSocket>
-                        new_server_side_websocket(int sockfd) override;
-                
-                std::unique_ptr<IWebSocket>
-                        new_client_side_websocket(IAddress& remote_address) override;
+                std::unique_ptr<IWebSocketServer>
+                        new_web_socket_server(const std::shared_ptr<IMessageListener> &listener, uint16_t port) override;
 
+                static std::shared_ptr<IWebSocketServerFactory>
+                        create();
+
+        private:
+                const std::shared_ptr<ISocketFactory> socket_factory_;
         };
 }
 
-#endif // _LIBRCOM_SOCKET_FACTORY_H_
+#endif

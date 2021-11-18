@@ -25,6 +25,7 @@
 #include <ClockAccessor.h>
 #include <syslog.h>
 #include <atomic>
+#include <WebSocketServerFactory.h>
 
 std::atomic<bool> quit(false);
 
@@ -64,9 +65,10 @@ public:
 int main()
 {
         try {
+                auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
                 std::shared_ptr<rcom::IMessageListener> hello_world
                         = std::make_shared<HelloWorldListener>();
-                rcom::MessageHub message_hub("hello-world", hello_world);
+                rcom::MessageHub message_hub("hello-world", hello_world, webserver_socket_factory);
                 auto clock = rpp::ClockAccessor::GetInstance();
 
                 std::signal(SIGINT, SignalHandler);

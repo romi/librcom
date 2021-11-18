@@ -25,7 +25,6 @@
 #include <Linux.h>
 #include "SocketFactory.h"
 #include "Socket.h"
-#include "ServerSocket.h"
 #include "Address.h"
 #include "Response.h"
 #include "ResponseParser.h"
@@ -34,11 +33,11 @@
 #include "ServerSideWebSocket.h"
 #include "ClientSideWebSocket.h"
 
+
 namespace rcom {
         
         SocketFactory::SocketFactory()
-        {
-        }
+        = default;
 
         std::unique_ptr<IWebSocket>
         SocketFactory::new_server_side_websocket(int sockfd)

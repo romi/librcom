@@ -4,6 +4,7 @@ set(SRCS
         src/tests_main.cpp
         src/address_tests.cpp
         src/util_tests.cpp
+        src/rawmessagehub_tests.cpp
         src/registry_tests.cpp
         src/response_tests.cpp
         src/request_tests.cpp
@@ -26,12 +27,13 @@ target_link_libraries(librcom_unit_tests
                         gmock
                         rmocks
                         rppmocks
+                        rcommocks
                         rcom
                         r)
  
-target_include_directories(librcom_unit_tests
-        PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+#target_include_directories(librcom_unit_tests
+#        PRIVATE
+#        ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 add_test(
         NAME librcom_unit_tests

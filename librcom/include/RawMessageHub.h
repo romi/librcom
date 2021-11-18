@@ -28,7 +28,7 @@
 #include <Linux.h>
 #include "SocketFactory.h"
 #include "IMessageHub.h"
-#include "IWebSocketServer.h"
+#include "IWebSocketServerFactory.h"
 #include "IMessageListener.h"
 
 namespace rcom {
@@ -37,23 +37,22 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IWebSocketServer> server_;
+                std::shared_ptr<IWebSocketServerFactory> webSocketServerFactory_;
                 std::string topic_;
                 
                 bool register_topic();
-                void BuildWebServerSocket(const std::shared_ptr<IMessageListener> &listener, uint16_t port);
 
         public:
 
             RawMessageHub(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener);
+                           const std::shared_ptr<IMessageListener>& listener,
+                            const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory);
 
             RawMessageHub(const std::string& topic,
-                       const std::shared_ptr<IMessageListener>& listener, uint16_t port);
+                            const std::shared_ptr<IMessageListener>& listener,
+                            const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory,
+                            uint16_t port);
 
-            /* This constructor is used for publisher-subscriber
-             * patterns in which the message hub does not expect
-             * to receive any messages from the subscribers. */
-            explicit RawMessageHub(const std::string& topic);
             ~RawMessageHub() override = default;
 
             std::string& topic() override;

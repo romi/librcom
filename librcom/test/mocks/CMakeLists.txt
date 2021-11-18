@@ -1,5 +1,5 @@
 
-project(rcom-mocks)
+project(rcommocks)
 
 set(SOURCES
   Address.mock.h
@@ -12,9 +12,14 @@ set(SOURCES
   ServerSocket.mock.h
   SocketFactory.mock.h
   Socket.mock.h
-  WebSocket.mock.h)
+  WebSocket.mock.h
+  WebSocketServer.mock.h
+  WebSocketServerFactory.mock.h)
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../include")
-add_library(rcom-mocks SHARED ${SOURCES})
-set_target_properties(rcom-mocks PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories(rcom-mocks PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+add_library(rcommocks SHARED ${SOURCES})
+set_target_properties(rcommocks PROPERTIES LINKER_LANGUAGE CXX)
+
+target_include_directories(rcommocks
+        PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        )

@@ -29,6 +29,7 @@ set(SOURCES
     include/ISocket.h
     include/ISocketFactory.h
     include/IWebSocketServer.h
+    include/IWebSocketServerFactory.h
     include/MessageLink.h
     include/MessageHub.h
     include/RawMessageHub.h
@@ -46,6 +47,7 @@ set(SOURCES
     include/WebSocket.h
     include/WebSocketConstants.h
     include/WebSocketServer.h
+    include/WebSocketServerFactory.h
     
     src/sha1.cpp
     src/util.cpp
@@ -71,6 +73,7 @@ set(SOURCES
     src/SocketFactory.cpp
     src/WebSocket.cpp
     src/WebSocketServer.cpp
+    src/WebSocketServerFactory.cpp
 )
 
 add_library(rcom SHARED ${SOURCES})

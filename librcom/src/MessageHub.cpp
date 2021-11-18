@@ -32,7 +32,9 @@
 namespace rcom {
 
     MessageHub::MessageHub(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener) : RawMessageHub(topic, listener, 0)
+                           const std::shared_ptr<IMessageListener>& listener,
+                           const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory)
+                           : RawMessageHub(topic, listener, webSocketServerFactory,0)
 
     {
         if (!register_topic()) {
@@ -41,8 +43,9 @@ namespace rcom {
         }
     }
 
-    MessageHub::MessageHub(const std::string& topic)
-            : MessageHub(topic, std::make_shared<DummyMessageListener>())
+    MessageHub::MessageHub(const std::string& topic,
+                           const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory)
+            : MessageHub(topic, std::make_shared<DummyMessageListener>(), webSocketServerFactory)
     {
     }
 
