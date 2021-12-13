@@ -26,6 +26,7 @@
 #include <csignal>
 #include <syslog.h>
 #include <atomic>
+#include <memory>
 
 #include <Linux.h>
 #include <SocketFactory.h>
@@ -56,20 +57,30 @@ void SignalHandler(int signal)
         }
 }
 
-int main()
+int main(int argc, const char **argv)
 {
         try {
                 // FIXME
                 r_log_init();
                 r_log_set_app("rcom-registry");
-        
+
+                const char *ip = nullptr;
+                if (argc == 2)
+                        ip = argv[1];
+           
                 std::shared_ptr<rcom::ISocketFactory> factory
                         = std::make_shared<rcom::SocketFactory>();
                 rcom::Registry registry;
-                rcom::Address address(10101);
+
+                std::shared_ptr<rcom::Address> address;
+                if (ip == nullptr)
+                        address = std::make_shared<rcom::Address>(10101);
+                else
+                        address = std::make_shared<rcom::Address>(ip, 10101);
+                
                 std::unique_ptr<rpp::ILinux> linux = std::make_unique<rpp::Linux>();
                 std::unique_ptr<rcom::IServerSocket> server_socket
-                        = std::make_unique<rcom::ServerSocket>(linux, address);
+                        = std::make_unique<rcom::ServerSocket>(linux, *address);
                 std::shared_ptr<rcom::IMessageListener> registry_server
                         = std::make_shared<rcom::RegistryServer>(registry);
                 rcom::WebSocketServer server(server_socket, factory, registry_server);
@@ -78,7 +89,7 @@ int main()
                 std::signal(SIGINT, SignalHandler);
 
                 std::string s;
-                address.tostring(s);
+                address->tostring(s);
                 r_info("Registry server running at %s.", s.c_str());
                 
                 while (!quit) {
