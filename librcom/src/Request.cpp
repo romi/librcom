@@ -150,10 +150,11 @@ namespace rcom {
                 std::string header_value;
                 
                 bool valid = (get_header_value("Upgrade", header_value)
-                              && (header_value.compare("websocket") == 0));
+                              && ((header_value.compare("websocket") == 0)
+                                  || (header_value.compare("WebSocket") == 0)));
                 
                 if (!valid) {
-                        r_warn("Request: Bad Upgrade header");
+                        r_warn("Request: Bad Upgrade header: %s", header_value.c_str());
                 }
 
                 return valid;
