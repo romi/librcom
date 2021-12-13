@@ -27,23 +27,30 @@
 #include "ClientSideWebSocket.h"
 #include "WebSocketServer.h"
 #include "util.h"
+#include "ip.h"
 #include "DummyMessageListener.h"
 
 namespace rcom {
 
-    MessageHub::MessageHub(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener) : RawMessageHub(topic, listener, 0)
-
-    {
-        if (!register_topic()) {
-            r_err("MessageHub: Registration failed: topic '%s'", topic.c_str());
-            throw std::runtime_error("MessageHub: Registration failed");
+        MessageHub::MessageHub(const std::string& topic)
+                : MessageHub(topic, std::make_shared<DummyMessageListener>())
+        {
         }
-    }
 
-    MessageHub::MessageHub(const std::string& topic)
-            : MessageHub(topic, std::make_shared<DummyMessageListener>())
-    {
-    }
+        MessageHub::MessageHub(const std::string& topic,
+                               const std::shared_ptr<IMessageListener>& listener)
+                : MessageHub(topic, listener, get_local_ip(), 0)
+        {
+        }
 
+        MessageHub::MessageHub(const std::string& topic,
+                               const std::shared_ptr<IMessageListener>& listener,
+                               std::string ip, uint16_t port)
+                : RawMessageHub(topic, listener, ip, port)
+        {
+                if (!register_topic()) {
+                        r_err("MessageHub: Registration failed: topic '%s'", topic.c_str());
+                        throw std::runtime_error("MessageHub: Registration failed");
+                }
+        }
 }

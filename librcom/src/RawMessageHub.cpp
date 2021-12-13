@@ -32,12 +32,13 @@
 #include "ServerSocket.h"
 #include "util.h"
 #include "DummyMessageListener.h"
+#include "ip.h"
 
 namespace rcom {
 
         RawMessageHub::RawMessageHub(const std::string& topic,
                                      const std::shared_ptr<IMessageListener>& listener)
-                : RawMessageHub(topic, listener, 0)
+                : RawMessageHub(topic, listener, get_local_ip(), 0)
         {
 
         }
@@ -45,6 +46,13 @@ namespace rcom {
         RawMessageHub::RawMessageHub(const std::string &topic,
                                      const std::shared_ptr<IMessageListener> &listener,
                                      uint16_t port)
+                : RawMessageHub(topic, listener, get_local_ip(), port)
+        {
+        }
+
+        RawMessageHub::RawMessageHub(const std::string &topic,
+                                     const std::shared_ptr<IMessageListener> &listener,
+                                     std::string ip, uint16_t port)
                 : server_(),
                   topic_(topic)
         {
@@ -53,13 +61,13 @@ namespace rcom {
                         throw std::runtime_error("RawMessageHub: Invalid topic");
                 }
 
-                BuildWebServerSocket(listener, port);
-
+                BuildWebServerSocket(listener, ip, port);
         }
 
-        void RawMessageHub::BuildWebServerSocket(const std::shared_ptr<IMessageListener> &listener, uint16_t port)
+        void RawMessageHub::BuildWebServerSocket(const std::shared_ptr<IMessageListener> &listener,
+                                                 std::string ip, uint16_t port)
         {
-                Address address(port);
+                Address address(ip.c_str(), port);
                 std::unique_ptr<rpp::ILinux> linux
                         = std::make_unique<rpp::Linux>();
 
