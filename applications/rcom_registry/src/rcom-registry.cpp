@@ -35,6 +35,8 @@
 #include <ServerSocket.h>
 #include <Address.h>
 #include <ClockAccessor.h>
+#include <r.h>
+#include <JsonCpp.h>
 
 std::atomic<bool> quit(false);
 
