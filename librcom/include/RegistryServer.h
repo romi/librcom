@@ -25,15 +25,16 @@
 #define _LIBRCOM_REGISTRY_SERVER_H_
 
 #include <MemBuffer.h>
-#include <JsonCpp.h>
 #include "IRegistry.h"
 #include "ISocketFactory.h"
 #include "IMessageHub.h"
 #include "IWebSocketServer.h"
 #include "IMessageListener.h"
 
-namespace rcom {
+class JsonCpp;
 
+namespace rcom {
+        
         class RegistryServer : public IMessageListener
         {
         public:

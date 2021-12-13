@@ -21,6 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
+#include <JsonCpp.h>
 #include "RegistryServer.h"
 #include "Address.h"
 
