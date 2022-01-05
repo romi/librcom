@@ -21,7 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include <r.h>
+#include "ConsoleLogger.h"
 #include "ServerSideWebSocket.h"
 
 namespace rcom {
@@ -31,14 +31,13 @@ namespace rcom {
                 : WebSocket(socket)
         {
                 if (!handshake(parser)) {
-                        r_err("ServerSideWebSocket::handhake failed");
+                        log_error("ServerSideWebSocket::handhake failed");
                         throw std::runtime_error("ServerSideWebSocket: Handshake failed");
                 }
         }
         
         ServerSideWebSocket::~ServerSideWebSocket()
-        {
-        }
+        = default;
 
         bool ServerSideWebSocket::handshake(IRequestParser& parser)
         {
@@ -51,13 +50,13 @@ namespace rcom {
                                         success = true;        
 
                                 } else {
-                                        r_warn("ServerSideWebSocket::handshake: upgrade failed");
+                                        log_warning("ServerSideWebSocket::handshake: upgrade failed");
                                 }
                         } else {
-                                r_warn("ServerSideWebSocket::handshake: not a websocket");
+                                log_warning("ServerSideWebSocket::handshake: not a websocket");
                         }
                 } else {
-                        r_warn("ServerSideWebSocket::handshake: parsing failed");
+                        log_warning("ServerSideWebSocket::handshake: parsing failed");
                 }
                 
                 return success;
@@ -100,7 +99,7 @@ namespace rcom {
                 // have this bit set to 1.
 
                 if (!frame_header_.mask) {
-                        r_err("ServerSideWebSocket: The client sent an unmasked frame.");
+                        log_error("ServerSideWebSocket: The client sent an unmasked frame.");
                         throw RecvError("Client sent unmasked frame", kCloseProtocolError);
                 }
         }
