@@ -18,10 +18,10 @@
 
  */
 #include <iostream>
-#include <memory>
 #include <signal.h>
 #include <log.h>
 #include <MessageLink.h>
+#include "ConsoleLogger.h"
 
 #include <syslog.h>
 #include <atomic>
@@ -35,12 +35,12 @@ void SignalHandler(int signal)
                 exit(signal);
         }
         else if (signal == SIGINT){
-                r_info("Ctrl-C Quitting Application");
+                log_info("Ctrl-C Quitting Application");
                 perror("init_signal_handler");
                 quit = true;
         }
         else{
-                r_err("Unknown signal received %d", signal);
+                log_error("Unknown signal received %d", signal);
         }
 }
 
@@ -74,14 +74,14 @@ int main()
                                 }
                         
                         } else {
-                                r_err("main: failed to send & receive the message");
+                                log_error("main: failed to send & receive the message");
                                 break;
                         }
                 }
                 
         } catch (std::runtime_error& re) {
-                r_err("main: caught runtime_error: %s", re.what());
+                log_error("main: caught runtime_error: %s", re.what());
         } catch (...) {
-                r_err("main: caught exception");
+                log_error("main: caught exception");
         }
 }
