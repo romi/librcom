@@ -22,7 +22,6 @@
 
  */
 #include <regex>
-#include <r.h>
 #include "util.h"
 #include "sha1.h"
 
@@ -30,7 +29,7 @@ namespace rcom {
         
         void SHA1(const std::string& data, unsigned char *digest)
         {
-                SHA1_CTX context;
+                SHA1_CTX context{};
                 SHA1Init(&context);
                 SHA1Update(&context, (const unsigned char*) &data[0], data.length());
                 SHA1Final(digest, &context);
