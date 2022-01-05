@@ -23,7 +23,7 @@
  */
 #include <string.h>
 #include <ctype.h>
-#include <r.h>
+#include "ConsoleLogger.h"
 #include "HttpParser.h"
 
 namespace rcom {
@@ -64,7 +64,7 @@ namespace rcom {
                                 if (state_ == kBody)
                                         break;
                         } else {
-                                r_err("HttpParser: Failed to read the socket (status=%s)",
+                                log_error("HttpParser: Failed to read the socket (status=%s)",
                                       status == kWaitTimeout? "timeout" : "error");
                                 break;
                         }
@@ -294,7 +294,7 @@ namespace rcom {
                 case kBody:
                 case kErrorState:
                 default:
-                        r_warn("http_parser_handle_char: reached invalid state");
+                        log_warning("http_parser_handle_char: reached invalid state");
                         break;
                 }
         
@@ -316,7 +316,7 @@ namespace rcom {
 
         void HttpParser::error(int code, const char *what)
         {
-                r_warn("HttpParser: %s", what);
+                log_warning("HttpParser: %s", what);
                 status_code_ = code;
                 status_message_ = what;
                 state_ = kErrorState;
