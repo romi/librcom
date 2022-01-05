@@ -21,7 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include <r.h>
+#include "ConsoleLogger.h"
 #include "MessageLink.h"
 #include <Address.h>
 #include <RegistryProxy.h>
@@ -37,12 +37,12 @@ namespace rcom {
                   recv_status_(kRecvText)
         {
                 if (!is_valid_topic(topic_)) {
-                        r_err("MessageLink: Ill-formatted topic string: %s", topic.c_str());
+                        log_error("MessageLink: Ill-formatted topic string: %s", topic.c_str());
                         throw std::runtime_error("MessageLink: Ill-formatted topic string");
                 }
                 
                 if (!connect(timeout)) {
-                        r_err("MessageLink: Failed to connect: %s", topic.c_str());
+                        log_error("MessageLink: Failed to connect: %s", topic.c_str());
                         throw std::runtime_error("MessageLink: Failed to connect");
                 }
         }
@@ -61,7 +61,7 @@ namespace rcom {
                         websocket_ = factory_.new_client_side_websocket(hub_address);
                         success = true;
                 } else {
-                        r_warn("MessageLink::connect: Failed to obtain address for "
+                        log_warning("MessageLink::connect: Failed to obtain address for "
                                "topic '%s'", topic_.c_str());
                 }
                 return success;
