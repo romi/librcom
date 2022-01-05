@@ -18,9 +18,7 @@
 
  */
 #include <iostream>
-#include <memory>
-#include <signal.h>
-#include <r.h>
+#include "ConsoleLogger.h"
 #include <MessageLink.h>
 
 int main()
@@ -37,13 +35,13 @@ int main()
                                   << std::endl;
                         
                 } else {
-                        r_err("main: failed to send & receive the message");
+                        log_error("main: failed to send & receive the message");
                 }
                 
                 
         } catch (std::runtime_error& re) {
-                r_err("main: caught runtime_error: %s", re.what());
+                log_error("main: caught runtime_error: %s", re.what());
         } catch (...) {
-                r_err("main: caught exception");
+                log_error("main: caught exception");
         }
 }
