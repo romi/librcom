@@ -23,7 +23,7 @@
  */
 #include <exception>
 #include <string.h>
-#include <log.h>
+#include "ConsoleLogger.h"
 #include <ClockAccessor.h>
 #include "WebSocket.h"
 #include "util.h"
@@ -68,7 +68,7 @@ namespace rcom {
                         status = try_recv(message, timeout);
                         
                 } catch (RecvError& re) {
-                        r_err("WebSocket::recv: %s", re.what());
+                        log_error("WebSocket::recv: %s", re.what());
                         close_with_handshake(re.code());
                 }
 
@@ -232,7 +232,7 @@ namespace rcom {
                               || frame_header_.opcode == kPingOpcode
                               || frame_header_.opcode == kPongOpcode);
                 if (!valid) {
-                        r_err("WebSocket: Invalid opcode.");
+                        log_error("WebSocket: Invalid opcode.");
                         throw RecvError("Invalid opcode", kCloseProtocolError);
                 }
         }
@@ -240,7 +240,7 @@ namespace rcom {
         void WebSocket::input_assert_payload_length()
         {
                 if (input_message_length_ > kMaximumPayloadLength) {
-                        r_err("websocket_assert_payload_length: message too large "
+                        log_error("websocket_assert_payload_length: message too large "
                               "(%lu > %d MB)", input_message_length_,
                               (int) (kMaximumPayloadLength / (1024 * 1024)));
                         throw RecvError("Message too large", kCloseTooBig);
@@ -272,7 +272,7 @@ namespace rcom {
         {
                 bool success = socket_->read(buffer, length);
                 if (!success) {
-                        r_err("WebSocket::socket_read: read failed");
+                        log_error("WebSocket::socket_read: read failed");
                         throw RecvError("Read failed", kCloseInternalError);
                 }
         }
@@ -286,7 +286,7 @@ namespace rcom {
                         handle_data_payload(message);
                 
                 } else {
-                        r_info("WebSocket: Invalid message opcode");                
+                        log_info("WebSocket: Invalid message opcode");
                         throw RecvError("Invalid opcode", kCloseProtocolError);
                 }
         }
@@ -348,7 +348,7 @@ namespace rcom {
                         handle_pong_response();
                         break;
                 default:
-                        r_err("WebSocket::handle_control_message: Invalid opcode ");
+                        log_error("WebSocket::handle_control_message: Invalid opcode ");
                         break;
                 }
         }
@@ -401,7 +401,7 @@ namespace rcom {
                 try {
                         try_close_with_handshake(code);
                 } catch (...) {
-                        r_err("close_with_handshake failed");
+                        log_error("close_with_handshake failed");
                         close_without_handshake();
                 }
         }
@@ -411,7 +411,7 @@ namespace rcom {
                 if (send_close_message(code)) {
                         closing_wait_reply(5.0);
                 } else {
-                        r_warn("WebSocket::close_with_handshake: failed to send close. "
+                        log_warning("WebSocket::close_with_handshake: failed to send close. "
                                "Not waiting for a reply");
                 }
                 
@@ -447,7 +447,7 @@ namespace rcom {
 
         void WebSocket::handle_pong_response()
         {
-                r_info("WebSocket: Got pong response"); // TODO
+                log_info("WebSocket: Got pong response"); // TODO
         }
 
         void WebSocket::handle_data_payload(rpp::MemBuffer& message)
@@ -466,7 +466,7 @@ namespace rcom {
                               || (frame_header_.opcode != kContinutationOpcode
                                   && !is_continuation_));
                 if (!valid) {
-                        r_err("WebSocket: Unexpected continuation");
+                        log_error("WebSocket: Unexpected continuation");
                         throw RecvError("Unexpected continuation", kCloseProtocolError);
                 }
         }
@@ -479,7 +479,7 @@ namespace rcom {
                         length += message.size();
         
                 if (length > kMaximumMessageLength) {
-                        r_err("WebSocket: Message too big (%lu B)", length);
+                        log_error("WebSocket: Message too big (%lu B)", length);
                         throw RecvError("Message too big", kCloseTooBig);
                 }
         }
@@ -514,7 +514,7 @@ namespace rcom {
                 size_t length = message.size();
                 
                 if (length >= kMaximumMessageLength) {
-                        r_err("WebSocket::send: Message too long (max. %d MB)",
+                        log_error("WebSocket::send: Message too long (max. %d MB)",
                               (int) (kMaximumMessageLength / (1024 * 1024)));
                 } else if (length < kShortMessageLength) {
                         success = send_short_data_message(message, type);
@@ -615,7 +615,7 @@ namespace rcom {
                 bool success = true;
                 
                 if (!socket_->send(buffer)) {
-                        r_err("WebSocket::socket_send: write failed. closing");
+                        log_error("WebSocket::socket_send: write failed. closing");
  
                         /* If writing the TCP socket fails, don't bother going
                          * through the closing handshake (the code may
@@ -631,7 +631,7 @@ namespace rcom {
                 bool success = true;
                 
                 if (!socket_->send(buffer, length)) {
-                        r_err("WebSocket::socket_send: write failed. closing");
+                        log_error("WebSocket::socket_send: write failed. closing");
  
                         /* If writing the TCP socket fails, don't bother going
                          * through the closing handshake (the code may
