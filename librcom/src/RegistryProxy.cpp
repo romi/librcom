@@ -22,7 +22,7 @@
 
  */
 #include <algorithm>
-#include <r.h>
+#include "ConsoleLogger.h"
 #include <ClockAccessor.h>
 #include "RegistryProxy.h"
 
@@ -135,9 +135,9 @@ namespace rcom {
                 if (status == kRecvText)
                         success = true;
                 else if (status == kRecvTimeOut)
-                        r_warn("RegistryProxy::read_response: Time-out");
+                        log_warning("RegistryProxy::read_response: Time-out");
                 else if (status == kRecvError)
-                        r_warn("RegistryProxy::read_response: Error");
+                        log_warning("RegistryProxy::read_response: Error");
                 return success;
         }
         
@@ -148,7 +148,7 @@ namespace rcom {
                 try {
                         json = JsonCpp::parse(text.c_str());
                 } catch (JSONError& jerr) {
-                        r_err("RegistryProxy: %s", jerr.what());
+                        log_error("RegistryProxy: %s", jerr.what());
                 }
                 return json;
         }
@@ -159,18 +159,18 @@ namespace rcom {
                 try {
                         retval = json.boolean("success");
                 } catch (JSONError& jerr) {
-                        r_err("RegistryProxy: %s", jerr.what());
+                        log_error("RegistryProxy: %s", jerr.what());
                 }
                 return retval;
         }
         
         void RegistryProxy::print_error(JsonCpp& json, const std::string& method)
         {
-                r_err("RegistryProxy: %s: Request failed", method.c_str());
+                log_error("RegistryProxy: %s: Request failed", method.c_str());
                 try {
-                        r_err("RegistryProxy: Reason: %s", json.str("message"));
+                        log_error("RegistryProxy: Reason: %s", json.str("message"));
                 } catch (JSONError& jerr) {
-                        r_err("RegistryProxy: %s", jerr.what());
+                        log_error("RegistryProxy: %s", jerr.what());
                 }
         }
                                 
@@ -197,7 +197,7 @@ namespace rcom {
                         address_string = json.str("address");
                         success = true;
                 } catch (JSONError& jerr) {
-                        r_err("RegistryProxy: %s", jerr.what());
+                        log_error("RegistryProxy: %s", jerr.what());
                 }
                 return success;
         }

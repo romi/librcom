@@ -21,7 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include <r.h>
+#include "ConsoleLogger.h"
 #include "Registry.h"
 
 namespace rcom {
@@ -71,7 +71,7 @@ namespace rcom {
                         success = true;
                         
                 } else {
-                        r_err("Registry::add: address not set");
+                        log_error("Registry::add: address not set");
                 }
                 
                 return success;
