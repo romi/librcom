@@ -25,7 +25,7 @@
 #include <arpa/inet.h>
 #include <stdexcept>
 #include <algorithm>
-#include <log.h>
+#include "ConsoleLogger.h"
 #include "Address.h"
 #include "ip.h"
 
@@ -46,7 +46,7 @@ namespace rcom {
         Address::Address(const char *ip, uint16_t port) : addr_{AF_INET,0,0,{0}}
         {
                 if (!set(ip, port)) {
-                        r_err("Address::set failed: ip=%s, port=%hu", ip, port);
+                        log_error("Address::set failed: ip=%s, port=%hu", ip, port);
                         throw runtime_error("Address::set failed");
                 }
         }
@@ -54,7 +54,7 @@ namespace rcom {
         Address::Address(const std::string& str) : addr_{AF_INET,0,0,{0}}
         {
                 if (!parse(str)) {
-                        r_err("Address::set failed: str=%s", str.c_str());
+                        log_error("Address::set failed: str=%s", str.c_str());
                         throw runtime_error("Address::parse failed");
                 }
         }
@@ -102,10 +102,10 @@ namespace rcom {
                         if (inet_aton(ip, &addr_.sin_addr) != 0) {
                                 success = true;
                         } else {
-                                r_err("Address::set_ip: inet_aton failed: %s", ip);
+                                log_error("Address::set_ip: inet_aton failed: %s", ip);
                         }
                 } else {
-                        r_err("Address::set_ip: null address");
+                        log_error("Address::set_ip: null address");
                 }
                 
                 return success;
@@ -133,10 +133,10 @@ namespace rcom {
                         if (is_valid_integer(portstr))
                                 success = set(ip.c_str(), (uint16_t) std::stoi(portstr));
                         else 
-                                r_err("Address::parse: invalid port '%s'", address.c_str());
+                                log_error("Address::parse: invalid port '%s'", address.c_str());
                         
                 } else {
-                        r_err("Address::parse: invalid address '%s'", address.c_str());
+                        log_error("Address::parse: invalid address '%s'", address.c_str());
                 }
 
                 return success;
