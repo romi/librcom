@@ -21,6 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
+#include "ConsoleLogger.h"
 #include "RegistryServer.h"
 #include "Address.h"
 
@@ -72,21 +73,21 @@ namespace rcom {
                                        MessageType type)
         {
                 (void) type;
-                r_info("RegistryServer: Received message: %s", message.tostring().c_str());
+                log_info("RegistryServer: Received message: %s", message.tostring().c_str());
                 
                 try {
                         handle_message(websocket, message);
 
                 } catch (JSONError& je) {
-                        r_err("RegistryServer: json error: %s", je.what());
+                        log_error("RegistryServer: json error: %s", je.what());
                         send_fail(websocket, je.what());
                         
                 } catch (std::runtime_error& re) {
-                        r_err("RegistryServer: runtime error: %s", re.what());
+                        log_error("RegistryServer: runtime error: %s", re.what());
                         send_fail(websocket, re.what());
                         
                 } catch (...) {
-                        r_err("RegistryServer: exception");
+                        log_error("RegistryServer: exception");
                         send_fail(websocket, "Internal error");
                 }                    
         }
@@ -111,7 +112,7 @@ namespace rcom {
                         handle_get(websocket, message);                
                 
                 } else {
-                        r_warn("Unknown request: %s", request.c_str());
+                        log_warning("Unknown request: %s", request.c_str());
                         send_fail(websocket, "Unknown request");
                 }
         }
@@ -124,7 +125,7 @@ namespace rcom {
                 
                 if (set(topic, address)) {
                         send_success(websocket);
-                        r_info("RegistryServer: Register topic '%s' at %s",
+                        log_info("RegistryServer: Register topic '%s' at %s",
                                topic.c_str(), address_string.c_str());
                 } else {
                         send_fail(websocket, "set() failed");
@@ -137,7 +138,7 @@ namespace rcom {
                 
                 if (remove(topic)) {
                         send_success(websocket);
-                        r_info("RegistryServer: Unregister topic '%s'", topic.c_str());
+                        log_info("RegistryServer: Unregister topic '%s'", topic.c_str());
                 } else {
                         send_fail(websocket, "remove() failed");
                 }
@@ -150,9 +151,9 @@ namespace rcom {
                 
                 if (get(topic, address)) {
                         send_address(websocket, address);
-                        r_info("RegistryServer: Get topic '%s'", topic.c_str());
+                        log_info("RegistryServer: Get topic '%s'", topic.c_str());
                 } else {
-                        r_info("RegistryServer: Get topic '%s' failed", topic.c_str());
+                        log_info("RegistryServer: Get topic '%s' failed", topic.c_str());
                         send_fail(websocket, "No such topic");
                 }
         }
@@ -170,7 +171,7 @@ namespace rcom {
 
         void RegistryServer::send_fail(IWebSocket& websocket, const std::string& message)
         {
-                r_warn("RegistryServer: Failure: %s", message.c_str());
+                log_warning("RegistryServer: Failure: %s", message.c_str());
                 response_.clear();
                 response_.printf("{\"success\":false, \"message\":\"%s\"}",
                                  message.c_str());
@@ -187,7 +188,7 @@ namespace rcom {
         void RegistryServer::send_response(IWebSocket& websocket)
         {
                 if (!websocket.send(response_, kTextMessage)) {
-                        r_err("RegistryServer: IWebSocket.send failed");
+                        log_error("RegistryServer: IWebSocket.send failed");
                 }
         }
 }

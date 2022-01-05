@@ -21,7 +21,6 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include <r.h>
 #include "RequestParser.h"
 #include "HttpParser.h"
 
@@ -41,7 +40,7 @@ namespace rcom {
         {
                 bool success = false;
                 std::string value = buffer_.tostring();
-                if (value.compare("GET") == 0) {
+                if (value == "GET") {
                         request_.set_method(IRequest::kGetMethod);
                         success = true;
                 } else {

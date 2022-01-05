@@ -21,7 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include <r.h>
+#include "ConsoleLogger.h"
 #include "Response.h"
 
 namespace rcom {
@@ -71,7 +71,7 @@ namespace rcom {
         {
                 int valid = (code_ == 101);
                 if (!valid) {
-                        r_err("Response: Expected 101 status, got %d", code_);
+                        log_error("Response: Expected 101 status, got %d", code_);
                 }
                 return valid;
         }
@@ -89,7 +89,7 @@ namespace rcom {
                 bool valid = (header_equals("Connection", "Upgrade")
                               || header_equals("Connection", "upgrade"));                  
                 if (!valid) {
-                        r_err("Response: Bad 'Connection' header");
+                        log_error("Response: Bad 'Connection' header");
                 }
 
                 return valid;
@@ -99,7 +99,7 @@ namespace rcom {
         {
                 bool valid = header_equals("Upgrade", "websocket");
                 if (!valid) {
-                        r_err("Response: Bad 'Upgrade' header");
+                        log_error("Response: Bad 'Upgrade' header");
                 }
                 return valid;
         }
@@ -108,7 +108,7 @@ namespace rcom {
         {
                 bool valid = header_equals("Sec-WebSocket-Accept", accept);
                 if (!valid) {
-                        r_err("Response: Bad 'Sec-WebSocket-Accept' header");
+                        log_error("Response: Bad 'Sec-WebSocket-Accept' header");
                 }
                 return valid;
         }

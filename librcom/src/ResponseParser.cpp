@@ -22,7 +22,6 @@
 
  */
 #include <stdlib.h>
-#include <r.h>
 #include "ResponseParser.h"
 
 namespace rcom {
@@ -58,7 +57,7 @@ namespace rcom {
                 // 1.1. The code is currently not designed for HTTP/2 (and
                 // websockets are not designed for HTTP/2 and vice versa). Nor
                 // should HTTP/1.0 be used anymore.
-                if (value.compare("HTTP/1.1") == 0) {
+                if (value == "HTTP/1.1") {
                         success = true;
                 } else {
                         error(kHttpStatusHTTPVersionNotSupported,
@@ -71,9 +70,9 @@ namespace rcom {
         {
                 bool success = false;
                 std::string value = buffer_.tostring();
-                char *endptr = NULL;
+                char *endptr = nullptr;
                 long code = strtol(value.c_str(), &endptr, 10);
-                if (endptr != NULL && *endptr == '\0'
+                if (endptr != nullptr && *endptr == '\0'
                     && code >= 100 && code < 600) {
                         response_.set_code((int)code);
                         success = true;
