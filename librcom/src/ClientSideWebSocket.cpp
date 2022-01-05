@@ -22,27 +22,28 @@
 
  */
 #include <stdexcept>
-#include <r.h>
+#include "ConsoleLogger.h"
 #include <ClockAccessor.h>
+#include <cstring>
 #include "ClientSideWebSocket.h"
 #include "util.h"
 
 namespace rcom {
 
-        ClientSideWebSocket::ClientSideWebSocket(std::unique_ptr<ISocket>& socket,
+        ClientSideWebSocket::ClientSideWebSocket(std::shared_ptr<rpp::ILinux>& linux,
+                                                 std::unique_ptr<ISocket>& socket,
                                                  IResponseParser& parser,
                                                  IAddress& remote_address)
-                : WebSocket(socket)
+                : WebSocket(socket), linux_(linux)
         {
                 if (!handshake(parser, remote_address)) {
-                        r_err("ClientSideWebSocket::handhake failed");
+                        log_error("ClientSideWebSocket::handhake failed");
                         throw std::runtime_error("ClientSideWebSocket: Handshake failed");
                 }
         }
         
         ClientSideWebSocket::~ClientSideWebSocket()
-        {
-        }
+        = default;
 
         void ClientSideWebSocket::input_assert_mask_flag()
         {
@@ -54,7 +55,7 @@ namespace rcom {
                 // the status code 1002 (protocol error)"
 
                 if (frame_header_.mask) {
-                        r_err("ClientSideWebSocket: The server sent a masked frame.");
+                        log_error("ClientSideWebSocket: The server sent a masked frame.");
                         throw RecvError("Server sent masked frame", kCloseProtocolError);
                 }
         }
@@ -75,15 +76,15 @@ namespace rcom {
                                 if (parser.response().is_websocket(accept)) {
                                         success = true;
                                 } else {
-                                        r_err("ClientSideWebSocket::handshake: "
+                                        log_error("ClientSideWebSocket::handshake: "
                                               "invalid response");
                                 }
                         } else {
-                                r_err("ClientSideWebSocket::handshake: "
+                                log_error("ClientSideWebSocket::handshake: "
                                       "failed to parse the response");
                         }
                 } else {
-                        r_err("ClientSideWebSocket::handshake: "
+                        log_error("ClientSideWebSocket::handshake: "
                               "failed to send the request");
                 }
         
@@ -100,8 +101,8 @@ namespace rcom {
                    MUST be selected randomly for each connection.
                 */                            
                 uint8_t bytes[17];
-                memset(bytes, 0, sizeof(bytes));
-                r_random(bytes, 16);
+                ::memset(bytes, 0, sizeof(bytes));
+                linux_->getrandom(bytes, sizeof(bytes)-1, 0);
                 encode_base64(bytes, 16, key);
         }
 
@@ -109,7 +110,7 @@ namespace rcom {
         {
                 rpp::MemBuffer request;
                 make_http_request(request, host, key);
-                // r_debug("ClientSideWebSocket::send_http_request: %s",
+                // log_debug("ClientSideWebSocket::send_http_request: %s",
                 //         request.tostring().c_str());
                 return socket_send(request);
         }
@@ -162,7 +163,7 @@ namespace rcom {
 
         void ClientSideWebSocket::make_mask()
         {
-                r_random(output_mask_, 4);
+                linux_->getrandom(output_mask_, sizeof(output_mask_), 0);
         }
 
         void ClientSideWebSocket::mask_data(uint8_t *out, const uint8_t *in, size_t length)

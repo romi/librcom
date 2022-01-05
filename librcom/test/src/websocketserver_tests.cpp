@@ -1,11 +1,11 @@
-#include <r.h>
+#include "ConsoleLogger.h"
 #include "gtest/gtest.h"
 #include "WebSocketServer.h"
 
-#include "../mocks/ServerSocket.mock.h"
-#include "../mocks/SocketFactory.mock.h"
-#include "../mocks/MessageListener.mock.h"
-#include "../mocks/WebSocket.mock.h"
+#include "ServerSocket.mock.h"
+#include "SocketFactory.mock.h"
+#include "MessageListener.mock.h"
+#include "WebSocket.mock.h"
 
 using namespace std;
 using namespace rcom;
@@ -72,7 +72,7 @@ public:
         }
 
         void debug_close(CloseCode code) {
-                r_warn("debug_close %d", code);
+                log_warning("debug_close %d", code);
         }
 };
 

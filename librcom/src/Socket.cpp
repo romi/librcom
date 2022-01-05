@@ -23,22 +23,22 @@
  */
 #include <netinet/tcp.h>
 #include <stdexcept>
-#include <r.h>
+#include "ConsoleLogger.h"
 #include "Socket.h"
 
 namespace rcom {
 
-        Socket::Socket(std::unique_ptr<rpp::ILinux>& linux, int sockfd)
+        Socket::Socket(std::shared_ptr<rpp::ILinux>& linux, int sockfd)
                 : socket_(linux, sockfd)
         {
         }
 
-        Socket::Socket(std::unique_ptr<rpp::ILinux>& linux, IAddress& address)
+        Socket::Socket(std::shared_ptr<rpp::ILinux>& linux, IAddress& address)
                 : socket_(linux)
         {
                 if (!socket_.connect(address)) {
                         std::string s;
-                        r_err("Socket::Socket: Failed to connect to address %s",
+                        log_error("Socket::Socket: Failed to connect to address %s",
                               address.tostring(s).c_str());
                         throw std::runtime_error("Socket: Failed to connect");
                 }

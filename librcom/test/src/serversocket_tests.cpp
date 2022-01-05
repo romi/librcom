@@ -1,8 +1,7 @@
 #include <iostream>
-#include <r.h>
 #include "gtest/gtest.h"
 
-#include "../mocks/Address.mock.h"
+#include "Address.mock.h"
 #include "mock_linux.h"
 
 #include "ServerSocket.h"
@@ -20,8 +19,6 @@ using ::testing::NiceMock;
 using ::testing::Assign;
 using ::testing::ReturnPointee;
 using ::testing::DoAll;
-
-//FAKE_VOID_FUNC_VARARG(r_err, const char*, ...)
 
 class serversocket_tests : public ::testing::Test
 {
@@ -45,7 +42,7 @@ protected:
 TEST_F(serversocket_tests, successfull_creation)
 {
         // Arrange
-        std::unique_ptr<MockLinux> mock_linux = std::make_unique<MockLinux>();
+        std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
         EXPECT_CALL(address_, get_sockaddr())
                 .WillOnce(Return(sockaddr_));
         EXPECT_CALL(*mock_linux, socket(_,_,_))
@@ -63,7 +60,7 @@ TEST_F(serversocket_tests, successfull_creation)
 
         // Act
         {
-                std::unique_ptr<rpp::ILinux> linux = std::move(mock_linux);
+                std::shared_ptr<rpp::ILinux> linux = std::move(mock_linux);
                 ServerSocket socket(linux, address_);
         }
         
@@ -73,7 +70,7 @@ TEST_F(serversocket_tests, successfull_creation)
 TEST_F(serversocket_tests, close_only_called_once)
 {
         // Arrange
-        std::unique_ptr<MockLinux> mock_linux = std::make_unique<MockLinux>();
+        std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
         EXPECT_CALL(address_, get_sockaddr())
                 .WillOnce(Return(sockaddr_));
         EXPECT_CALL(*mock_linux, socket(_,_,_))
@@ -92,7 +89,7 @@ TEST_F(serversocket_tests, close_only_called_once)
 
         // Act
         {
-                std::unique_ptr<rpp::ILinux> linux = std::move(mock_linux);
+                std::shared_ptr<rpp::ILinux> linux = std::move(mock_linux);
                 ServerSocket socket(linux, address_);
                 socket.close();
         }
@@ -103,7 +100,7 @@ TEST_F(serversocket_tests, close_only_called_once)
 TEST_F(serversocket_tests, failed_socket_creation_throws_exception)
 {
         // Arrange
-        std::unique_ptr<MockLinux> mock_linux = std::make_unique<MockLinux>();
+        std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
         EXPECT_CALL(address_, get_sockaddr())
                 .WillOnce(Return(sockaddr_));
         EXPECT_CALL(*mock_linux, socket(_,_,_))
@@ -111,7 +108,7 @@ TEST_F(serversocket_tests, failed_socket_creation_throws_exception)
         
         // Act
         try {
-                std::unique_ptr<rpp::ILinux> linux = std::move(mock_linux);
+                std::shared_ptr<rpp::ILinux> linux = std::move(mock_linux);
                 ServerSocket socket(linux, address_);
                 FAIL() << "Expected std::runtime_error";
         } catch(std::runtime_error const & err) {
@@ -127,7 +124,7 @@ TEST_F(serversocket_tests, failed_socket_creation_throws_exception)
 TEST_F(serversocket_tests, failed_bind_throws_exception)
 {
         // Arrange
-        std::unique_ptr<MockLinux> mock_linux = std::make_unique<MockLinux>();
+        std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
         EXPECT_CALL(address_, get_sockaddr())
                 .WillOnce(Return(sockaddr_));
         EXPECT_CALL(*mock_linux, socket(_,_,_))
@@ -144,7 +141,7 @@ TEST_F(serversocket_tests, failed_bind_throws_exception)
         
         // Act
         try {
-                std::unique_ptr<rpp::ILinux> linux = std::move(mock_linux);
+                std::shared_ptr<rpp::ILinux> linux = std::move(mock_linux);
                 ServerSocket socket(linux, address_);
                 FAIL() << "Expected std::runtime_error";
         } catch(std::runtime_error const & err) {
@@ -160,7 +157,7 @@ TEST_F(serversocket_tests, failed_bind_throws_exception)
 TEST_F(serversocket_tests, failed_listen_throws_exception)
 {
         // Arrange
-        std::unique_ptr<MockLinux> mock_linux = std::make_unique<MockLinux>();
+        std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
         EXPECT_CALL(address_, get_sockaddr())
                 .WillOnce(Return(sockaddr_));
         EXPECT_CALL(*mock_linux, socket(_,_,_))
@@ -179,7 +176,7 @@ TEST_F(serversocket_tests, failed_listen_throws_exception)
         
         // Act
         try {
-                std::unique_ptr<rpp::ILinux> linux = std::move(mock_linux);
+                std::shared_ptr<rpp::ILinux> linux = std::move(mock_linux);
                 ServerSocket socket(linux, address_);
                 FAIL() << "Expected std::runtime_error";
         } catch(std::runtime_error const & err) {
@@ -197,7 +194,7 @@ ACTION(SetREvent) { arg0[0].revents = POLLIN; }
 TEST_F(serversocket_tests, accept_returns_expected_socket)
 {
         // Arrange
-        std::unique_ptr<MockLinux> mock_linux = std::make_unique<MockLinux>();
+        std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
         EXPECT_CALL(address_, get_sockaddr())
                 .WillOnce(Return(sockaddr_));
         EXPECT_CALL(*mock_linux, socket(_,_,_))
@@ -223,7 +220,7 @@ TEST_F(serversocket_tests, accept_returns_expected_socket)
         // Act
         int client;
         {
-                std::unique_ptr<rpp::ILinux> linux = std::move(mock_linux);
+                std::shared_ptr<rpp::ILinux> linux = std::move(mock_linux);
                 ServerSocket socket(linux, address_);
                 client = socket.accept(10.0);
         }
@@ -235,7 +232,7 @@ TEST_F(serversocket_tests, accept_returns_expected_socket)
 TEST_F(serversocket_tests, accept_returns_invalid_socket_after_timeout)
 {
         // Arrange
-        std::unique_ptr<MockLinux> mock_linux = std::make_unique<MockLinux>();
+        std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
         EXPECT_CALL(address_, get_sockaddr())
                 .WillOnce(Return(sockaddr_));
         EXPECT_CALL(*mock_linux, socket(_,_,_))
@@ -258,7 +255,7 @@ TEST_F(serversocket_tests, accept_returns_invalid_socket_after_timeout)
         // Act
         int client;
         {
-                std::unique_ptr<rpp::ILinux> linux = std::move(mock_linux);
+                std::shared_ptr<rpp::ILinux> linux = std::move(mock_linux);
                 ServerSocket socket(linux, address_);
                 client = socket.accept(10.0);
         }

@@ -21,10 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include <r.h>
-#include <algorithm>
+#include "ConsoleLogger.h"
 #include "MessageHub.h"
-#include "ClientSideWebSocket.h"
 #include "WebSocketServer.h"
 #include "util.h"
 #include "DummyMessageListener.h"
@@ -33,19 +31,21 @@ namespace rcom {
 
     MessageHub::MessageHub(const std::string& topic,
                            const std::shared_ptr<IMessageListener>& listener,
+                           const std::shared_ptr<ISocketFactory>& socketFactory,
                            const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory)
-                           : RawMessageHub(topic, listener, webSocketServerFactory,0)
+                           : RawMessageHub(topic, listener, socketFactory, webSocketServerFactory,0)
 
     {
         if (!register_topic()) {
-            r_err("MessageHub: Registration failed: topic '%s'", topic.c_str());
+            log_error("MessageHub: Registration failed: topic '%s'", topic.c_str());
             throw std::runtime_error("MessageHub: Registration failed");
         }
     }
 
     MessageHub::MessageHub(const std::string& topic,
+                           const std::shared_ptr<ISocketFactory>& socketFactory,
                            const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory)
-            : MessageHub(topic, std::make_shared<DummyMessageListener>(), webSocketServerFactory)
+            : MessageHub(topic, std::make_shared<DummyMessageListener>(), socketFactory, webSocketServerFactory)
     {
     }
 

@@ -37,7 +37,7 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IWebSocketServer> server_;
-                std::shared_ptr<IWebSocketServerFactory> webSocketServerFactory_;
+                const std::shared_ptr<ISocketFactory> socketFactory_;
                 std::string topic_;
                 
                 bool register_topic();
@@ -45,11 +45,13 @@ namespace rcom {
         public:
 
             RawMessageHub(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener,
+                            const std::shared_ptr<IMessageListener>& listener,
+                            const std::shared_ptr<ISocketFactory>& socketFactory,
                             const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory);
 
             RawMessageHub(const std::string& topic,
                             const std::shared_ptr<IMessageListener>& listener,
+                            const std::shared_ptr<ISocketFactory>& socketFactory,
                             const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory,
                             uint16_t port);
 

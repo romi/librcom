@@ -65,7 +65,7 @@ int main()
                         = std::make_shared<rcom::SocketFactory>();
                 rcom::Registry registry;
                 rcom::Address address(10101);
-                std::unique_ptr<rpp::ILinux> linux = std::make_unique<rpp::Linux>();
+                std::shared_ptr<rpp::ILinux> linux = std::make_shared<rpp::Linux>();
                 std::unique_ptr<rcom::IServerSocket> server_socket
                         = std::make_unique<rcom::ServerSocket>(linux, address);
                 std::shared_ptr<rcom::IMessageListener> registry_server

@@ -26,6 +26,7 @@
 
 #include "WebSocket.h"
 #include "IResponseParser.h"
+#include "ILinux.h"
 
 namespace rcom {
 
@@ -58,11 +59,14 @@ namespace rcom {
                 
         public:
                 
-                ClientSideWebSocket(std::unique_ptr<ISocket>& socket,
+                ClientSideWebSocket(std::shared_ptr<rpp::ILinux>& linux,
+                                    std::unique_ptr<ISocket>& socket,
                                     IResponseParser& parser,
                                     IAddress& remote_address);
                 
-                virtual ~ClientSideWebSocket() override;
+                ~ClientSideWebSocket() override;
+        private:
+            std::shared_ptr<rpp::ILinux> linux_;
         };
 }
 

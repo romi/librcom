@@ -34,14 +34,11 @@ namespace rcom {
         {
         protected:
                 BaseSocket socket_;
-                
-                bool connect(IAddress& address);
-                void set_nodelay(int value);
 
         public:
 
-                Socket(std::unique_ptr<rpp::ILinux>& linux, int sockfd);
-                Socket(std::unique_ptr<rpp::ILinux>& linux, IAddress& address);
+                Socket(std::shared_ptr<rpp::ILinux>& linux, int sockfd);
+                Socket(std::shared_ptr<rpp::ILinux>& linux, IAddress& address);
                 ~Socket() override = default;
                 
                 void close() override;

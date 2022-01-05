@@ -21,12 +21,11 @@
   <http://www.gnu.org/licenses/>.
 
 */
-#include <r.h>
+#include "ConsoleLogger.h"
 #include <algorithm>
+#include <utility>
 #include "RawMessageHub.h"
 #include "Address.h"
-#include "ClientSideWebSocket.h"
-#include "WebSocketServer.h"
 #include "RegistryServer.h"
 #include "RegistryProxy.h"
 #include "ServerSocket.h"
@@ -38,38 +37,44 @@ namespace rcom {
 
         RawMessageHub::RawMessageHub(const std::string& topic,
                                      const std::shared_ptr<IMessageListener>& listener,
+                                     const std::shared_ptr<ISocketFactory>& socketFactory,
                                      const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory)
-                : RawMessageHub(topic, listener, webSocketServerFactory, 0)
+                : RawMessageHub(topic, listener, socketFactory, webSocketServerFactory, 0)
         {
 
         }
 
         RawMessageHub::RawMessageHub(const std::string &topic,
                                      const std::shared_ptr<IMessageListener> &listener,
+                                     const std::shared_ptr<ISocketFactory>&  socketFactory,
                                      const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory,
                                      uint16_t port)
                 : server_(),
-                  webSocketServerFactory_(webSocketServerFactory),
+                  socketFactory_(socketFactory),
                   topic_(topic)
         {
             try {
-                if (nullptr == webSocketServerFactory_)
+                if (nullptr == socketFactory_)
                 {
-                    throw std::invalid_argument("webSocketServerFactory_");
+                    throw std::invalid_argument("socketFactory_");
+                }
+                if (nullptr == webSocketServerFactory)
+                {
+                    throw std::invalid_argument("webSocketServerFactory");
                 }
                 if (!is_valid_topic(topic)) {
                     std::string error("topic: ");
                     error += topic;
                     throw std::invalid_argument(error.c_str());
                 }
-                server_ = webSocketServerFactory_->new_web_socket_server(listener, port);
+                server_ = webSocketServerFactory->new_web_socket_server(listener, port);
                 if (nullptr == server_)
                 {
                     throw std::invalid_argument("server_");
                 }
             }
             catch (std::invalid_argument& e){
-                r_err("RawMessageHub: Invalid argument: %s", e.what());
+                log_error("RawMessageHub: Invalid argument: %s", e.what());
                 throw;
             }
         }
@@ -84,10 +89,8 @@ namespace rcom {
                 Address registry_address;
                 RegistryServer::get_address(registry_address);
 
-                SocketFactory factory;
-
                 std::unique_ptr<IWebSocket> registry_socket
-                        = factory.new_client_side_websocket(registry_address);
+                        = socketFactory_->new_client_side_websocket(registry_address);
 
                 RegistryProxy registry(registry_socket);
 

@@ -15,6 +15,7 @@ set(SOURCES
     include/Address.h
     include/BaseSocket.h
     include/ClientSideWebSocket.h
+    include/ConsoleLogger.h
     include/DummyMessageListener.h
     include/HttpParser.h
     include/IAddress.h
@@ -55,6 +56,7 @@ set(SOURCES
     src/Address.cpp
     src/BaseSocket.cpp
     src/ClientSideWebSocket.cpp
+    src/ConsoleLogger.cpp
     src/HttpParser.cpp
     src/MessageLink.cpp
     src/MessageHub.cpp
@@ -74,7 +76,7 @@ set(SOURCES
     src/WebSocket.cpp
     src/WebSocketServer.cpp
     src/WebSocketServerFactory.cpp
-)
+        )
 
 add_library(rcom SHARED ${SOURCES})
 target_include_directories(rcom PUBLIC include)

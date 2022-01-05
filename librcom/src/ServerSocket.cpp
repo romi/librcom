@@ -22,14 +22,12 @@
 
  */
 #include <stdexcept>
-#include <string.h>
-#include <r.h>
 #include "ServerSocket.h"
 #include "Address.h"
 
 namespace rcom {
         
-        ServerSocket::ServerSocket(std::unique_ptr<rpp::ILinux>& linux, IAddress& address)
+        ServerSocket::ServerSocket(std::shared_ptr<rpp::ILinux>& linux, IAddress& address)
                 : socket_(linux)
         {
                 if (!socket_.listen(address))

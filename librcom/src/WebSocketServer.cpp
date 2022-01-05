@@ -23,7 +23,7 @@
  */
 #include <stdexcept>
 #include <algorithm>
-#include <r.h>
+#include "ConsoleLogger.h"
 #include "WebSocketServer.h"
 
 namespace rcom {
@@ -81,7 +81,7 @@ namespace rcom {
                         handle_new_connection(sockfd);
 
                 } catch (std::runtime_error& rerr) {
-                        r_err("WebSocketServer::try_new_connection: %s", rerr.what());
+                        log_error("WebSocketServer::try_new_connection: %s", rerr.what());
                 }
         }
 
@@ -110,7 +110,7 @@ namespace rcom {
                                             links_.end(),
                                             [](std::unique_ptr<IWebSocket> const& ws) {
 //                                                    if (!ws->is_connected())
-//                                                        r_info("remove_closed_links::removing ws");
+//                                                        log_info("remove_closed_links::removing ws");
                                                     return !ws->is_connected();
                                             }), 
                              links_.end()); 
@@ -130,12 +130,12 @@ namespace rcom {
                         listener_->onmessage(*links_[index], message_, type);
                                                 
                 } else if (status == kRecvError) {
-                        r_err("WebSocketServer::handle_new_messages: recv failed. "
+                        log_error("WebSocketServer::handle_new_messages: recv failed. "
                               "Removing link.");
                         close(index, kCloseInternalError);
                         
                 } else if (status == kRecvClosed) {
-                    r_err("WebSocketServer::handle_new_messages: kRecvClose. Socket will be removed.");
+                    log_error("WebSocketServer::handle_new_messages: kRecvClose. Socket will be removed.");
                 }
         }
 
@@ -144,7 +144,7 @@ namespace rcom {
                 for (size_t i = 0; i < links_.size(); i++) {
                         if (exclude != links_[i].get()) {
                                 if (!send(i, message, type)) {
-                                        r_warn("WebSocketServer::broadcast_text: "
+                                        log_warning("WebSocketServer::broadcast_text: "
                                                "send failed. Closing connection.");
                                         close(i, kCloseInternalError);
                                 }

@@ -38,15 +38,11 @@ namespace rcom {
     }
 
     std::unique_ptr<IWebSocketServer>
-    WebSocketServerFactory::new_web_socket_server(const std::shared_ptr<IMessageListener> &listener, uint16_t port)
+    WebSocketServerFactory::new_web_socket_server(const std::shared_ptr<IMessageListener>& listener, uint16_t port)
     {
         Address address(port);
-        std::unique_ptr<rpp::ILinux> linux
-                = std::make_unique<rpp::Linux>();
-
-        std::unique_ptr<IServerSocket> server_socket
-                = std::make_unique<ServerSocket>(linux, address);
-
+        std::shared_ptr<rpp::ILinux> linux = std::make_shared<rpp::Linux>();
+        std::unique_ptr<IServerSocket> server_socket = std::make_unique<ServerSocket>(linux, address);
 
         return std::make_unique<WebSocketServer>(server_socket,
                                                     socket_factory_,

@@ -26,6 +26,7 @@
 #include <syslog.h>
 #include <atomic>
 #include <WebSocketServerFactory.h>
+#include "ConsoleLogger.h"
 
 std::atomic<bool> quit(false);
 
@@ -36,12 +37,12 @@ void SignalHandler(int signal)
                 exit(signal);
         }
         else if (signal == SIGINT){
-                r_info("Ctrl-C Quitting Application");
+                log_info("Ctrl-C Quitting Application");
                 perror("init_signal_handler");
                 quit = true;
         }
         else{
-                r_err("Unknown signal received %d", signal);
+                log_error("Unknown signal received %d", signal);
         }
 }
 
@@ -66,9 +67,11 @@ int main()
 {
         try {
                 auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
+                std::shared_ptr<rcom::ISocketFactory> socket_factory = std::make_shared<rcom::SocketFactory>();
+
                 std::shared_ptr<rcom::IMessageListener> hello_world
                         = std::make_shared<HelloWorldListener>();
-                rcom::MessageHub message_hub("hello-world", hello_world, webserver_socket_factory);
+                rcom::MessageHub message_hub("hello-world", hello_world, socket_factory, webserver_socket_factory);
                 auto clock = rpp::ClockAccessor::GetInstance();
 
                 std::signal(SIGINT, SignalHandler);
@@ -79,9 +82,9 @@ int main()
                 }
                 
         } catch (std::runtime_error& re) {
-                r_err("main: caught runtime_error: %s", re.what());
+                log_error("main: caught runtime_error: %s", re.what());
         } catch (...) {
-                r_err("main: caught exception");
+                log_error("main: caught exception");
         }
 }
 

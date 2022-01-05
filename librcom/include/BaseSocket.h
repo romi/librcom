@@ -34,15 +34,15 @@ namespace rcom {
 
         class BaseSocket {
         protected:
-                std::unique_ptr<rpp::ILinux> linux_;
+                std::shared_ptr<rpp::ILinux> linux_;
                 int sockfd_;
                 
                 WaitStatus do_wait(double timeout);
                 
         public:
 
-                BaseSocket(std::unique_ptr<rpp::ILinux>& linux);
-                BaseSocket(std::unique_ptr<rpp::ILinux>& linux, int sockfd);
+                BaseSocket(std::shared_ptr<rpp::ILinux>& linux);
+                BaseSocket(std::shared_ptr<rpp::ILinux>& linux, int sockfd);
                 virtual ~BaseSocket();
                         
                 bool listen(IAddress& address);

@@ -10,8 +10,6 @@ set(SRCS
         src/request_tests.cpp
         src/requestparser_tests.cpp
         src/responseparser_tests.cpp
-        mocks/random.mock.h
-        mocks/random.mock.c
         src/websocket_tests.cpp
         mocks/ServerSocket.mock.h
         mocks/SocketFactory.mock.h
@@ -25,11 +23,9 @@ add_executable(librcom_unit_tests ${SRCS})
 target_link_libraries(librcom_unit_tests
                         gtest
                         gmock
-                        rmocks
                         rppmocks
                         rcommocks
-                        rcom
-                        r)
+                        rcom)
  
 #target_include_directories(librcom_unit_tests
 #        PRIVATE

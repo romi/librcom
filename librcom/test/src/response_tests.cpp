@@ -1,15 +1,6 @@
-#include <r.h>
+#include "ConsoleLogger.h"
 #include "gtest/gtest.h"
 #include "Response.h"
-
-//FAKE_VOID_FUNC_VARARG(r_err, const char*, ...)
-
-// extern "C" {
-// #include "log.mock.h"
-// }
-
-// DECLARE_FAKE_VOID_FUNC_VARARG(r_err, const char*, ...)
-// DEFINE_FAKE_VOID_FUNC_VARARG(r_err, const char*, ...)
 
 using namespace std;
 using namespace rcom;
@@ -24,7 +15,6 @@ protected:
         ~response_tests() override = default;
 
         void SetUp() override {
-                //RESET_FAKE(r_err);
         }
 
         void TearDown() override {
@@ -61,7 +51,6 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_bad_code)
 
         // Assert
         ASSERT_FALSE(success);
-        //ASSERT_GE(r_err_fake.call_count, 1);
 }
 
 TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_1)
@@ -77,7 +66,6 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_1)
 
         // Assert
         ASSERT_FALSE(success);
-        //ASSERT_GE(r_err_fake.call_count, 1);
 }
 
 TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_2)
@@ -93,7 +81,6 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_2)
 
         // Assert
         ASSERT_FALSE(success);
-        //ASSERT_GE(r_err_fake.call_count, 1);
 }
 
 TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_3)
@@ -109,7 +96,6 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_3)
 
         // Assert
         ASSERT_FALSE(success);
-        //ASSERT_GE(r_err_fake.call_count, 1);
 }
 
 TEST_F(response_tests, response_is_websocket_returns_false_on_bad_accept_header)
@@ -126,5 +112,4 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_bad_accept_header)
 
         // Assert
         ASSERT_FALSE(success);
-        //ASSERT_GE(r_err_fake.call_count, 1);
 }

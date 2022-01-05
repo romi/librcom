@@ -44,7 +44,7 @@ namespace rcom {
         {
                 Request request;
                 RequestParser parser(request);
-                std::unique_ptr<rpp::ILinux> linux = std::make_unique<rpp::Linux>();
+                std::shared_ptr<rpp::ILinux> linux = std::make_shared<rpp::Linux>();
                 std::unique_ptr<ISocket> socket = std::make_unique<Socket>(linux, sockfd);
                 return std::make_unique<ServerSideWebSocket>(socket, parser);
         }
@@ -54,9 +54,9 @@ namespace rcom {
         {
                 Response response;
                 ResponseParser parser(response);
-                std::unique_ptr<rpp::ILinux> linux = std::make_unique<rpp::Linux>();
+                std::shared_ptr<rpp::ILinux> linux = std::make_shared<rpp::Linux>();
                 std::unique_ptr<ISocket> socket
                         = std::make_unique<Socket>(linux, remote_address);
-                return std::make_unique<ClientSideWebSocket>(socket, parser, remote_address);
+                return std::make_unique<ClientSideWebSocket>(linux, socket, parser, remote_address);
         }
 }
