@@ -42,11 +42,11 @@ namespace rcom {
 
         public:
                 Address();
-                Address(uint16_t port);
+                explicit Address(uint16_t port);
                 Address(const char *ip, uint16_t port);
-                Address(const std::string& str);
-                Address(IAddress& address);
-                virtual ~Address() = default;
+                explicit Address(const std::string& str);
+                explicit Address(IAddress& address);
+                ~Address() override = default;
 
 
                 bool operator==(const Address &rval) const {
