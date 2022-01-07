@@ -5,6 +5,7 @@
 #include "mock_linux.h"
 
 #include "ServerSocket.h"
+#include "Address.h"
 
 
 using namespace std;
@@ -264,5 +265,38 @@ TEST_F(serversocket_tests, accept_returns_invalid_socket_after_timeout)
         ASSERT_EQ(client, kInvalidSocket);
 }
 
+TEST_F(serversocket_tests, address_returns_address)
+{
+    // Arrange
+    rcom::Address actual_address;
+    rcom::Address expected_address("10.1.1.10", 24);
+    auto expected_sockaddress = expected_address.get_sockaddr();
+    const struct sockaddr *pexpected_sockaddress = (struct sockaddr *)&expected_sockaddress;
 
+    std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
+    EXPECT_CALL(*mock_linux, socket(_,_,_))
+            .WillOnce(Return(1));
+    EXPECT_CALL(*mock_linux, bind(_,_,_))
+            .WillOnce(Return(0));
+    EXPECT_CALL(*mock_linux, listen(_,_))
+            .WillOnce(Return(0));
+    EXPECT_CALL(*mock_linux, shutdown(_,_))
+            .WillOnce(Return(0));
+    EXPECT_CALL(*mock_linux, recv(_,_,_,_))
+            .WillOnce(Return(0));
+    EXPECT_CALL(*mock_linux, close(_))
+            .WillOnce(Return(0));
 
+    EXPECT_CALL(*mock_linux, getsockname(_,_,_))
+            .WillOnce(DoAll(testing::SetArgPointee<1>(testing::ByRef(*pexpected_sockaddress)), Return(0)));
+
+    std::shared_ptr<rpp::ILinux> linux = std::move(mock_linux);
+
+    ServerSocket socket(linux, expected_address);
+
+    // Act
+    socket.get_address(actual_address);
+
+    // Assert
+    ASSERT_EQ(actual_address, expected_address);
+}

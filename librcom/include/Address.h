@@ -25,6 +25,7 @@
 #define _LIBRCOM_ADDRESS_H_
 
 #include <string>
+#include <cstring>
 #include "IAddress.h"
 
 namespace rcom {
@@ -45,8 +46,13 @@ namespace rcom {
                 Address(const char *ip, uint16_t port);
                 Address(const std::string& str);
                 Address(IAddress& address);
-
                 virtual ~Address() = default;
+
+
+                bool operator==(const Address &rval) const {
+                    auto other_addr = rval.get_sockaddr();
+                    return (std::memcmp(&addr_, (void*)&other_addr, sizeof(addr_)) == 0);
+                }
                 
                 bool set(const char *ip, uint16_t port) override;
                 bool set(const std::string& str) override;

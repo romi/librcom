@@ -98,7 +98,7 @@ namespace rcom {
         {
                 bool success = false;
 
-                if (ip != NULL) {
+                if (ip != nullptr) {
                         if (inet_aton(ip, &addr_.sin_addr) != 0) {
                                 success = true;
                         } else {
