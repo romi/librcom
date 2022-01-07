@@ -43,7 +43,7 @@ namespace rcom {
         public:
                 Address();
                 explicit Address(uint16_t port);
-                Address(const char *ip, uint16_t port);
+                explicit Address(const char *ip, uint16_t port);
                 explicit Address(const std::string& str);
                 explicit Address(IAddress& address);
                 ~Address() override = default;

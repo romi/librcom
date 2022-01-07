@@ -69,36 +69,18 @@ TEST_F(address_tests, address_constructor_with_no_args_is_not_set)
         ASSERT_FALSE(address.is_set());
 }
 
-TEST_F(address_tests, address_with_null_throws_exception_1)
+TEST_F(address_tests, address_with_null_and_port_throws_exception)
 {
         // Arrange
         uint16_t port = 123;
-
-        try {
-                // Act
-                Address address(nullptr, port);
-                FAIL() << "Expected std::runtime_error";
-                
-        } catch(std::runtime_error const & err) {
-                // OK
-                
-        } catch(...) {
-                FAIL() << "Expected std::runtime_error";
-        }
+        ASSERT_THROW(Address address(nullptr, port), std::runtime_error);
 }
 
-TEST_F(address_tests, address_with_null_throws_exception_2)
+TEST_F(address_tests, address_with_null_throws_exception)
 {
         // Arrange
+        ASSERT_THROW(Address address(nullptr), std::exception);
 
-        try {
-                // Act
-                Address address(nullptr);
-                FAIL() << "Expected exception";
-                
-        } catch(...) {
-                // OK
-        }
 }
 
 TEST_F(address_tests, address_too_short_throws_exception)
@@ -107,17 +89,8 @@ TEST_F(address_tests, address_too_short_throws_exception)
         const char *ip = "127.0.0.";
         uint16_t port = 123;
 
-        try {
-                // Act
-                Address address(ip, port);
-                FAIL() << "Expected std::runtime_error";
-                
-        } catch(std::runtime_error const & err) {
-                // OK
-                
-        } catch(...) {
-                FAIL() << "Expected std::runtime_error";
-        }
+        ASSERT_THROW(Address address(ip, port), std::runtime_error);
+
 }
 
 TEST_F(address_tests, address_too_long_throws_exception_1)
@@ -125,18 +98,7 @@ TEST_F(address_tests, address_too_long_throws_exception_1)
         // Arrange
         const char *ip = "127.0.0.0.1";
         uint16_t port = 123;
-
-        try {
-                // Act
-                Address address(ip, port);
-                FAIL() << "Expected std::runtime_error";
-                
-        } catch(std::runtime_error const & err) {
-                // OK
-                
-        } catch(...) {
-                FAIL() << "Expected std::runtime_error";
-        }
+        ASSERT_THROW(Address address(ip, port), std::runtime_error);
 }
 
 TEST_F(address_tests, address_too_long_throws_exception_2)
@@ -144,54 +106,30 @@ TEST_F(address_tests, address_too_long_throws_exception_2)
         // Arrange
         const char *ip = "1270.0.0.1";
         uint16_t port = 123;
-
-        try {
-                // Act
-                Address address(ip, port);
-                FAIL() << "Expected std::runtime_error";
-                
-        } catch(std::runtime_error const & err) {
-                // OK
-                
-        } catch(...) {
-                FAIL() << "Expected std::runtime_error";
-        }
+        ASSERT_THROW(Address address(ip, port), std::runtime_error);
 }
 
-TEST_F(address_tests, address_with_invalid_port_throws_exception_1)
+TEST_F(address_tests, address_with_aplha_port_throws_exception)
 {
         // Arrange
         const char *bad_address = "127.0.0.1:abc";
-
-        try {
-                // Act
-                Address address(bad_address);
-                FAIL() << "Expected std::runtime_error";
-                
-        } catch(std::runtime_error const & err) {
-                // OK
-                
-        } catch(...) {
-                FAIL() << "Expected std::runtime_error";
-        }
+        ASSERT_THROW(Address address(bad_address), std::runtime_error);
 }
 
-TEST_F(address_tests, address_with_invalid_port_throws_exception_2)
+TEST_F(address_tests, address_with_empty_port_throws_exception)
 {
         // Arrange
         const char *bad_address = "127.0.0.1: ";
+        ASSERT_THROW(Address address(bad_address), std::runtime_error);
 
-        try {
-                // Act
-                Address address(bad_address);
-                FAIL() << "Expected std::runtime_error";
-                
-        } catch(std::runtime_error const & err) {
-                // OK
-                
-        } catch(...) {
-                FAIL() << "Expected std::runtime_error";
-        }
+}
+
+TEST_F(address_tests, address_with_port_throws_exception)
+{
+    // Arrange
+    const char *bad_address = "127.0.0.1";
+    ASSERT_THROW(Address address(bad_address), std::runtime_error);
+
 }
 
 TEST_F(address_tests, address_with_spaces_parses_ok)
@@ -201,19 +139,14 @@ TEST_F(address_tests, address_with_spaces_parses_ok)
         uint16_t port = 123;
         const char *s = "127.0.0.1  :  123";
 
-        try {
-                // Act
-                Address address(s);
-                
-                //Assert
-                std::string actual_ip;
-                ASSERT_TRUE(address.is_set());
-                ASSERT_STREQ(address.ip(actual_ip).c_str(), ip);
-                ASSERT_EQ(address.port(), port);
-                
-        } catch(...) {
-                FAIL() << "Expected success";
-        }
+            // Act
+        Address address(s);
+
+        //Assert
+        std::string actual_ip;
+        ASSERT_TRUE(address.is_set());
+        ASSERT_STREQ(address.ip(actual_ip).c_str(), ip);
+        ASSERT_EQ(address.port(), port);
 }
 
 TEST_F(address_tests, set_with_two_args_initializes_the_address)
@@ -292,7 +225,7 @@ TEST_F(address_tests, set_overwrites_the_address)
         ASSERT_EQ(address.port(), expected_port);
 }
 
-TEST_F(address_tests, constructier_without_args_leaves_address_unset)
+TEST_F(address_tests, constructor_without_args_leaves_address_unset)
 {
         // Arrange
 
@@ -303,7 +236,7 @@ TEST_F(address_tests, constructier_without_args_leaves_address_unset)
         ASSERT_FALSE(address.is_set());
 }
 
-TEST_F(address_tests, constructier_with_args_makes_address_set)
+TEST_F(address_tests, constructor_with_args_makes_address_set)
 {
         // Arrange
         const char *ip = "127.0.0.1";
