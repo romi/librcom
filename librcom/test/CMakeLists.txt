@@ -10,12 +10,14 @@ set(SRCS
         src/request_tests.cpp
         src/requestparser_tests.cpp
         src/responseparser_tests.cpp
-        src/websocket_tests.cpp
+        src/serverside_websocket_tests.cpp
         mocks/ServerSocket.mock.h
         mocks/SocketFactory.mock.h
         mocks/MessageListener.mock.h
         src/websocketserver_tests.cpp
         src/serversocket_tests.cpp
+        src/serverside_websocket_tests.cpp
+        src/clientside_websocket_tests.cpp
         )
 
 add_executable(librcom_unit_tests ${SRCS})

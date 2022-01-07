@@ -76,7 +76,7 @@ set(SOURCES
     src/WebSocket.cpp
     src/WebSocketServer.cpp
     src/WebSocketServerFactory.cpp
-        )
+        include/Frames.h)
 
 add_library(rcom SHARED ${SOURCES})
 target_include_directories(rcom PUBLIC include)

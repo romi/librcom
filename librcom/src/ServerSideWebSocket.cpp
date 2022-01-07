@@ -21,6 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
+#include "Frames.h"
 #include "ConsoleLogger.h"
 #include "ServerSideWebSocket.h"
 
@@ -143,19 +144,19 @@ namespace rcom {
         
                 frame[n++] = (uint8_t) (0x80 | opcode);
         
-                if (length < 126) {
+                if (length < Frames::data_length_126) {
                         frame[n++] = (uint8_t) (length & 0x7f);
                 
-                } else if (length <= 65536) {
+                } else if (length <= Frames::data_length_65536) {
                         uint16_t netshort = htons((uint16_t)length);
-                        frame[n++] = 126;
+                        frame[n++] = Frames::frame_type_server_126;
                         frame[n++] = (uint8_t) (netshort & 0x00ff);
                         frame[n++] = (uint8_t) ((netshort & 0xff00) >> 8);
                 
                 } else {
                         uint64_t hostlong = length; 
                         uint64_t netlong = htonll(hostlong);
-                        frame[n++] = 127;
+                        frame[n++] = Frames::frame_type_server_127;
                         frame[n++] = (uint8_t) (netlong & 0x00000000000000ff);
                         frame[n++] = (uint8_t) ((netlong & 0x000000000000ff00) >> 8);
                         frame[n++] = (uint8_t) ((netlong & 0x0000000000ff0000) >> 16);

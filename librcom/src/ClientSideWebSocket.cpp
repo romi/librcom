@@ -25,6 +25,7 @@
 #include "ConsoleLogger.h"
 #include <ClockAccessor.h>
 #include <cstring>
+#include "Frames.h"
 #include "ClientSideWebSocket.h"
 #include "util.h"
 
@@ -181,18 +182,18 @@ namespace rcom {
                 
                 frame[n++] = (uint8_t) (0x80 | opcode);
         
-                if (length < 126) {
+                if (length < Frames::data_length_126) {
                         frame[n++] = (uint8_t) (0x80 | (length & 0x7f));
                 
-                } else if (length <= 65536) {
+                } else if (length <= Frames::data_length_65536) {
                         uint16_t netshort = htons((uint16_t)length);
-                        frame[n++] = 254;
+                        frame[n++] = Frames::frame_type_client_254;
                         frame[n++] = (uint8_t) (netshort & 0x00ff);
                         frame[n++] = (uint8_t) ((netshort & 0xff00) >> 8);
                 
                 } else {
                         uint64_t netlong = htonll(length);
-                        frame[n++] = 255;
+                        frame[n++] = Frames::frame_type_client_255;
                         frame[n++] = (uint8_t) (netlong & 0x00000000000000ff);
                         frame[n++] = (uint8_t) ((netlong & 0x000000000000ff00) >> 8);
                         frame[n++] = (uint8_t) ((netlong & 0x0000000000ff0000) >> 16);

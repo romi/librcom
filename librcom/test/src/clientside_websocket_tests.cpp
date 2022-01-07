@@ -28,7 +28,7 @@ using ::testing::Assign;
 using ::testing::ReturnPointee;
 
 
-class websocket_tests : public ::testing::Test
+class clientside_websocket_tests : public ::testing::Test
 {
 public:
         MockRequestParser mock_request_parser_;
@@ -112,7 +112,7 @@ public:
         
 protected:
         
-        websocket_tests() :
+        clientside_websocket_tests() :
                 mock_request_parser_(),
                 mock_request_(),
                 mock_response_parser_(),
@@ -136,7 +136,7 @@ protected:
                 rpp::ClockAccessor::SetInstance(gClock);
         }
 
-        ~websocket_tests() override {
+        ~clientside_websocket_tests() override {
                 rpp::ClockAccessor::SetInstance(nullptr);
         }
 
@@ -155,14 +155,14 @@ protected:
                 std::unique_ptr<NiceMock<MockSocket>> mock_socket = make_unique<NiceMock<MockSocket>>();
 
                 EXPECT_CALL(*mock_socket, send(_))
-                        .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_output),
+                        .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
                                               Return(true)));
 
                 EXPECT_CALL(*mock_socket, wait(_))
                         .WillRepeatedly(Return(WaitStatus::kWaitOK));
 
                 EXPECT_CALL(*mock_socket, read(_,_))
-                        .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_input),
+                        .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_input),
                                               Return(true)));
 
                 EXPECT_CALL(*mock_socket, close())
@@ -240,144 +240,6 @@ public:
 
 };
 
-TEST_F(websocket_tests, successfull_creation_and_delete_of_server_side_websocket)
-{
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        
-        // Arrange        
-        input_append_client_1001_close_handshake();
-
-        // Act
-        make_server_side_websocket(websocket);
-        websocket->close(kCloseGoingAway);
-        
-        // Assert
-
-        ASSERT_EQ(output_data_.size(), 2); 
-
-        // HTTP handshake
-        ASSERT_EQ(output_data_[0].tostring()
-                  .find("HTTP/1.1 101 Switching Protocols"), 0);
-        ASSERT_NE(output_data_[0].tostring().find("Upgrade: websocket"),
-                  std::string::npos);
-        ASSERT_NE(output_data_[0].tostring().find("Connection: Upgrade"),
-                  std::string::npos);
-        ASSERT_NE(output_data_[0].tostring()
-                  .find("Sec-WebSocket-Accept: ICX+Yqv66kxgM0FcWaLWlFLwTAI="),
-                  std::string::npos);
-
-        // Close message
-        ASSERT_EQ(output_data_[1].size(), 4);
-        ASSERT_EQ(memcmp(output_data_[1].data().data(), server_1001_close_handshake, 4), 0);
-}
-
-TEST_F(websocket_tests, new_server_side_websocket_throws_error_on_failed_parse)
-{
-        // Arrange
-        
-        std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
-        
-        EXPECT_CALL(mock_request_parser_, parse(_))
-                .WillOnce(Return(false))
-                .RetiresOnSaturation();
-                                                           
-        std::unique_ptr<ISocket> socket = std::move(mock_socket);
-
-        // Act
-        // Assert
-        ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
-}
-
-TEST_F(websocket_tests, new_server_side_websocket_throws_error_if_not_websocket)
-{
-        // Arrange
-        
-        std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
-        
-        EXPECT_CALL(mock_request_parser_, parse(_))
-                .WillOnce(Return(true))
-                .RetiresOnSaturation();
-        
-        EXPECT_CALL(mock_request_parser_, request())
-                .WillRepeatedly(ReturnRef(mock_request_));
-        
-        EXPECT_CALL(mock_request_, is_websocket())
-                .WillRepeatedly(Return(false));
-                                                           
-        std::unique_ptr<ISocket> socket = std::move(mock_socket);
-
-        // Act
-    ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
-}
-
-TEST_F(websocket_tests, new_server_side_websocket_throws_error_if_send_fails)
-{
-        // Arrange
-        
-        std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
-        
-        EXPECT_CALL(mock_request_parser_, parse(_))
-                .WillOnce(Return(true))
-                .RetiresOnSaturation();
-        
-        EXPECT_CALL(mock_request_parser_, request())
-                .WillRepeatedly(ReturnRef(mock_request_));
-        
-        EXPECT_CALL(mock_request_, is_websocket())
-                .WillRepeatedly(Return(true));
-        
-        EXPECT_CALL(mock_request_, get_header_value("Sec-WebSocket-Key",_))
-                .WillRepeatedly(DoAll(SetArgReferee<1>(request_key_header_value_),
-                                      Return(true)));
-
-        EXPECT_CALL(*mock_socket, send(_))
-                .WillOnce(Return(false));
-        
-        EXPECT_CALL(*mock_socket, close());
-                                                           
-        std::unique_ptr<ISocket> socket = std::move(mock_socket);
-
-        // Act
-    ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
-}
-
-TEST_F(websocket_tests, new_server_side_websocket_throws_error_if_read_fails)
-{
-        // Arrange
-        
-        std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
-        
-        EXPECT_CALL(mock_request_parser_, parse(_))
-                .WillOnce(Return(true))
-                .RetiresOnSaturation();
-        
-        EXPECT_CALL(mock_request_parser_, request())
-                .WillRepeatedly(ReturnRef(mock_request_));
-        
-        EXPECT_CALL(mock_request_, is_websocket())
-                .WillRepeatedly(Return(true));
-        
-        EXPECT_CALL(mock_request_, get_header_value("Sec-WebSocket-Key",_))
-                .WillRepeatedly(DoAll(SetArgReferee<1>(request_key_header_value_),
-                                      Return(true)));
-
-        EXPECT_CALL(*mock_socket, send(_))
-                .WillOnce(Return(false));
-        
-        EXPECT_CALL(*mock_socket, wait(_))
-                .WillRepeatedly(Return(WaitStatus::kWaitOK));
-
-        EXPECT_CALL(*mock_socket, read(_,_))
-                .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_input),
-                                      Return(true)));
-        
-        EXPECT_CALL(*mock_socket, close());
-                                                           
-        std::unique_ptr<ISocket> socket = std::move(mock_socket);
-
-        // Act
-    ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
-}
 
 using ::testing::Invoke;
 ssize_t getrandom_fake(void *buf, size_t buflen, unsigned int flags)
@@ -387,7 +249,7 @@ ssize_t getrandom_fake(void *buf, size_t buflen, unsigned int flags)
     return (ssize_t)buflen;
 }
 
-TEST_F(websocket_tests, successfull_creation_and_delete_of_client_side_websocket)
+TEST_F(clientside_websocket_tests, successfull_creation_and_delete_of_client_side_websocket)
 {
         // Arrange
         
@@ -405,14 +267,14 @@ TEST_F(websocket_tests, successfull_creation_and_delete_of_client_side_websocket
                 .WillRepeatedly(Return(true));
 
         EXPECT_CALL(*mock_socket, send(_))
-                .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_output),
+                .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
                                       Return(true)));
 
         EXPECT_CALL(*mock_socket, wait(_))
                 .WillRepeatedly(Return(WaitStatus::kWaitOK));
 
         EXPECT_CALL(*mock_socket, read(_,_))
-                .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_input),
+                .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_input),
                                       Return(true)));
 
         EXPECT_CALL(*mock_socket, is_endpoint_connected())
@@ -463,7 +325,7 @@ TEST_F(websocket_tests, successfull_creation_and_delete_of_client_side_websocket
                          sizeof(client_1001_close_handshake)), 0);
 }
 
-TEST_F(websocket_tests, when_endpoint_connected_close_connection_waits_for_disconnected_endpoint)
+TEST_F(clientside_websocket_tests, when_endpoint_connected_close_connection_waits_for_disconnected_endpoint)
 {
     // Arrange
 
@@ -481,14 +343,14 @@ TEST_F(websocket_tests, when_endpoint_connected_close_connection_waits_for_disco
             .WillRepeatedly(Return(true));
 
     EXPECT_CALL(*mock_socket, send(_))
-            .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_output),
+            .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
                                   Return(true)));
 
     EXPECT_CALL(*mock_socket, wait(_))
             .WillRepeatedly(Return(WaitStatus::kWaitOK));
 
     EXPECT_CALL(*mock_socket, read(_,_))
-            .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_input),
+            .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_input),
                                   Return(true)));
 
     EXPECT_CALL(*mock_socket, is_endpoint_connected())
@@ -541,7 +403,7 @@ TEST_F(websocket_tests, when_endpoint_connected_close_connection_waits_for_disco
 }
 
 
-TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_send_fails)
+TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_send_fails)
 {
         // Arrange
         
@@ -571,7 +433,7 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_send_fails)
                             std::runtime_error);
 }
 
-TEST_F(websocket_tests, new_client_side_websocket_throws_error_on_failed_parse)
+TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_on_failed_parse)
 {
         // Arrange
         
@@ -583,7 +445,7 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_on_failed_parse)
                 .RetiresOnSaturation();
 
         EXPECT_CALL(*mock_socket, send(_))
-                .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_output),
+                .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
                                       Return(true)));
 
         EXPECT_CALL(*mock_linux, getrandom(_,_,_))
@@ -600,7 +462,7 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_on_failed_parse)
                  std::runtime_error);
 }
 
-TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_not_websocket)
+TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_not_websocket)
 {
         // Arrange
         
@@ -612,7 +474,7 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_not_websocket)
                 .RetiresOnSaturation();
 
         EXPECT_CALL(*mock_socket, send(_))
-                .WillRepeatedly(DoAll(Invoke(this, &websocket_tests::copy_output),
+                .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
                                       Return(true)));
 
         EXPECT_CALL(mock_response_parser_, response())
@@ -634,272 +496,3 @@ TEST_F(websocket_tests, new_client_side_websocket_throws_error_if_not_websocket)
                          remote_address),
                  std::runtime_error);
 }
-
-TEST_F(websocket_tests, read_text_message_correctly)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-        
-        // Arrange
-        input_append(masked_text_message, sizeof(masked_text_message));
-
-        // Act
-        bool success = websocket->recv(message);
-
-        // Assert
-        ASSERT_TRUE(success);
-        ASSERT_STREQ(message.tostring().c_str(), "abc");
-}
-
-TEST_F(websocket_tests, read_binary_message_correctly)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-        
-        // Arrange
-        input_append(masked_binary_message, sizeof(masked_binary_message));
-
-        // Act
-        bool success = websocket->recv(message);
-
-        // Assert
-        ASSERT_TRUE(success);
-        ASSERT_STREQ(message.tostring().c_str(), "abc");
-}
-
-TEST_F(websocket_tests, read_fragmented_message_correctly)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-        
-        // Arrange
-        input_append(fragmented_message_a, sizeof(fragmented_message_a));
-        input_append(fragmented_message_b, sizeof(fragmented_message_b));
-        input_append(fragmented_message_c, sizeof(fragmented_message_c));
-
-        // Act
-        RecvStatus status = websocket->recv(message, 1.0);
-
-        // Assert
-        ASSERT_EQ(status, kRecvText);
-        ASSERT_STREQ(message.tostring().c_str(), "abc");
-}
-
-TEST_F(websocket_tests, invalid_fragmented_message_returns_error_1)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-        
-        // Arrange
-        input_append(fragmented_message_a, sizeof(fragmented_message_a));
-        // The second TEXT message follows a the non-terminated first
-        // message.
-        input_append(fragmented_message_a, sizeof(fragmented_message_a));        
-        input_append(client_close_reply, sizeof(client_close_reply));
-
-        // Act
-        RecvStatus status = websocket->recv(message, 1.0);
-
-        // ASSERT
-        ASSERT_EQ(status, kRecvError);
-        ASSERT_EQ(output_data_.size(), 2);
-        MemBuffer& close_message = output_data_[1];
-        ASSERT_EQ(close_message.size(), sizeof(server_1002_close_handshake));
-        ASSERT_TRUE(memcmp(close_message.data().data(), server_1002_close_handshake,
-                           sizeof(server_1002_close_handshake)) == 0);
-}
-
-TEST_F(websocket_tests, invalid_fragmented_message_returns_error_2)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-
-        // Arrange
-        input_append(fragmented_message_a, sizeof(fragmented_message_a));
-        input_append(fragmented_message_b, sizeof(fragmented_message_b));
-        input_append(fragmented_message_a, sizeof(fragmented_message_a));
-        input_append(client_close_reply, sizeof(client_close_reply));
-
-        // Act
-        RecvStatus status = websocket->recv(message, 1.0);
-
-        // Assert
-        ASSERT_EQ(status, kRecvError);
-        ASSERT_EQ(output_data_.size(), 2);
-        MemBuffer& close_message = output_data_[1];
-        ASSERT_EQ(close_message.size(), sizeof(server_1002_close_handshake));
-        ASSERT_TRUE(memcmp(close_message.data().data(), server_1002_close_handshake,
-                           sizeof(server_1002_close_handshake)) == 0);
-}
-
-TEST_F(websocket_tests, read_message_of_size_126)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-
-        // Arrange
-        input_append(binary_frame_len126, sizeof(binary_frame_len126));
-        input_append_random_data(126);
-
-        // Act
-        RecvStatus status = websocket->recv(message, 1.0);
-
-        // Assert
-        ASSERT_EQ(status, kRecvBinary);
-        ASSERT_EQ(message.size(), 126);
-}
-
-TEST_F(websocket_tests, read_message_of_size_65536)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-        
-        // Arrange
-        input_append(binary_frame_len65536, sizeof(binary_frame_len65536));
-        input_append_random_data(65536);
-
-        // Act
-        RecvStatus status = websocket->recv(message, 1.0);
-
-        // Assert
-        ASSERT_EQ(status, kRecvBinary);
-        ASSERT_EQ(message.size(), 65536);
-}
-
-TEST_F(websocket_tests, read_too_long_a_message)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-        
-        // Arrange
-
-        // FIN(0x80)|BINARY(0x02) + MASK(0x80)|LEN(127=0x7f) + LEN(?) + MASK(4)
-        uint8_t binary_frame_len_too_long[] = { 0x82, 0xff,
-                                                0x00, 0x00, 0x00, 0x00,
-                                                0x00, 0x00, 0x00, 0x00,
-                                                0x00, 0x00, 0x00, 0x00 };
-        
-        uint64_t too_long = WebSocket::kMaximumPayloadLength + 1;
-        binary_frame_len_too_long[2] = (uint8_t) ((too_long & 0xff00000000000000) >> 56);
-        binary_frame_len_too_long[3] = (uint8_t) ((too_long & 0x00ff000000000000) >> 48);
-        binary_frame_len_too_long[4] = (uint8_t) ((too_long & 0x0000ff0000000000) >> 40);
-        binary_frame_len_too_long[5] = (uint8_t) ((too_long & 0x000000ff00000000) >> 32);
-        binary_frame_len_too_long[6] = (uint8_t) ((too_long & 0x00000000ff000000) >> 24);
-        binary_frame_len_too_long[7] = (uint8_t) ((too_long & 0x0000000000ff0000) >> 16);
-        binary_frame_len_too_long[8] = (uint8_t) ((too_long & 0x000000000000ff00) >> 8);
-        binary_frame_len_too_long[9] = (uint8_t) (too_long & 0x00000000000000ff);
-
-        input_append(binary_frame_len_too_long, sizeof(binary_frame_len_too_long));
-
-        // Act
-        RecvStatus status = websocket->recv(message, 1.0);
-
-        // Assert
-        ASSERT_EQ(status, kRecvError);
-        ASSERT_EQ(output_data_.size(), 2);
-        MemBuffer& close_message = output_data_[1];
-        ASSERT_EQ(close_message.size(), sizeof(server_1009_close_handshake));
-        ASSERT_TRUE(memcmp(close_message.data().data(), server_1009_close_handshake,
-                           sizeof(server_1009_close_handshake)) == 0);
-}
-
-TEST_F(websocket_tests, unmasked_client_message_returns_error)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-
-        // Arrange
-        input_append(unmasked_text_message, sizeof(unmasked_text_message));
-
-        // Act
-        RecvStatus status = websocket->recv(message, 1.0);
-
-        // Assert
-        ASSERT_EQ(status, kRecvError);
-        ASSERT_EQ(output_data_.size(), 2);
-        MemBuffer& close_message = output_data_[1];
-        ASSERT_EQ(close_message.size(), sizeof(server_1002_close_handshake));
-        ASSERT_TRUE(memcmp(close_message.data().data(), server_1002_close_handshake,
-                           sizeof(server_1002_close_handshake)) == 0);
-}
-
-TEST_F(websocket_tests, bad_message_opcode_returns_error)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-
-        // Arrange
-
-        // FIN(0x80)|???(0x07) + MASK(0x80)|LEN(3) + MASK(4) + DATA('abc')
-        static constexpr const uint8_t invalid_message[] = { 0x87, 0x83,
-                                                             0x00, 0x00, 0x00, 0x00,
-                                                             'a', 'b', 'c' };
-        input_append(invalid_message, sizeof(invalid_message));
-
-        // Act
-        RecvStatus status = websocket->recv(message, 1.0);
-
-        // Assert
-        ASSERT_EQ(status, kRecvError);
-        ASSERT_EQ(output_data_.size(), 2);
-        MemBuffer& close_message = output_data_[1];
-        ASSERT_EQ(close_message.size(), sizeof(server_1002_close_handshake));
-        ASSERT_TRUE(memcmp(close_message.data().data(),
-                           server_1002_close_handshake,
-                           sizeof(server_1002_close_handshake)) == 0);
-}
-
-TEST_F(websocket_tests, politely_replies_to_close_handshake)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-
-        // Arrange
-        input_append(client_1001_close_handshake, sizeof(client_1001_close_handshake));
-
-        // Act
-        RecvStatus status = websocket->recv(message, 1.0);
-
-        // Assert
-        ASSERT_EQ(status, kRecvClosed);
-        ASSERT_EQ(output_data_.size(), 2);
-        MemBuffer& close_message = output_data_[1];
-        ASSERT_EQ(close_message.size(), sizeof(server_1001_close_handshake));
-        ASSERT_TRUE(memcmp(close_message.data().data(),
-                           server_1001_close_handshake,
-                           sizeof(server_1001_close_handshake)) == 0);
-}
-
-TEST_F(websocket_tests, send_message_succesfully)
-{
-        MemBuffer message;
-        std::unique_ptr<ServerSideWebSocket> websocket;
-        make_server_side_websocket(websocket);
-
-        // Arrange
-        message.append_string("abc");
-
-        // Act
-        bool success = websocket->send(message);
-        
-        // Assert
-        ASSERT_TRUE(success);
-        ASSERT_EQ(output_data_.size(), 2);
-        MemBuffer& actual_message = output_data_[1];
-        ASSERT_EQ(actual_message.size(), sizeof(unmasked_text_message));
-        ASSERT_EQ(memcmp(actual_message.data().data(),
-                         unmasked_text_message,
-                         sizeof(unmasked_text_message)), 0);
-}
-
