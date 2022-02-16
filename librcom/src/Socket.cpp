@@ -58,7 +58,7 @@ namespace rcom {
                 socket_.close();
         }
         
-        bool Socket::send(rpp::MemBuffer& buffer)
+        bool Socket::send(rcom::MemBuffer& buffer)
         {
                 const std::vector<uint8_t>& data = buffer.data();;
                 return send(&data[0], buffer.size());

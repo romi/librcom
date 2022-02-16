@@ -53,16 +53,16 @@ protected:
     std::unique_ptr<MockWebSocketServer> mockWebSocketServer_;
 
     // Broacast capture
-    rpp::MemBuffer captured_broadcast_buffer_;
+    rcom::MemBuffer captured_broadcast_buffer_;
     MessageType capture_broadcast_type_;
     IWebSocket *exclude_;
 
     // Send capture
-    rpp::MemBuffer captured_send_buffer_;
+    rcom::MemBuffer captured_send_buffer_;
     MessageType capture_send_type_;
 
 public:
-    void capture_broadcast(rpp::MemBuffer &message,
+    void capture_broadcast(rcom::MemBuffer &message,
                         MessageType type,
                         IWebSocket *exclude)
     {
@@ -71,7 +71,7 @@ public:
         exclude_ = exclude;
     }
 
-    void capture_send(rpp::MemBuffer &message,
+    void capture_send(rcom::MemBuffer &message,
                            MessageType type)
     {
         captured_send_buffer_ = message;
@@ -190,7 +190,7 @@ TEST_F(rawmessagehub_tests, broadcast_calls_broadcast)
 {
     // Arrange
     std::string topic("topic");
-    rpp::MemBuffer buffer;
+    rcom::MemBuffer buffer;
     buffer.append_string("buffer");
     MessageType type(MessageType::kTextMessage);
     IWebSocket* exclude = nullptr;
@@ -237,7 +237,7 @@ TEST_F(rawmessagehub_tests, register_topic_registers)
     uint16_t address_port(100);
     Address server_address(address_str.c_str(), address_port);
 
-    rpp::MemBuffer response;
+    rcom::MemBuffer response;
     response.printf("{\"success\":true}");
     RecvStatus recvStatus(RecvStatus::kRecvText);
 

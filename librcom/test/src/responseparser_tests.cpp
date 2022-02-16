@@ -12,13 +12,13 @@ using ::testing::SetArgReferee;
 
 using namespace std;
 using namespace rcom;
-using namespace rpp;
+//using namespace rpp;
 
 class responseparser_tests : public ::testing::Test
 {
 public:
         MockSocket socket_;
-        rpp::MemBuffer read_data_;
+        rcom::MemBuffer read_data_;
         size_t current_read_char_;
 
         

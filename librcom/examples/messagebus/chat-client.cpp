@@ -54,7 +54,7 @@ std::mutex mutex_;
 void print_available_messages(rcom::MessageLink *link)
 {
         std::lock_guard<std::mutex> lock(mutex_);
-        rpp::MemBuffer message;
+        rcom::MemBuffer message;
         
         /* The loop will treat all the available messages. When there
          * are no more messages (and after waiting for an additional
@@ -73,7 +73,7 @@ void handle_incoming_messages(rcom::MessageLink *link)
         }
 }
 
-void readline(rpp::MemBuffer& message)
+void readline(rcom::MemBuffer& message)
 {
         message.clear();
         
@@ -88,7 +88,7 @@ void readline(rpp::MemBuffer& message)
         }
 }
 
-void send_message(rcom::MessageLink *link, rpp::MemBuffer& message)
+void send_message(rcom::MessageLink *link, rcom::MemBuffer& message)
 {
         std::lock_guard<std::mutex> lock(mutex_);
         std::cout << "< " << message.tostring() << std::endl;
@@ -97,7 +97,7 @@ void send_message(rcom::MessageLink *link, rpp::MemBuffer& message)
 
 void handle_user_messages(rcom::MessageLink *link)
 {
-        rpp::MemBuffer message;
+        rcom::MemBuffer message;
         while (!quit) {
                 readline(message);
                 if (message.size() > 0) {
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
         
         try {
                 rcom::MessageLink link(topic);
-                rpp::MemBuffer message;
+                rcom::MemBuffer message;
 
                 std::signal(SIGINT, SignalHandler);
 

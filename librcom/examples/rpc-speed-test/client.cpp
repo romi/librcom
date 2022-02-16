@@ -51,7 +51,7 @@ int main()
                 rcom::MessageLink link("speed");
                 uint8_t data[1024];
                 rpp::Clock clock;
-                rpp::MemBuffer message;
+                rcom::MemBuffer message;
                 message.append(data, 1024);
 
                 uint64_t total_bytes = 0;

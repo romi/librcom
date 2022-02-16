@@ -26,7 +26,7 @@
 
 #include <memory>
 #include <MemBuffer.h>
-#include <JsonCpp.h>
+#include <json.hpp>
 #include "IRegistry.h"
 #include "ISocketFactory.h"
 
@@ -37,22 +37,22 @@ namespace rcom {
         protected:
                 std::unique_ptr<IWebSocket> websocket_;
                         
-                void make_register_request(rpp::MemBuffer& request,
+                void make_register_request(rcom::MemBuffer& request,
                                            const std::string& topic,
                                            IAddress& address);
-                void make_unregister_request(rpp::MemBuffer& request,
+                void make_unregister_request(rcom::MemBuffer& request,
                                              const std::string& topic);
                 
-                void make_get_request(rpp::MemBuffer& request, const std::string& topic);
+                void make_get_request(rcom::MemBuffer& request, const std::string& topic);
                 
-                bool send_request(rpp::MemBuffer& request); 
+                bool send_request(rcom::MemBuffer& request);
                 bool response_is_success(const std::string& method); 
-                bool read_response(rpp::MemBuffer& response); 
-                JsonCpp parse_response(rpp::MemBuffer& response); 
-                bool is_success(JsonCpp& json); 
-                void print_error(JsonCpp& json, const std::string& method); 
+                bool read_response(rcom::MemBuffer& response);
+                nlohmann::json parse_response(rcom::MemBuffer& response);
+                bool is_success(nlohmann::json& jsonobj);
+                void print_error(nlohmann::json& jsonobj, const std::string& method);
                 bool read_address(IAddress& address); 
-                bool get_address(JsonCpp& json, std::string& address_string);
+                bool get_address(nlohmann::json& jsonobj, std::string& address_string);
 
         public:
                 RegistryProxy(std::unique_ptr<IWebSocket>& websocket);

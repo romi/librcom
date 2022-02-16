@@ -139,7 +139,7 @@ namespace rcom {
                 }
         }
 
-        void WebSocketServer::broadcast(rpp::MemBuffer& message, MessageType type, IWebSocket *exclude)
+        void WebSocketServer::broadcast(rcom::MemBuffer& message, MessageType type, IWebSocket *exclude)
         {
                 for (size_t i = 0; i < links_.size(); i++) {
                         if (exclude != links_[i].get()) {
@@ -152,7 +152,7 @@ namespace rcom {
                 }
         }
 
-        bool WebSocketServer::send(size_t index, rpp::MemBuffer& message,
+        bool WebSocketServer::send(size_t index, rcom::MemBuffer& message,
                                    MessageType type)
         {
                 bool success = true;

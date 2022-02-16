@@ -82,7 +82,7 @@ namespace rcom {
                 return topic_;
         }
         
-        bool MessageLink::recv(rpp::MemBuffer& message, double timeout)
+        bool MessageLink::recv(rcom::MemBuffer& message, double timeout)
         {
                 recv_status_ = websocket_->recv(message, timeout);
                 return obtained_message();
@@ -99,7 +99,7 @@ namespace rcom {
                 return recv_status_;
         }
 
-        bool MessageLink::send(rpp::MemBuffer& message, MessageType type)
+        bool MessageLink::send(rcom::MemBuffer& message, MessageType type)
         {
                 return websocket_->send(message, type);
         }

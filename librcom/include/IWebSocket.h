@@ -51,8 +51,8 @@ namespace rcom {
                 
                 virtual ~IWebSocket() = default;
 
-                virtual RecvStatus recv(rpp::MemBuffer& message, double timeout = 0.0) = 0;
-                virtual bool send(rpp::MemBuffer& message, MessageType type) = 0;
+                virtual RecvStatus recv(rcom::MemBuffer& message, double timeout = 0.0) = 0;
+                virtual bool send(rcom::MemBuffer& message, MessageType type) = 0;
                 virtual void close(CloseCode code) = 0;
                 virtual bool is_connected() = 0;
         };

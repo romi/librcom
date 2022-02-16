@@ -109,14 +109,14 @@ namespace rcom {
 
         bool ClientSideWebSocket::send_http_request(std::string& host, std::string& key)
         {
-                rpp::MemBuffer request;
+                rcom::MemBuffer request;
                 make_http_request(request, host, key);
                 // log_debug("ClientSideWebSocket::send_http_request: %s",
                 //         request.tostring().c_str());
                 return socket_send(request);
         }
         
-        void ClientSideWebSocket::make_http_request(rpp::MemBuffer& request, std::string& host,
+        void ClientSideWebSocket::make_http_request(rcom::MemBuffer& request, std::string& host,
                                                     std::string& key)
         {
                 request.printf("GET / HTTP/1.1\r\n"
@@ -172,9 +172,9 @@ namespace rcom {
                 apply_mask(out, in, length, output_mask_);
         }
 
-        void ClientSideWebSocket::output_append_header(rpp::MemBuffer& output,
+        void ClientSideWebSocket::output_append_header(rcom::MemBuffer& output,
                                                        Opcode opcode,
-                                                       rpp::MemBuffer& message)
+                                                       rcom::MemBuffer& message)
         {
                 uint64_t length = message.size();
                 uint8_t frame[14];
@@ -213,8 +213,8 @@ namespace rcom {
                 output.append(frame, n);
         }
 
-        void ClientSideWebSocket::output_append_payload(rpp::MemBuffer& output,
-                                                        rpp::MemBuffer& message)
+        void ClientSideWebSocket::output_append_payload(rcom::MemBuffer& output,
+                                                        rcom::MemBuffer& message)
         {
                 uint8_t buffer[1024];
                 size_t sent = 0;

@@ -38,7 +38,7 @@ namespace rcom {
                 bool handshake(IResponseParser& parser, IAddress& address);
                 void make_key(std::string& key);
                 bool send_http_request(std::string& host, std::string& key);
-                void make_http_request(rpp::MemBuffer& request, std::string& host,
+                void make_http_request(rcom::MemBuffer& request, std::string& host,
                                        std::string& key);
                 void make_mask();
                 void mask_data(uint8_t *out, const uint8_t *in, size_t length);
@@ -48,11 +48,11 @@ namespace rcom {
                 void input_read_header() override;
                 void input_append_payload(uint8_t *data, size_t length) override;
                 
-                void output_append_header(rpp::MemBuffer& output,
+                void output_append_header(rcom::MemBuffer& output,
                                           Opcode opcode,
-                                          rpp::MemBuffer& message) override;
-                void output_append_payload(rpp::MemBuffer& output,
-                                           rpp::MemBuffer& message) override;
+                                          rcom::MemBuffer& message) override;
+                void output_append_payload(rcom::MemBuffer& output,
+                                           rcom::MemBuffer& message) override;
                 bool output_send_payload(const uint8_t *data, size_t length) override;
 
                 void close_connection() override;

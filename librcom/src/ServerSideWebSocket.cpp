@@ -67,7 +67,7 @@ namespace rcom {
         {
                 std::string key;
                 std::string accept;
-                rpp::MemBuffer response;
+                rcom::MemBuffer response;
                         
                 request.get_header_value("Sec-WebSocket-Key", key);
                 make_accept_string(accept, key);
@@ -76,7 +76,7 @@ namespace rcom {
                 return socket_send(response);
         }
         
-        void ServerSideWebSocket::make_http_response(rpp::MemBuffer& response,
+        void ServerSideWebSocket::make_http_response(rcom::MemBuffer& response,
                                                      std::string &accept)
         {
                 response.printf("HTTP/1.1 101 Switching Protocols\r\n"
@@ -134,9 +134,9 @@ namespace rcom {
                 apply_mask(out, in, length, input_mask_);
         }
 
-        void ServerSideWebSocket::output_append_header(rpp::MemBuffer& output,
+        void ServerSideWebSocket::output_append_header(rcom::MemBuffer& output,
                                                        Opcode opcode,
-                                                       rpp::MemBuffer& message)
+                                                       rcom::MemBuffer& message)
         {
                 size_t length = message.size();
                 uint8_t frame[14];
@@ -170,8 +170,8 @@ namespace rcom {
                 output.append(frame, n);
         }
 
-        void ServerSideWebSocket::output_append_payload(rpp::MemBuffer& output,
-                                                        rpp::MemBuffer& message)
+        void ServerSideWebSocket::output_append_payload(rcom::MemBuffer& output,
+                                                        rcom::MemBuffer& message)
         {
                 output.append(message);
         }

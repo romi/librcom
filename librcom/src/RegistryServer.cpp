@@ -69,7 +69,7 @@ namespace rcom {
         }        
         
         void RegistryServer::onmessage(IWebSocket& websocket,
-                                       rpp::MemBuffer& message,
+                                       rcom::MemBuffer& message,
                                        MessageType type)
         {
                 (void) type;
@@ -78,7 +78,7 @@ namespace rcom {
                 try {
                         handle_message(websocket, message);
 
-                } catch (JSONError& je) {
+                } catch (nlohmann::json::exception& je) {
                         log_error("RegistryServer: json error: %s", je.what());
                         send_fail(websocket, je.what());
                         
@@ -93,22 +93,22 @@ namespace rcom {
         }
         
         void RegistryServer::handle_message(IWebSocket& websocket,
-                                            rpp::MemBuffer& message)
+                                            rcom::MemBuffer& message)
         {
-                JsonCpp obj = JsonCpp::parse(message);
+                nlohmann::json obj = nlohmann::json::parse(message.tostring());
                 handle_json_message(websocket, obj);
         }
 
-        void RegistryServer::handle_json_message(IWebSocket& websocket, JsonCpp& message)
+        void RegistryServer::handle_json_message(IWebSocket& websocket, nlohmann::json& message)
         {
-                std::string request = message.str("request");
-                if (request.compare("register") == 0) {
+                std::string request = message["request"];
+                if (request == "register") {
                         handle_register(websocket, message);
                 
-                } else if (request.compare("unregister") == 0) {
+                } else if (request == "unregister") {
                         handle_unregister(websocket, message);
                                 
-                } else if (request.compare("get") == 0) {
+                } else if (request == "get") {
                         handle_get(websocket, message);                
                 
                 } else {
@@ -117,10 +117,10 @@ namespace rcom {
                 }
         }
         
-        void RegistryServer::handle_register(IWebSocket& websocket, JsonCpp& message)
+        void RegistryServer::handle_register(IWebSocket& websocket, nlohmann::json& message)
         {
-                std::string topic = message.str("topic");
-                std::string address_string = message.str("address");
+                std::string topic = message["topic"];
+                std::string address_string = message["address"];
                 Address address(address_string);
                 
                 if (set(topic, address)) {
@@ -132,9 +132,9 @@ namespace rcom {
                 }
         }
 
-        void RegistryServer::handle_unregister(IWebSocket& websocket, JsonCpp& message)
+        void RegistryServer::handle_unregister(IWebSocket& websocket, nlohmann::json& message)
         {
-                std::string topic = message.str("topic");
+                std::string topic = message["topic"];
                 
                 if (remove(topic)) {
                         send_success(websocket);
@@ -144,9 +144,9 @@ namespace rcom {
                 }
         }
 
-        void RegistryServer::handle_get(IWebSocket& websocket, JsonCpp& message)
+        void RegistryServer::handle_get(IWebSocket& websocket, nlohmann::json& message)
         {
-                std::string topic = message.str("topic");
+                std::string topic = message["topic"];
                 Address address;
                 
                 if (get(topic, address)) {
@@ -164,7 +164,7 @@ namespace rcom {
                 address.tostring(address_string);
                         
                 response_.clear();
-                response_.printf("{\"success\":true, \"address\": \"%s\"}",
+                response_.printf(R"({"success":true, "address": "%s"})",
                                  address_string.c_str());
                 send_response(websocket);
         }
@@ -173,7 +173,7 @@ namespace rcom {
         {
                 log_warning("RegistryServer: Failure: %s", message.c_str());
                 response_.clear();
-                response_.printf("{\"success\":false, \"message\":\"%s\"}",
+                response_.printf(R"({"success":false, "message":"%s"})",
                                  message.c_str());
                 send_response(websocket);
         }
@@ -181,7 +181,7 @@ namespace rcom {
         void RegistryServer::send_success(IWebSocket& websocket)
         {
                 response_.clear();
-                response_.printf("{\"success\":true}");
+                response_.printf(R"({"success":true})");
                 send_response(websocket);
         }
 

@@ -30,7 +30,7 @@
 
 namespace rcom {        
 
-        static uint16_t convert_to_uint16(rpp::MemBuffer buffer);
+        static uint16_t convert_to_uint16(rcom::MemBuffer buffer);
         
         WebSocket::WebSocket(std::unique_ptr<ISocket>& socket)
                 : socket_(),
@@ -59,7 +59,7 @@ namespace rcom {
                 return socket_->is_connected();
         }
 
-        RecvStatus WebSocket::recv(rpp::MemBuffer& message, double timeout)
+        RecvStatus WebSocket::recv(rcom::MemBuffer& message, double timeout)
         {
                 RecvStatus status = kRecvError;
                 
@@ -75,7 +75,7 @@ namespace rcom {
                 return status;
         }
 
-        RecvStatus WebSocket::try_recv(rpp::MemBuffer& message, double timeout)
+        RecvStatus WebSocket::try_recv(rcom::MemBuffer& message, double timeout)
         {
                 double start_time = rpp::ClockAccessor::GetInstance()->time();
                 double remaining_time = timeout;
@@ -108,7 +108,7 @@ namespace rcom {
                 return timeout - (now - start_time);
         }
         
-        bool WebSocket::wait_and_handle_one_message(rpp::MemBuffer& message, double timeout)
+        bool WebSocket::wait_and_handle_one_message(rcom::MemBuffer& message, double timeout)
         {
                 bool received_data = wait_for_data(timeout);
                 if (received_data) 
@@ -145,7 +145,7 @@ namespace rcom {
                 }
         }
         
-        void WebSocket::handle_one_message(rpp::MemBuffer& message)
+        void WebSocket::handle_one_message(rcom::MemBuffer& message)
         {
                 read_message();
                 process_message(message);
@@ -205,7 +205,7 @@ namespace rcom {
                 return ntohll(netlong);
         }
         
-        static uint16_t convert_to_uint16(rpp::MemBuffer buffer)
+        static uint16_t convert_to_uint16(rcom::MemBuffer buffer)
         {
                 uint16_t value = 0;
                 if (buffer.size() == 2) {
@@ -277,7 +277,7 @@ namespace rcom {
                 }
         }
         
-        void WebSocket::process_message(rpp::MemBuffer& message)
+        void WebSocket::process_message(rcom::MemBuffer& message)
         {
                 if (has_control_message()) {
                         handle_control_message();
@@ -378,14 +378,14 @@ namespace rcom {
         {
                 uint8_t data[2];
                 uint16_t netshort;
-                rpp::MemBuffer payload;
+                rcom::MemBuffer payload;
                 
                 netshort = htons((uint16_t)code);
                 data[0] = (uint8_t) (netshort & 0x00ff);
                 data[1] = (uint8_t) ((netshort & 0xff00) >> 8);
                 payload.append(data, 2);
                 
-                rpp::MemBuffer message;
+                rcom::MemBuffer message;
                 make_message(message, kCloseOpcode, payload);
                 
                 return socket_send(message);
@@ -440,7 +440,7 @@ namespace rcom {
         
         void WebSocket::send_pong()
         {
-                rpp::MemBuffer message;
+                rcom::MemBuffer message;
                 make_message(message, kPongOpcode, input_payload_buffer_);                
                 socket_send(message); // FIXME: what if send fails? RecvError?...
         }
@@ -450,7 +450,7 @@ namespace rcom {
                 log_info("WebSocket: Got pong response"); // TODO
         }
 
-        void WebSocket::handle_data_payload(rpp::MemBuffer& message)
+        void WebSocket::handle_data_payload(rcom::MemBuffer& message)
         {
                 assert_continuation();
                 assert_message_length(message);
@@ -471,7 +471,7 @@ namespace rcom {
                 }
         }
 
-        void WebSocket::assert_message_length(rpp::MemBuffer& message)
+        void WebSocket::assert_message_length(rcom::MemBuffer& message)
         {
                 size_t length = input_payload_buffer_.size();
         
@@ -493,7 +493,7 @@ namespace rcom {
                 }
         }
 
-        void WebSocket::copy_payload(rpp::MemBuffer& message)
+        void WebSocket::copy_payload(rcom::MemBuffer& message)
         {
                 if (frame_header_.opcode == kTextOpcode
                     || frame_header_.opcode == kBinaryOpcode) {
@@ -508,7 +508,7 @@ namespace rcom {
         }
 
         
-        bool WebSocket::send(rpp::MemBuffer& message, MessageType type)
+        bool WebSocket::send(rcom::MemBuffer& message, MessageType type)
         {
                 bool success = false;
                 size_t length = message.size();
@@ -525,7 +525,7 @@ namespace rcom {
                 return success;
         }
         
-        bool WebSocket::send_short_data_message(rpp::MemBuffer& message, MessageType type)
+        bool WebSocket::send_short_data_message(rcom::MemBuffer& message, MessageType type)
         {
                 Opcode opcode = (type == kTextMessage)? kTextOpcode : kBinaryOpcode;
                 make_message(opcode, message);
@@ -533,7 +533,7 @@ namespace rcom {
                 return send_output_buffer();
         }
         
-        bool WebSocket::send_long_data_message(rpp::MemBuffer& message, MessageType type)
+        bool WebSocket::send_long_data_message(rcom::MemBuffer& message, MessageType type)
         {
                 Opcode opcode = (type == kTextMessage)? kTextOpcode : kBinaryOpcode;
 
@@ -543,7 +543,7 @@ namespace rcom {
                         && send_long_message_payload(message);
         }
 
-        bool WebSocket::send_long_message_header(Opcode opcode, rpp::MemBuffer& message)
+        bool WebSocket::send_long_message_header(Opcode opcode, rcom::MemBuffer& message)
         {
                 output_message_buffer_.clear();
                 output_append_header(output_message_buffer_, opcode, message);
@@ -551,7 +551,7 @@ namespace rcom {
         }
 
         // Send the payload in blocks of 1k
-        bool WebSocket::send_long_message_payload(rpp::MemBuffer& message)
+        bool WebSocket::send_long_message_payload(rcom::MemBuffer& message)
         {
                 bool success = true;
                 const std::vector<uint8_t>& data = message.data();
@@ -572,14 +572,14 @@ namespace rcom {
                 return success;
         }        
         
-        void WebSocket::make_message(Opcode opcode, rpp::MemBuffer& message)
+        void WebSocket::make_message(Opcode opcode, rcom::MemBuffer& message)
         {
                 make_message(output_message_buffer_, opcode, message);
         }
         
-        void WebSocket::make_message(rpp::MemBuffer& output,
+        void WebSocket::make_message(rcom::MemBuffer& output,
                                      Opcode opcode,
-                                     rpp::MemBuffer& message)
+                                     rcom::MemBuffer& message)
         {
                 output.clear();
                 output_append_header(output, opcode, message);
@@ -610,7 +610,7 @@ namespace rcom {
                 return socket_send(output_message_buffer_);
         }
         
-        bool WebSocket::socket_send(rpp::MemBuffer& buffer)
+        bool WebSocket::socket_send(rcom::MemBuffer& buffer)
         {
                 bool success = true;
                 

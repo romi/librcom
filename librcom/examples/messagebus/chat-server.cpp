@@ -57,7 +57,7 @@ public:
         ChatBus& operator=(const ChatBus& other) = delete;
 
         void onmessage(rcom::IWebSocket& websocket,
-                       rpp::MemBuffer& message,
+                       rcom::MemBuffer& message,
                        rcom::MessageType type) override {
                 (void) type; // Tell the compiler it's not used
                 std::cout << "> " << message.tostring() << std::endl;

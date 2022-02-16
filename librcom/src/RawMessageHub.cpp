@@ -105,7 +105,7 @@ namespace rcom {
                 server_->handle_events();
         }
 
-        void RawMessageHub::broadcast(rpp::MemBuffer &message,
+        void RawMessageHub::broadcast(rcom::MemBuffer &message,
                                       MessageType type,
                                       IWebSocket *exclude)
         {

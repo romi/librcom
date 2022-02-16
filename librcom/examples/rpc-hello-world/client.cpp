@@ -25,7 +25,7 @@ int main()
 {
         try {
                 rcom::MessageLink link("hello-world");
-                rpp::MemBuffer message;
+                rcom::MemBuffer message;
                 message.append_string("hello");
 
                 if (link.send(message)

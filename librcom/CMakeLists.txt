@@ -31,6 +31,8 @@ set(SOURCES
     include/ISocketFactory.h
     include/IWebSocketServer.h
     include/IWebSocketServerFactory.h
+    include/json.hpp
+    include/MemBuffer.h
     include/MessageLink.h
     include/MessageHub.h
     include/RawMessageHub.h
@@ -58,6 +60,7 @@ set(SOURCES
     src/ClientSideWebSocket.cpp
     src/ConsoleLogger.cpp
     src/HttpParser.cpp
+    src/MemBuffer.cpp
     src/MessageLink.cpp
     src/MessageHub.cpp
     src/RawMessageHub.cpp

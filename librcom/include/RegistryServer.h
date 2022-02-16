@@ -25,7 +25,7 @@
 #define _LIBRCOM_REGISTRY_SERVER_H_
 
 #include <MemBuffer.h>
-#include <JsonCpp.h>
+#include <json.hpp>
 #include "IRegistry.h"
 #include "ISocketFactory.h"
 #include "IMessageHub.h"
@@ -42,17 +42,17 @@ namespace rcom {
                 
         protected:
                 IRegistry& registry_;
-                rpp::MemBuffer response_;
+                rcom::MemBuffer response_;
                 
                 bool set(const std::string& topic, IAddress& address); 
                 bool get(const std::string& topic, IAddress& address);
                 bool remove(const std::string& topic);
 
-                void handle_message(IWebSocket& websocket, rpp::MemBuffer& message);
-                void handle_json_message(IWebSocket& websocket, JsonCpp& message);
-                void handle_register(IWebSocket& websocket, JsonCpp& message);
-                void handle_unregister(IWebSocket& websocket, JsonCpp& message);
-                void handle_get(IWebSocket& websocket, JsonCpp& message);
+                void handle_message(IWebSocket& websocket, rcom::MemBuffer& message);
+                void handle_json_message(IWebSocket& websocket, nlohmann::json& message);
+                void handle_register(IWebSocket& websocket, nlohmann::json& message);
+                void handle_unregister(IWebSocket& websocket, nlohmann::json& message);
+                void handle_get(IWebSocket& websocket, nlohmann::json& message);
                 void send_address(IWebSocket& websocket, IAddress& address);
                 void send_fail(IWebSocket& websocket, const std::string& message);
                 void send_success(IWebSocket& websocket);
@@ -63,7 +63,7 @@ namespace rcom {
                 virtual ~RegistryServer() override;
                 
                 void onmessage(IWebSocket& websocket,
-                               rpp::MemBuffer& message,
+                               rcom::MemBuffer& message,
                                MessageType type) override;                
         };
 }

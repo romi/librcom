@@ -41,14 +41,14 @@ namespace rcom {
         
         bool RegistryProxy::set(const std::string& topic, IAddress& address)
         {
-                rpp::MemBuffer request;
+                rcom::MemBuffer request;
                 make_register_request(request, topic, address);
                 bool success = (send_request(request)
                                 && response_is_success("register"));
                 return success;
         }
 
-        void RegistryProxy::make_register_request(rpp::MemBuffer& request,
+        void RegistryProxy::make_register_request(rcom::MemBuffer& request,
                                                   const std::string& topic,
                                                   IAddress& address)
         {
@@ -63,7 +63,7 @@ namespace rcom {
         {
                 bool success = false;
                 bool timed_out = false;
-                rpp::MemBuffer request;
+                rcom::MemBuffer request;
                 double start_time = rpp::ClockAccessor::GetInstance()->time();
 
                 make_get_request(request, topic);
@@ -85,7 +85,7 @@ namespace rcom {
                 return success;
         }
         
-        void RegistryProxy::make_get_request(rpp::MemBuffer& request,
+        void RegistryProxy::make_get_request(rcom::MemBuffer& request,
                                              const std::string& topic)
         {
                 request.printf("{\"request\": \"get\", \"topic\": \"%s\"}",
@@ -94,21 +94,21 @@ namespace rcom {
         
         bool RegistryProxy::remove(const std::string& topic)
         {
-                rpp::MemBuffer request;
+                rcom::MemBuffer request;
                 make_unregister_request(request, topic);
                 bool success = (send_request(request)
                                 && response_is_success("unregister"));
                 return success;
         }
 
-        void RegistryProxy::make_unregister_request(rpp::MemBuffer& request,
+        void RegistryProxy::make_unregister_request(rcom::MemBuffer& request,
                                                     const std::string& topic)
         {
                 request.printf("{\"request\": \"unregister\", \"topic\": \"%s\"}",
                                topic.c_str());
         }
                 
-        bool RegistryProxy::send_request(rpp::MemBuffer& request)
+        bool RegistryProxy::send_request(rcom::MemBuffer& request)
         {
                 return websocket_->send(request, kTextMessage);
         }
@@ -116,9 +116,9 @@ namespace rcom {
         bool RegistryProxy::response_is_success(const std::string& method)
         {
                 bool success = false;
-                rpp::MemBuffer response;
+                rcom::MemBuffer response;
                 if (read_response(response)) {
-                        JsonCpp json = parse_response(response);
+                        nlohmann::json json = parse_response(response);
                         success = is_success(json);
                         if (!success) {
                                 print_error(json, method);
@@ -127,7 +127,7 @@ namespace rcom {
                 return success;
         }
 
-        bool RegistryProxy::read_response(rpp::MemBuffer& response)
+        bool RegistryProxy::read_response(rcom::MemBuffer& response)
         {
                 bool success = false;
                 RecvStatus status;
@@ -141,35 +141,35 @@ namespace rcom {
                 return success;
         }
         
-        JsonCpp RegistryProxy::parse_response(rpp::MemBuffer& response)
+        nlohmann::json RegistryProxy::parse_response(rcom::MemBuffer& response)
         {
-                JsonCpp json;                
+                nlohmann::json json;
                 std::string text = response.tostring();
                 try {
-                        json = JsonCpp::parse(text.c_str());
-                } catch (JSONError& jerr) {
+                        json = nlohmann::json::parse(text.c_str());
+                } catch (nlohmann::json::exception& jerr) {
                         log_error("RegistryProxy: %s", jerr.what());
                 }
                 return json;
         }
         
-        bool RegistryProxy::is_success(JsonCpp& json)
+        bool RegistryProxy::is_success(nlohmann::json& jsonobj)
         {
                 bool retval = false;
                 try {
-                        retval = json.boolean("success");
-                } catch (JSONError& jerr) {
+                        retval = jsonobj["success"];
+                } catch (nlohmann::json::exception& jerr) {
                         log_error("RegistryProxy: %s", jerr.what());
                 }
                 return retval;
         }
         
-        void RegistryProxy::print_error(JsonCpp& json, const std::string& method)
+        void RegistryProxy::print_error(nlohmann::json& jsonobj, const std::string& method)
         {
                 log_error("RegistryProxy: %s: Request failed", method.c_str());
                 try {
-                        log_error("RegistryProxy: Reason: %s", json.str("message"));
-                } catch (JSONError& jerr) {
+                        log_error("RegistryProxy: Reason: %s", jsonobj["message"].dump().c_str());
+                } catch (nlohmann::json::exception& jerr) {
                         log_error("RegistryProxy: %s", jerr.what());
                 }
         }
@@ -177,12 +177,12 @@ namespace rcom {
         bool RegistryProxy::read_address(IAddress& address)
         {
                 bool success = false;
-                rpp::MemBuffer response;
+                rcom::MemBuffer response;
                 if (read_response(response)) {
-                        JsonCpp json = parse_response(response);
-                        if (is_success(json)) {
+                        nlohmann::json jsonobj = parse_response(response);
+                        if (is_success(jsonobj)) {
                                 std::string address_string;
-                                if (get_address(json, address_string)) {
+                                if (get_address(jsonobj, address_string)) {
                                         success = address.set(address_string);
                                 }
                         }
@@ -190,13 +190,13 @@ namespace rcom {
                 return success;
         }
         
-        bool RegistryProxy::get_address(JsonCpp& json, std::string& address_string)
+        bool RegistryProxy::get_address(nlohmann::json& jsonobj, std::string& address_string)
         {
                 bool success = false;
                 try {
-                        address_string = json.str("address");
+                        address_string = jsonobj["address"];
                         success = true;
-                } catch (JSONError& jerr) {
+                } catch (nlohmann::json::exception& jerr) {
                         log_error("RegistryProxy: %s", jerr.what());
                 }
                 return success;

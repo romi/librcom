@@ -40,7 +40,7 @@ namespace rcom {
                 std::shared_ptr<ISocketFactory> factory_;
                 std::shared_ptr<IMessageListener> listener_;
                 std::vector<std::unique_ptr<IWebSocket>> links_;
-                rpp::MemBuffer message_;
+                rcom::MemBuffer message_;
                 std::vector<size_t> to_close_;
                 std::vector<size_t> to_remove_;
                 
@@ -50,7 +50,7 @@ namespace rcom {
                 void handle_new_messages();
                 void handle_new_messages(size_t index);
                 
-                bool send(size_t index, rpp::MemBuffer& message,
+                bool send(size_t index, rcom::MemBuffer& message,
                           MessageType type);
                 void close(size_t index, CloseCode code);
                 IWebSocket& append(int sockfd);
@@ -63,7 +63,7 @@ namespace rcom {
                 virtual ~WebSocketServer();
 
                 void handle_events() override;
-                void broadcast(rpp::MemBuffer &message, MessageType type, IWebSocket *exclude) override;
+                void broadcast(rcom::MemBuffer &message, MessageType type, IWebSocket *exclude) override;
                 void get_address(IAddress& address) override;
                 size_t count_links() override;
                 IWebSocket& get_link(size_t index) override;

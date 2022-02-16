@@ -36,7 +36,7 @@ namespace rcom {
                 virtual ~IWebSocketServer() = default; 
                 
                 virtual void handle_events() = 0;
-                virtual void broadcast(rpp::MemBuffer &message, MessageType type, IWebSocket *exclude) = 0;
+                virtual void broadcast(rcom::MemBuffer &message, MessageType type, IWebSocket *exclude) = 0;
                 virtual void get_address(IAddress& address) = 0;
                 virtual size_t count_links() = 0;
                 virtual IWebSocket& get_link(size_t index) = 0;

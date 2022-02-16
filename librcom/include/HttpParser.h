@@ -69,7 +69,7 @@ namespace rcom {
                 State state_;
                 int status_code_;
                 std::string status_message_;
-                rpp::MemBuffer buffer_;
+                rcom::MemBuffer buffer_;
                 std::string name_;
                 
                 bool parse(ISocket& socket);

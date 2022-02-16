@@ -33,7 +33,7 @@ namespace rcom {
         public:
                 virtual ~IMessageListener() = default;
                 
-                virtual void onmessage(IWebSocket& link, rpp::MemBuffer& message,
+                virtual void onmessage(IWebSocket& link, rcom::MemBuffer& message,
                                        MessageType type) = 0;
         };
 }

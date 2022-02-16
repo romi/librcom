@@ -45,7 +45,7 @@ void SignalHandler(int signal)
 
 static void print_sensor_value(rcom::MessageLink& link)
 {
-        rpp::MemBuffer message;
+        rcom::MemBuffer message;
         if (link.recv(message, 2.0)) {
                 std::cout << message.tostring() << std::endl;
         } else {

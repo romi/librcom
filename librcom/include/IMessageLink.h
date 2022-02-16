@@ -37,8 +37,8 @@ namespace rcom {
 
                 virtual std::string& get_topic() = 0;
                 
-                virtual bool recv(rpp::MemBuffer& message, double timeout = 0.0) = 0;
-                virtual bool send(rpp::MemBuffer& message,
+                virtual bool recv(rcom::MemBuffer& message, double timeout = 0.0) = 0;
+                virtual bool send(rcom::MemBuffer& message,
                                   MessageType type = kTextMessage) = 0;
 
                 virtual RecvStatus recv_status() = 0;

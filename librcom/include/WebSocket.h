@@ -89,10 +89,10 @@ namespace rcom {
                 std::unique_ptr<ISocket> socket_;
 
                 // Used by send()
-                rpp::MemBuffer output_message_buffer_;
+                rcom::MemBuffer output_message_buffer_;
 
                 // Used by recv()
-                rpp::MemBuffer input_payload_buffer_;
+                rcom::MemBuffer input_payload_buffer_;
                 FrameHeader frame_header_;
                 bool is_text_;
                 bool is_continuation_;
@@ -104,19 +104,19 @@ namespace rcom {
                 WebSocket(std::unique_ptr<ISocket>& socket);
                 virtual ~WebSocket() override;
 
-                RecvStatus recv(rpp::MemBuffer& message, double timeout = 0.0);
-                bool send(rpp::MemBuffer& message, MessageType type = kTextMessage);
+                RecvStatus recv(rcom::MemBuffer& message, double timeout = 0.0);
+                bool send(rcom::MemBuffer& message, MessageType type = kTextMessage);
                 void close(CloseCode code) override;
                 bool is_connected() override;
 
         protected:
 
                 // Implementation shared by client or server sub-classes
-                RecvStatus try_recv(rpp::MemBuffer& message, double timeout);
-                bool wait_and_handle_one_message(rpp::MemBuffer& message, double timeout);
+                RecvStatus try_recv(rcom::MemBuffer& message, double timeout);
+                bool wait_and_handle_one_message(rcom::MemBuffer& message, double timeout);
                 bool wait_for_data(double timeout);
                 WaitStatus socket_wait(double timeout);
-                void handle_one_message(rpp::MemBuffer& message);
+                void handle_one_message(rcom::MemBuffer& message);
                 void read_message();
                 void input_read_frame_header();
                 RecvStatus get_message_type();
@@ -129,7 +129,7 @@ namespace rcom {
                 void input_assert_opcode();
                 void input_assert_payload_length();
                 void input_read_payload();
-                void process_message(rpp::MemBuffer& message);
+                void process_message(rcom::MemBuffer& message);
                 bool has_control_message();
                 bool has_data_message();
                 bool has_complete_data_message();
@@ -148,23 +148,23 @@ namespace rcom {
                 void closing_wait_reply(double timeout);
                 void send_pong();
                 void handle_pong_response();
-                void handle_data_payload(rpp::MemBuffer& message);
+                void handle_data_payload(rcom::MemBuffer& message);
                 void assert_continuation();
-                void assert_message_length(rpp::MemBuffer& message);
+                void assert_message_length(rcom::MemBuffer& message);
                 void set_payload_type();
-                void copy_payload(rpp::MemBuffer& message);
+                void copy_payload(rcom::MemBuffer& message);
                 void prepare_continuation();
-                bool send_short_data_message(rpp::MemBuffer& message, MessageType type);
-                bool send_long_data_message(rpp::MemBuffer& message, MessageType type);
-                bool send_long_message_header(Opcode opcode, rpp::MemBuffer& message);
-                bool send_long_message_payload(rpp::MemBuffer& message);
-                void make_message(Opcode opcode, rpp::MemBuffer& message);
-                void make_message(rpp::MemBuffer& output, Opcode opcode,
-                                  rpp::MemBuffer& message);
+                bool send_short_data_message(rcom::MemBuffer& message, MessageType type);
+                bool send_long_data_message(rcom::MemBuffer& message, MessageType type);
+                bool send_long_message_header(Opcode opcode, rcom::MemBuffer& message);
+                bool send_long_message_payload(rcom::MemBuffer& message);
+                void make_message(Opcode opcode, rcom::MemBuffer& message);
+                void make_message(rcom::MemBuffer& output, Opcode opcode,
+                                  rcom::MemBuffer& message);
                 void turn_buffering_off();
                 void turn_buffering_on();
                 bool send_output_buffer();
-                bool socket_send(rpp::MemBuffer& buffer);
+                bool socket_send(rcom::MemBuffer& buffer);
                 bool socket_send(const uint8_t *buffer, size_t length);
                 void socket_read(uint8_t *buffer, size_t length);
                 double compute_remaning_time(double start_time, double timeout);
@@ -179,11 +179,11 @@ namespace rcom {
                 virtual void input_read_header() = 0;
                 virtual void input_append_payload(uint8_t *data, size_t length) = 0;
                 
-                virtual void output_append_header(rpp::MemBuffer& output,
+                virtual void output_append_header(rcom::MemBuffer& output,
                                                   Opcode opcode,
-                                                  rpp::MemBuffer& message) = 0;
-                virtual void output_append_payload(rpp::MemBuffer& output,
-                                                   rpp::MemBuffer& message) = 0;
+                                                  rcom::MemBuffer& message) = 0;
+                virtual void output_append_payload(rcom::MemBuffer& output,
+                                                   rcom::MemBuffer& message) = 0;
                 virtual bool output_send_payload(const uint8_t *data, size_t length) = 0;
                 virtual void close_connection() = 0;
         };

@@ -35,6 +35,7 @@
 #include <ServerSocket.h>
 #include <Address.h>
 #include <ClockAccessor.h>
+#include "ConsoleLogger.h"
 
 std::atomic<bool> quit(false);
 
@@ -45,12 +46,12 @@ void SignalHandler(int signal)
                 exit(signal);
         }
         else if (signal == SIGINT){
-                r_info("Ctrl-C Quitting Application");
+                log_info("Ctrl-C Quitting Application");
                 perror("init_signal_handler");
                 quit = true;
         }
         else{
-                r_err("Unknown signam received %d", signal);
+                log_error("Unknown signam received %d", signal);
         }
 }
 
@@ -58,8 +59,8 @@ int main()
 {
         try {
                 // FIXME
-                r_log_init();
-                r_log_set_app("rcom-registry");
+//                r_log_init();
+//                r_log_set_app("rcom-registry");
         
                 std::shared_ptr<rcom::ISocketFactory> factory
                         = std::make_shared<rcom::SocketFactory>();
@@ -77,19 +78,19 @@ int main()
 
                 std::string s;
                 address.tostring(s);
-                r_info("Registry server running at %s.", s.c_str());
+                log_info("Registry server running at %s.", s.c_str());
                 
                 while (!quit) {
                         server.handle_events();
                         rpp::ClockAccessor::GetInstance()->sleep(0.020);
                 }
                 
-        } catch (JSONError& je) {
-                r_err("main: caught JSON error: %s", je.what());
+        } catch (nlohmann::json::exception& je) {
+                log_error("main: caught JSON error: %s", je.what());
         } catch (std::runtime_error& re) {
-                r_err("main: caught runtime_error: %s", re.what());
+                log_error("main: caught runtime_error: %s", re.what());
         } catch (...) {
-                r_err("main: caught exception");
+                log_error("main: caught exception");
         }
 }
 

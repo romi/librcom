@@ -34,7 +34,7 @@ namespace rcom {
         public:
                 virtual ~DummyMessageListener() = default;
                 
-                void onmessage(IWebSocket&, rpp::MemBuffer&, MessageType) override
+                void onmessage(IWebSocket&, rcom::MemBuffer&, MessageType) override
                 {
                         throw std::runtime_error("DummyMessageListener::onmessage: "
                                                  "Should not be called");

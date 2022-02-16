@@ -52,8 +52,8 @@ namespace rcom {
                 virtual ~MessageLink();
 
                 std::string& get_topic() override;                
-                bool recv(rpp::MemBuffer& message, double timeout = 0.0) override;
-                bool send(rpp::MemBuffer& message,
+                bool recv(rcom::MemBuffer& message, double timeout = 0.0) override;
+                bool send(rcom::MemBuffer& message,
                           MessageType type = kTextMessage) override;
                 RecvStatus recv_status() override;
                 bool is_connected() override;

@@ -53,7 +53,7 @@ public:
         ~MessageListener() override = default;
 
         void onmessage(rcom::IWebSocket& websocket,
-                       rpp::MemBuffer& message,
+                       rcom::MemBuffer& message,
                        rcom::MessageType type) override {
                 (void) type; // Tell the compiler it's not used
                 websocket.send(message, rcom::kTextMessage);

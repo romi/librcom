@@ -24,7 +24,7 @@ protected:
         std::shared_ptr<rcom::ISocketFactory> factory_;
         std::shared_ptr<MockMessageListener> mock_listener_;
         std::shared_ptr<rcom::IMessageListener> listener_;
-        rpp::MemBuffer read_data_;
+        rcom::MemBuffer read_data_;
         size_t current_read_char_;
 
 
@@ -65,7 +65,7 @@ protected:
         }
 
 public:
-        RecvStatus copy_input(rpp::MemBuffer& message, double timeout) {
+        RecvStatus copy_input(rcom::MemBuffer& message, double timeout) {
                 (void) timeout;
                 message.append(read_data_);
                 return kRecvText;
@@ -229,7 +229,7 @@ TEST_F(websocketserver_tests, failed_send_removes_link)
         EXPECT_CALL(*mock_factory_, new_server_side_websocket(_))
                 .WillOnce(Return(ByMove(unique_ptr<IWebSocket>(websocket))));
         
-        rpp::MemBuffer message;
+        rcom::MemBuffer message;
         message.append_string("abc");
         
         // Act

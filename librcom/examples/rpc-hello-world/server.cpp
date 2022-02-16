@@ -52,11 +52,11 @@ public:
         ~HelloWorldListener() override = default;
 
         void onmessage(rcom::IWebSocket& websocket,
-                       rpp::MemBuffer& message,
+                       rcom::MemBuffer& message,
                        rcom::MessageType type) override {
                 (void) type;
                 std::cout << "Client says '" << message.tostring() << "'" << std::endl;
-                rpp::MemBuffer reply;
+                rcom::MemBuffer reply;
                 reply.append_string("world");
                 websocket.send(reply, rcom::kTextMessage);
         }
