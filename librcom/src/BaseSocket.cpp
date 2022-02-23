@@ -32,12 +32,12 @@
 namespace rcom {
 
         BaseSocket::BaseSocket(std::shared_ptr<rpp::ILinux>& linux)
-                : linux_(std::move(linux)), sockfd_(kInvalidSocket)
+                : linux_(linux), sockfd_(kInvalidSocket)
         {
         }
 
         BaseSocket::BaseSocket(std::shared_ptr<rpp::ILinux>& linux, int sockfd)
-                : linux_(std::move(linux)), sockfd_(sockfd)
+                : linux_(linux), sockfd_(sockfd)
         {
         }
 
