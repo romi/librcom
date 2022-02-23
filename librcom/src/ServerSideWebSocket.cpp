@@ -21,6 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
+#include <stdexcept>
 #include <r.h>
 #include "ServerSideWebSocket.h"
 
