@@ -27,7 +27,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-# define JSON_DIAGNOSTICS 1
+#define JSON_DIAGNOSTICS 1
 /****************************************************************************\
  * Note on documentation: The source files contain links to the online      *
  * documentation of the public API at https://json.nlohmann.me. This URL    *
