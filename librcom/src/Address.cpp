@@ -45,10 +45,15 @@ namespace rcom {
         
         Address::Address(const char *ip, uint16_t port) : addr_{AF_INET,0,0,{0}}
         {
-                if (!set(ip, port)) {
-                        log_error("Address::set failed: ip=%s, port=%hu", ip, port);
-                        throw runtime_error("Address::set failed");
-                }
+            std::string ipaddress;
+            if (ip == nullptr)
+                ipaddress = get_local_ip();
+            else
+                ipaddress = ip;
+            if (!set(ipaddress.c_str(), port)) {
+                    log_error("Address::set failed: ip=%s, port=%hu", ip, port);
+                    throw runtime_error("Address::set failed");
+            }
         }
  
         Address::Address(const std::string& str) : addr_{AF_INET,0,0,{0}}

@@ -69,11 +69,18 @@ TEST_F(address_tests, address_constructor_with_no_args_is_not_set)
         ASSERT_FALSE(address.is_set());
 }
 
-TEST_F(address_tests, address_with_null_and_port_throws_exception)
+TEST_F(address_tests, address_with_null_and_port_sets_default_ip)
 {
         // Arrange
         uint16_t port = 123;
-        ASSERT_THROW(Address address(nullptr, port), std::runtime_error);
+        std::string expected("127.0.0.1");
+
+        // Act
+        Address address(nullptr, port);
+        std::string actual;
+        address.ip(actual);
+
+        ASSERT_EQ(actual, expected);
 }
 
 TEST_F(address_tests, address_with_null_throws_exception)
@@ -247,6 +254,41 @@ TEST_F(address_tests, constructor_with_args_makes_address_set)
         
         //Assert
         ASSERT_TRUE(address.is_set());
+}
+
+TEST_F(address_tests, constructor_port_sets_default_ip)
+{
+    // Arrange
+    std::string expected("127.0.0.1");
+    uint16_t port = 123;
+
+    // Act
+    Address address(port);
+
+    std::string actual;
+    address.ip(actual);
+
+    //Assert
+    ASSERT_EQ(actual, expected);
+    ASSERT_TRUE(address.is_set());
+}
+
+TEST_F(address_tests, constructor_port_sets_default_ip_and_port)
+{
+    // Arrange
+    std::string expected("127.0.0.1:123");
+    uint16_t port = 123;
+
+
+    // Act
+    Address address(port);
+
+    std::string actual;
+    address.tostring(actual);
+
+    //Assert
+    ASSERT_EQ(actual, expected);
+    ASSERT_TRUE(address.is_set());
 }
 
 TEST_F(address_tests, tostring_returns_expected_value)
