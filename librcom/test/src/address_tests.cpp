@@ -156,6 +156,23 @@ TEST_F(address_tests, address_with_spaces_parses_ok)
         ASSERT_EQ(address.port(), port);
 }
 
+TEST_F(address_tests, address_with_spaces_parses_ok_duplicate)
+{
+    // Arrange
+    const char *ip = "127.0.0.1";
+    uint16_t port = 123;
+    const char *s = "127.0.0.1  :  123";
+
+    // Act
+    Address address(s);
+
+    //Assert
+    std::string actual_ip;
+    ASSERT_TRUE(address.is_set());
+    ASSERT_STREQ(address.ip(actual_ip).c_str(), ip);
+    ASSERT_EQ(address.port(), port);
+}
+
 TEST_F(address_tests, set_with_two_args_initializes_the_address)
 {
         // Arrange
