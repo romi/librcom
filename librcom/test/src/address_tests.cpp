@@ -1,10 +1,9 @@
 #include <string>
 #include "gtest/gtest.h"
 
-// Need to include r.h here to make sure when we mock them below they
-// are mocked in the link with the tests.
-#include "r.h"
 #include "Address.h"
+#include "ip.h"
+
 
 using namespace rcom;
 
@@ -73,7 +72,7 @@ TEST_F(address_tests, address_with_null_and_port_sets_default_ip)
 {
         // Arrange
         uint16_t port = 123;
-        std::string expected("127.0.0.1");
+        std::string expected = get_local_ip();
 
         // Act
         Address address(nullptr, port);
@@ -275,37 +274,38 @@ TEST_F(address_tests, constructor_with_args_makes_address_set)
 
 TEST_F(address_tests, constructor_port_sets_default_ip)
 {
-    // Arrange
-    std::string expected("127.0.0.1");
-    uint16_t port = 123;
+        // Arrange
+        std::string expected = get_local_ip();
+        uint16_t port = 123;
 
-    // Act
-    Address address(port);
+        // Act
+        Address address(port);
 
-    std::string actual;
-    address.ip(actual);
+        std::string actual;
+        address.ip(actual);
 
-    //Assert
-    ASSERT_EQ(actual, expected);
-    ASSERT_TRUE(address.is_set());
+        //Assert
+        ASSERT_EQ(actual, expected);
+        ASSERT_TRUE(address.is_set());
 }
 
 TEST_F(address_tests, constructor_port_sets_default_ip_and_port)
 {
-    // Arrange
-    std::string expected("127.0.0.1:123");
-    uint16_t port = 123;
+        // Arrange
+        std::string expected = get_local_ip();
+        expected += ":123";
+        uint16_t port = 123;
 
 
-    // Act
-    Address address(port);
+        // Act
+        Address address(port);
 
-    std::string actual;
-    address.tostring(actual);
+        std::string actual;
+        address.tostring(actual);
 
-    //Assert
-    ASSERT_EQ(actual, expected);
-    ASSERT_TRUE(address.is_set());
+        //Assert
+        ASSERT_EQ(actual, expected);
+        ASSERT_TRUE(address.is_set());
 }
 
 TEST_F(address_tests, tostring_returns_expected_value)
