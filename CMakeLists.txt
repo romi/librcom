@@ -119,7 +119,7 @@ if (NOT DEFINED libr_SOURCE_DIR)
         download_project(
             PROJ              libr
             GIT_REPOSITORY    https://github.com/romi/libr.git
-            GIT_TAG           ci_dev
+            GIT_TAG           master
             TIMEOUT           180
             SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/libr
             BINARY_DIR        ${CMAKE_CURRENT_BINARY_DIR}/libr
