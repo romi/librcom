@@ -24,6 +24,7 @@
 #include "Frames.h"
 #include "ConsoleLogger.h"
 #include "ServerSideWebSocket.h"
+#include <stdexcept>
 
 namespace rcom {
         
