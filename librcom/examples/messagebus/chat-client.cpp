@@ -21,7 +21,7 @@
 #include <signal.h>
 #include <thread>
 #include <mutex>
-#include <log.h>
+#include <Logger.h>
 #include <ClockAccessor.h>
 #include <MessageLink.h>
 #include "ConsoleLogger.h"

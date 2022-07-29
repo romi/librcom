@@ -19,7 +19,7 @@
  */
 #include <iostream>
 #include <ClockAccessor.h>
-#include <log.h>
+#include <Logger.h>
 #include <MessageHub.h>
 #include <IMessageListener.h>
 #include <syslog.h>

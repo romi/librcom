@@ -3,7 +3,6 @@
 
 // Need to include r.h here to make sure when we mock them below they
 // are mocked in the link with the tests.
-#include "r.h"
 #include "Registry.h"
 
 using namespace rcom;

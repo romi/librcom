@@ -25,7 +25,7 @@
 
 #include <cstring>
 
-#include "log.h"
+#include "Logger.h"
 #include "MemBuffer.h"
 #include "StringUtils.h"
 
@@ -66,7 +66,7 @@ namespace rcom
                 const int KB_32 = (32 * 1024);
                 size_t lens = strnlen(string, KB_32);
                 if (lens == KB_32)
-                        r_warn("MemBuffer::append_str() string truncated to 32kb");
+                    r_warn("MemBuffer::append_str() string truncated to 32kb");
                 data_.insert(data_.end(), (uint8_t *) string, (uint8_t *) string+lens);
         }
 

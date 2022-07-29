@@ -20,7 +20,7 @@
 #include <iostream>
 #include <csignal>
 #include <cstdlib>
-#include <log.h>
+#include <Logger.h>
 #include <ClockAccessor.h>
 #include <MessageHub.h>
 #include <IMessageListener.h>

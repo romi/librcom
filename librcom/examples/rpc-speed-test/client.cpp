@@ -19,7 +19,7 @@
  */
 #include <iostream>
 #include <signal.h>
-#include <log.h>
+#include <Logger.h>
 #include <MessageLink.h>
 #include "ConsoleLogger.h"
 
