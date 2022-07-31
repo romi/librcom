@@ -100,7 +100,7 @@ endif()
 
 ######################################
 
-if (NOT DEFINED libr_SOURCE_DIR)
+if (NOT DEFINED librpp_SOURCE_DIR)
     set(LIBR_DIR "${CMAKE_SOURCE_DIR}/libr")
     find_path(LIBR_DIRECTORY
             NAMES "CMakeLists.txt"
