@@ -100,39 +100,39 @@ endif()
 
 ######################################
 
-#if (NOT DEFINED libr_SOURCE_DIR)
-#    set(LIBR_DIR "${CMAKE_SOURCE_DIR}/libr")
-#    find_path(LIBR_DIRECTORY
-#            NAMES "CMakeLists.txt"
-#            PATHS ${LIBR_DIR})
-#
-#    #    Save the current Build test settings so we can restore them after including libr. We don't want to build libr tests.
-#    SET(SAVED_TEST_OPTION BUILD_TESTS)
-#    SET(BUILD_TESTS OFF)
-#
-#    if (NOT LIBR_DIRECTORY)
-#        MESSAGE("${PROJECT_NAME} - ${LIBR_DIR} does not exist. Downloading dependency.")
-#        MESSAGE("${PROJECT_NAME} - WARNING")
-#        MESSAGE("${PROJECT_NAME} - The dependency is cloned to support rcom development only.")
-#        MESSAGE("${PROJECT_NAME} - To work on both rcom and libr please see: https://github.com/romi/romi-rover-build-and-test")
-#
-#        download_project(
-#            PROJ              libr
-#            GIT_REPOSITORY    https://github.com/romi/libr.git
-#            GIT_TAG           master
-#            TIMEOUT           180
-#            SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/libr
-#            BINARY_DIR        ${CMAKE_CURRENT_BINARY_DIR}/libr
-#            ${UPDATE_DISCONNECTED_IF_AVAILABLE})
-#        add_subdirectory(${LIBR_DIR})
-#    else()
-#        MESSAGE("${PROJECT_NAME} - ${LIBR_DIRECTORY} exists. Not downloading dependency.")
-#        add_subdirectory(libr)
-#    endif()
-#
-#    # Restore build tests option.
-#    SET(BUILD_TESTS OFF SAVED_TEST_OPTION)
-#endif()
+if (NOT DEFINED libr_SOURCE_DIR)
+    set(LIBR_DIR "${CMAKE_SOURCE_DIR}/libr")
+    find_path(LIBR_DIRECTORY
+            NAMES "CMakeLists.txt"
+            PATHS ${LIBR_DIR})
+
+    #    Save the current Build test settings so we can restore them after including libr. We don't want to build libr tests.
+    SET(SAVED_TEST_OPTION BUILD_TESTS)
+    SET(BUILD_TESTS OFF)
+
+    if (NOT LIBR_DIRECTORY)
+        MESSAGE("${PROJECT_NAME} - ${LIBR_DIR} does not exist. Downloading dependency.")
+        MESSAGE("${PROJECT_NAME} - WARNING")
+        MESSAGE("${PROJECT_NAME} - The dependency is cloned to support rcom development only.")
+        MESSAGE("${PROJECT_NAME} - To work on both rcom and libr please see: https://github.com/romi/romi-rover-build-and-test")
+
+        download_project(
+            PROJ              libr
+            GIT_REPOSITORY    https://github.com/romi/libr.git
+            GIT_TAG           remove_libr
+            TIMEOUT           180
+            SOURCE_DIR        ${CMAKE_CURRENT_SOURCE_DIR}/libr
+            BINARY_DIR        ${CMAKE_CURRENT_BINARY_DIR}/libr
+            ${UPDATE_DISCONNECTED_IF_AVAILABLE})
+        add_subdirectory(${LIBR_DIR})
+    else()
+        MESSAGE("${PROJECT_NAME} - ${LIBR_DIRECTORY} exists. Not downloading dependency.")
+        add_subdirectory(libr)
+    endif()
+
+    # Restore build tests option.
+    SET(BUILD_TESTS OFF SAVED_TEST_OPTION)
+endif()
 
 ###########################################################3
 include(${CMAKE_MODULES_DIRECTORY}/RomiProjectBuildOptions.cmake)
