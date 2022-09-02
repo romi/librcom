@@ -24,7 +24,6 @@
 #include <exception>
 #include <string.h>
 #include "ConsoleLogger.h"
-#include <ClockAccessor.h>
 #include "WebSocket.h"
 #include "util.h"
 
@@ -47,6 +46,11 @@ namespace rcom {
         
         WebSocket::~WebSocket()
         {
+        }
+
+        ILinux& WebSocket::get_linux()
+        {
+                return socket_->get_linux();
         }
 
         void WebSocket::close(CloseCode code)
@@ -77,7 +81,7 @@ namespace rcom {
 
         RecvStatus WebSocket::try_recv(rcom::MemBuffer& message, double timeout)
         {
-                double start_time = rpp::ClockAccessor::GetInstance()->time();
+                double start_time = rcom_time(get_linux());
                 double remaining_time = timeout;
                 RecvStatus status = kRecvTimeOut;
                 
@@ -104,7 +108,7 @@ namespace rcom {
         
         double WebSocket::compute_remaning_time(double start_time, double timeout)
         {
-                double now = rpp::ClockAccessor::GetInstance()->time();
+                double now = rcom_time(get_linux());
                 return timeout - (now - start_time);
         }
         
@@ -420,7 +424,7 @@ namespace rcom {
         
         void WebSocket::closing_wait_reply(double timeout)
         {
-                double start_time = rpp::ClockAccessor::GetInstance()->time();
+                double start_time = rcom_time(get_linux());
                 double remaining_time = timeout;
 
                 while (remaining_time >= 0.0) {

@@ -19,14 +19,14 @@
  */
 #include <iostream>
 #include <signal.h>
-#include <log.h>
 #include <MessageHub.h>
 #include <IMessageListener.h>
-#include <ClockAccessor.h>
+#include <Linux.h>
 #include <syslog.h>
 #include <atomic>
 #include <WebSocketServerFactory.h>
-#include "ConsoleLogger.h"
+#include <ConsoleLogger.h>
+#include <util.h>
 
 std::atomic<bool> quit(false);
 
@@ -67,18 +67,20 @@ int main()
 {
         try {
                 auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
-                std::shared_ptr<rcom::ISocketFactory> socket_factory = std::make_shared<rcom::SocketFactory>();
+                std::shared_ptr<rcom::ISocketFactory> socket_factory
+                        = std::make_shared<rcom::SocketFactory>();
 
                 std::shared_ptr<rcom::IMessageListener> hello_world
                         = std::make_shared<HelloWorldListener>();
-                rcom::MessageHub message_hub("hello-world", hello_world, socket_factory, webserver_socket_factory);
-                auto clock = rpp::ClockAccessor::GetInstance();
+                rcom::MessageHub message_hub("hello-world", hello_world, socket_factory,
+                                             webserver_socket_factory);
+                rcom::Linux linux;
 
                 std::signal(SIGINT, SignalHandler);
         
                 while (!quit) {
                         message_hub.handle_events();
-                        clock->sleep(0.050);
+                        rcom_sleep(linux, 0.050);
                 }
                 
         } catch (std::runtime_error& re) {

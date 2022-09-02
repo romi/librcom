@@ -18,14 +18,15 @@
 
  */
 #include <iostream>
-#include <ClockAccessor.h>
-#include <log.h>
-#include <MessageHub.h>
-#include <IMessageListener.h>
 #include <syslog.h>
 #include <atomic>
+
+#include <MessageHub.h>
+#include <IMessageListener.h>
 #include <WebSocketServerFactory.h>
-#include "ConsoleLogger.h"
+#include <ConsoleLogger.h>
+#include <Linux.h>
+#include <util.h>
 
 std::atomic<bool> quit(false);
 
@@ -34,13 +35,11 @@ void SignalHandler(int signal)
         if (signal == SIGSEGV){
                 syslog(1, "rcom-registry segmentation fault");
                 exit(signal);
-        }
-        else if (signal == SIGINT){
+        } else if (signal == SIGINT){
                 log_info("Ctrl-C Quitting Application");
                 perror("init_signal_handler");
                 quit = true;
-        }
-        else{
+        } else {
                 log_error("Unknown signam received %d", signal);
         }
 }
@@ -77,18 +76,20 @@ int main(int argc, char **argv)
         
         try {
                 auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
-                std::shared_ptr<rcom::ISocketFactory> socket_factory = std::make_shared<rcom::SocketFactory>();
+                std::shared_ptr<rcom::ISocketFactory> socket_factory
+                        = std::make_shared<rcom::SocketFactory>();
                 std::shared_ptr<ChatBus> chat = std::make_shared<ChatBus>();
                 std::shared_ptr<rcom::IMessageListener> listener = chat;
-                rcom::MessageHub chat_hub(topic, listener, socket_factory, webserver_socket_factory);
+                rcom::MessageHub chat_hub(topic, listener, socket_factory,
+                                          webserver_socket_factory);
                 chat->hub_ = &chat_hub;
-                auto clock = rpp::ClockAccessor::GetInstance();
+                rcom::Linux linux;
 
                 std::signal(SIGINT, SignalHandler);
         
                 while (!quit) {
                         chat_hub.handle_events();
-                        clock->sleep(0.050);
+                        rcom_sleep(linux, 0.050);
                 }
                 
         } catch (std::runtime_error& re) {

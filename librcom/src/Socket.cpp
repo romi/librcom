@@ -28,12 +28,12 @@
 
 namespace rcom {
 
-        Socket::Socket(std::shared_ptr<rpp::ILinux>& linux, int sockfd)
+        Socket::Socket(std::shared_ptr<rcom::ILinux>& linux, int sockfd)
                 : socket_(linux, sockfd)
         {
         }
 
-        Socket::Socket(std::shared_ptr<rpp::ILinux>& linux, IAddress& address)
+        Socket::Socket(std::shared_ptr<rcom::ILinux>& linux, IAddress& address)
                 : socket_(linux)
         {
                 if (!socket_.connect(address)) {
@@ -87,5 +87,10 @@ namespace rcom {
         void Socket::turn_buffering_on()
         {
                 socket_.set_nodelay(0);
+        }
+
+        ILinux& Socket::get_linux()
+        {
+                return socket_.get_linux();
         }
 }

@@ -16,6 +16,7 @@ public:
         MOCK_METHOD(rcom::WaitStatus, wait, (double timeout_in_seconds), (override));
         MOCK_METHOD(void, turn_buffering_off, (), (override));
         MOCK_METHOD(void, turn_buffering_on, (), (override));
+        MOCK_METHOD(rcom::ILinux&, get_linux, (), (override));
 };
 
 #pragma GCC diagnostic pop

@@ -22,16 +22,15 @@
 
  */
 #include <stdexcept>
-#include "ConsoleLogger.h"
-#include <ClockAccessor.h>
 #include <cstring>
+#include "ConsoleLogger.h"
 #include "Frames.h"
 #include "ClientSideWebSocket.h"
 #include "util.h"
 
 namespace rcom {
 
-        ClientSideWebSocket::ClientSideWebSocket(std::shared_ptr<rpp::ILinux>& linux,
+        ClientSideWebSocket::ClientSideWebSocket(std::shared_ptr<rcom::ILinux>& linux,
                                                  std::unique_ptr<ISocket>& socket,
                                                  IResponseParser& parser,
                                                  IAddress& remote_address)
@@ -137,15 +136,15 @@ namespace rcom {
                    not the client" */
                 double timeout = 0.5;
                 bool timed_out = false;
-                double start_time = rpp::ClockAccessor::GetInstance()->time();
+                double start_time = rcom_time(*linux_);
                 while (socket_->is_endpoint_connected() && !timed_out) {
-                    double now = rpp::ClockAccessor::GetInstance()->time();
+                    double now = rcom_time(*linux_);
                     double time_passed = now - start_time;
                     timed_out = (time_passed >= timeout);
 
                     if (!timed_out) {
                         double duration = std::min(0.1, timeout - time_passed);
-                        rpp::ClockAccessor::GetInstance()->sleep(duration);
+                        rcom_sleep(*linux_, duration);
                     }
                 }
                 socket_->close();

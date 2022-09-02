@@ -26,6 +26,7 @@
 
 #include <MemBuffer.h>
 #include "IAddress.h"
+#include "ILinux.h"
 
 namespace rcom {
 
@@ -67,6 +68,8 @@ namespace rcom {
 
                 virtual void turn_buffering_off() = 0;
                 virtual void turn_buffering_on() = 0;
+
+                virtual ILinux& get_linux() = 0;
         };
 }
 

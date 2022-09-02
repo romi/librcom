@@ -1,9 +1,6 @@
 #include <string>
 #include "gtest/gtest.h"
 
-// Need to include r.h here to make sure when we mock them below they
-// are mocked in the link with the tests.
-#include "r.h"
 #include "util.h"
 
 using namespace rcom;

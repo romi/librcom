@@ -22,7 +22,7 @@
 
  */
 #include <memory>
-#include <Linux.h>
+#include "Linux.h"
 #include "SocketFactory.h"
 #include "Socket.h"
 #include "Address.h"
@@ -44,7 +44,7 @@ namespace rcom {
         {
                 Request request;
                 RequestParser parser(request);
-                std::shared_ptr<rpp::ILinux> linux = std::make_shared<rpp::Linux>();
+                std::shared_ptr<rcom::ILinux> linux = std::make_shared<rcom::Linux>();
                 std::unique_ptr<ISocket> socket = std::make_unique<Socket>(linux, sockfd);
                 return std::make_unique<ServerSideWebSocket>(socket, parser);
         }
@@ -54,9 +54,10 @@ namespace rcom {
         {
                 Response response;
                 ResponseParser parser(response);
-                std::shared_ptr<rpp::ILinux> linux = std::make_shared<rpp::Linux>();
+                std::shared_ptr<rcom::ILinux> linux = std::make_shared<rcom::Linux>();
                 std::unique_ptr<ISocket> socket
                         = std::make_unique<Socket>(linux, remote_address);
-                return std::make_unique<ClientSideWebSocket>(linux, socket, parser, remote_address);
+                return std::make_unique<ClientSideWebSocket>(linux, socket, parser,
+                                                             remote_address);
         }
 }

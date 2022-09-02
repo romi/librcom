@@ -59,14 +59,14 @@ namespace rcom {
                 
         public:
                 
-                ClientSideWebSocket(std::shared_ptr<rpp::ILinux>& linux,
+                ClientSideWebSocket(std::shared_ptr<rcom::ILinux>& linux,
                                     std::unique_ptr<ISocket>& socket,
                                     IResponseParser& parser,
                                     IAddress& remote_address);
                 
                 ~ClientSideWebSocket() override;
         private:
-            std::shared_ptr<rpp::ILinux> linux_;
+            std::shared_ptr<rcom::ILinux> linux_;
         };
 }
 

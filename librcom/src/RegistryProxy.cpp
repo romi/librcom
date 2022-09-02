@@ -23,8 +23,8 @@
  */
 #include <algorithm>
 #include "ConsoleLogger.h"
-#include <ClockAccessor.h>
 #include "RegistryProxy.h"
+#include "util.h"
 
 namespace rcom {
 
@@ -64,7 +64,8 @@ namespace rcom {
                 bool success = false;
                 bool timed_out = false;
                 rcom::MemBuffer request;
-                double start_time = rpp::ClockAccessor::GetInstance()->time();
+                ILinux& linux = websocket_->get_linux();
+                double start_time = rcom_time(linux);
 
                 make_get_request(request, topic);
                 
@@ -73,13 +74,13 @@ namespace rcom {
                         success = (send_request(request)
                                    && read_address(address));
                         
-                        double now = rpp::ClockAccessor::GetInstance()->time();
+                        double now = rcom_time(linux);
                         double time_passed = now - start_time;
                         timed_out = (time_passed >= timeout);
                         
                         if (!success && !timed_out) {
                                 double duration = std::min(0.5, timeout - time_passed);
-                                rpp::ClockAccessor::GetInstance()->sleep(duration);
+                                rcom_sleep(linux, duration);
                         }
                 }
                 return success;

@@ -37,8 +37,8 @@ namespace rcom {
 
         public:
 
-                Socket(std::shared_ptr<rpp::ILinux>& linux, int sockfd);
-                Socket(std::shared_ptr<rpp::ILinux>& linux, IAddress& address);
+                Socket(std::shared_ptr<rcom::ILinux>& linux, int sockfd);
+                Socket(std::shared_ptr<rcom::ILinux>& linux, IAddress& address);
                 ~Socket() override = default;
                 
                 void close() override;
@@ -53,6 +53,8 @@ namespace rcom {
 
                 void turn_buffering_off() override;
                 void turn_buffering_on() override;
+                
+                ILinux& get_linux() override;
         };
 }
 

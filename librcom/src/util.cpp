@@ -21,7 +21,10 @@
   <http://www.gnu.org/licenses/>.
 
  */
+#include <math.h>
 #include <regex>
+#include <stdexcept>
+#include "ConsoleLogger.h"
 #include "util.h"
 #include "sha1.h"
 
@@ -106,5 +109,37 @@ namespace rcom {
         bool is_base64_string(const std::string& s)
         {
                 return std::regex_match(s, std::regex("[a-zA-Z0-9+/]+[=]{0,2}"));
+        }
+
+        double rcom_time(ILinux& linux)
+        {
+                struct timespec spec;
+                double result;
+                
+                linux.clock_gettime(CLOCK_REALTIME, &spec);
+                result = (double) spec.tv_sec + (double) spec.tv_nsec / 1.0e9;
+                
+                return result;
+        }
+        
+        void rcom_sleep(ILinux& linux, double seconds)
+        {
+                struct timespec spec;
+                struct timespec remain;
+                
+                spec.tv_sec = (time_t) floor(seconds);
+                double nsec = seconds - (double) spec.tv_sec;
+                spec.tv_nsec = (time_t) floor(nsec * 1.0e9);
+                int r = linux.clock_nanosleep(CLOCK_REALTIME, 0, &spec, &remain);
+                
+                if (r != 0) {
+                        if (r == EINTR) {
+                                log_error("rcom_sleep: Interrupted");
+                                throw std::runtime_error("rcom_sleep: Interrupted");
+                        } else {
+                                log_error("rcom_sleep: Failed: %d", r);
+                                throw std::runtime_error("rcom_sleep: Failed");
+                        }
+                }
         }
 }

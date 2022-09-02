@@ -34,15 +34,15 @@ namespace rcom {
 
         class BaseSocket {
         protected:
-                std::shared_ptr<rpp::ILinux> linux_;
+                std::shared_ptr<rcom::ILinux> linux_;
                 int sockfd_;
                 
                 WaitStatus do_wait(double timeout);
                 
         public:
 
-                BaseSocket(std::shared_ptr<rpp::ILinux>& linux);
-                BaseSocket(std::shared_ptr<rpp::ILinux>& linux, int sockfd);
+                BaseSocket(std::shared_ptr<rcom::ILinux>& linux);
+                BaseSocket(std::shared_ptr<rcom::ILinux>& linux, int sockfd);
                 virtual ~BaseSocket();
                         
                 bool listen(IAddress& address);
@@ -57,6 +57,8 @@ namespace rcom {
                 bool is_endpoint_connected() const;
                 void get_address(IAddress& address);
                 void set_nodelay(int value);
+
+                ILinux& get_linux();
         };
 }
 

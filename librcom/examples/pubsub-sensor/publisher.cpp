@@ -20,15 +20,15 @@
 #include <iostream>
 #include <csignal>
 #include <cstdlib>
-#include <log.h>
-#include <ClockAccessor.h>
+#include <syslog.h>
+#include <atomic>
+
+#include <Linux.h>
 #include <MessageHub.h>
 #include <IMessageListener.h>
 #include <WebSocketServerFactory.h>
-
-#include <syslog.h>
-#include <atomic>
-#include "ConsoleLogger.h"
+#include <util.h>
+#include <ConsoleLogger.h>
 
 std::atomic<bool> quit(false);
 
@@ -37,13 +37,11 @@ void SignalHandler(int signal)
         if (signal == SIGSEGV){
                 syslog(1, "rcom-registry segmentation fault");
                 exit(signal);
-        }
-        else if (signal == SIGINT){
+        } else if (signal == SIGINT){
                 log_info("Ctrl-C Quitting Application");
                 perror("init_signal_handler");
                 quit = true;
-        }
-        else{
+        } else {
                 log_error("Unknown signam received %d", signal);
         }
 }
@@ -82,14 +80,15 @@ void broadcast_sensor_value(rcom::MessageHub& hub)
 
 int main()
 {
-
         try {
 
                 auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
-                std::shared_ptr<rcom::ISocketFactory> socket_factory = std::make_shared<rcom::SocketFactory>();
+                std::shared_ptr<rcom::ISocketFactory> socket_factory
+                        = std::make_shared<rcom::SocketFactory>();
 
                 rcom::MessageHub hub("sensor", socket_factory, webserver_socket_factory);
-                auto clock = rpp::ClockAccessor::GetInstance();
+                rcom::Linux linux;
+                
                 std::signal(SIGINT, SignalHandler);
 
                 while (!quit) {
@@ -100,7 +99,7 @@ int main()
                         
                         broadcast_sensor_value(hub);
                         
-                        clock->sleep(1.0);
+                        rcom_sleep(linux, 1.0);
                 }
                 
         } catch (std::runtime_error& re) {

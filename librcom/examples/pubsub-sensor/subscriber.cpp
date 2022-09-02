@@ -19,11 +19,11 @@
  */
 #include <iostream>
 #include <signal.h>
-#include "ConsoleLogger.h"
-#include <MessageLink.h>
 #include <syslog.h>
 #include <atomic>
-#include "ConsoleLogger.h"
+
+#include <MessageLink.h>
+#include <ConsoleLogger.h>
 
 std::atomic<bool> quit(false);
 
@@ -32,13 +32,11 @@ void SignalHandler(int signal)
         if (signal == SIGSEGV){
                 syslog(1, "rcom-registry segmentation fault");
                 exit(signal);
-        }
-        else if (signal == SIGINT){
+        } else if (signal == SIGINT){
                 log_info("Ctrl-C Quitting Application");
                 perror("init_signal_handler");
                 quit = true;
-        }
-        else{
+        } else {
                 log_error("Unknown signam received %d", signal);
         }
 }

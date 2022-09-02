@@ -20,6 +20,7 @@ set(SOURCES
     include/HttpParser.h
     include/IAddress.h
     include/IHttpParserListener.h
+    include/ILinux.h
     include/IMessageHub.h
     include/IMessageLink.h
     include/IMessageListener.h
@@ -32,6 +33,7 @@ set(SOURCES
     include/IWebSocketServer.h
     include/IWebSocketServerFactory.h
     include/json.hpp
+    include/Linux.h
     include/MemBuffer.h
     include/MessageLink.h
     include/MessageHub.h
@@ -60,6 +62,7 @@ set(SOURCES
     src/ClientSideWebSocket.cpp
     src/ConsoleLogger.cpp
     src/HttpParser.cpp
+    src/Linux.cpp
     src/MemBuffer.cpp
     src/MessageLink.cpp
     src/MessageHub.cpp
@@ -83,7 +86,7 @@ set(SOURCES
 
 add_library(rcom SHARED ${SOURCES})
 target_include_directories(rcom PUBLIC include)
-target_link_libraries(rcom m rpp)
+target_link_libraries(rcom m)
 
 add_subdirectory(test/mocks)
 

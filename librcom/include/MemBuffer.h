@@ -33,6 +33,9 @@ namespace rcom
 {
         class MemBuffer
         {
+        protected:
+                static void vprintf(std::string& instring, const char* format, va_list ap);
+
         public:
                 MemBuffer() : data_() {}
                 MemBuffer(const MemBuffer& buffer);

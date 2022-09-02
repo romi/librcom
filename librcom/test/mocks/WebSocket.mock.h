@@ -12,6 +12,7 @@ public:
                                  rcom::MessageType type), (override));                
         MOCK_METHOD(void, close, (rcom::CloseCode code), (override));
         MOCK_METHOD(bool, is_connected, (), (override));
+        MOCK_METHOD(rcom::ILinux&, get_linux, (), (override));
 };
 
 #pragma GCC diagnostic pop

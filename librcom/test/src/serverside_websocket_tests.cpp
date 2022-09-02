@@ -1,14 +1,12 @@
 #include <iostream>
-#include <ClockAccessor.h>
 #include "gtest/gtest.h"
-#include "mock_linux.h"
 
 #include "Socket.mock.h"
 #include "RequestParser.mock.h"
 #include "Request.mock.h"
 #include "ResponseParser.mock.h"
 #include "Response.mock.h"
-#include "Clock.mock.h"
+#include "Linux.mock.h"
 #include "Frames.h"
 
 #include "ServerSideWebSocket.h"
@@ -17,7 +15,6 @@
 
 using namespace std;
 using namespace rcom;
-using namespace rpp;
 
 using ::testing::Return;
 using ::testing::ReturnRef;
@@ -35,7 +32,7 @@ public:
         MockRequest mock_request_;
         MockResponseParser mock_response_parser_;
         MockResponse mock_response_;
-        std::shared_ptr<MockClock> mock_clock_;
+        MockLinux mock_linux_;
         MemBuffer input_data_;
         size_t input_data_offset_;
         vector<MemBuffer> output_data_;
@@ -127,7 +124,7 @@ protected:
                 mock_request_(),
                 mock_response_parser_(),
                 mock_response_(),
-                mock_clock_(),
+                mock_linux_(),
                 input_data_(),
                 input_data_offset_(0),
                 output_data_(),
@@ -141,14 +138,9 @@ protected:
                 
                 for (int i = 0; i < 64; i++)
                         memcpy(&fill_buffer_[i*16], "0123456789abcdef", 16);
-
-                mock_clock_ = std::make_shared<MockClock>();
-                std::shared_ptr<IClock> gClock = mock_clock_;
-                rpp::ClockAccessor::SetInstance(gClock);
         }
 
         ~serverside_websocket_tests() override {
-                rpp::ClockAccessor::SetInstance(nullptr);
         }
 
         void SetUp() override {
@@ -161,7 +153,8 @@ protected:
         }
 
 
-        void make_server_side_websocket(std::unique_ptr<ServerSideWebSocket>& websocket, bool isLong = false) {
+        void make_server_side_websocket(std::unique_ptr<ServerSideWebSocket>& websocket,
+                                        bool isLong = false) {
                 // socket
                 mock_socket_ = make_unique<NiceMock<MockSocket>>();
 
@@ -196,7 +189,9 @@ protected:
                         .WillRepeatedly(ReturnRef(mock_request_));
                 
                 // clock
-                EXPECT_CALL(*mock_clock_, time())
+                EXPECT_CALL(*mock_socket_, get_linux())
+                        .WillRepeatedly(ReturnRef(mock_linux_));
+                EXPECT_CALL(mock_linux_, clock_gettime(_,_))
                         .WillRepeatedly(Return(0.0));
                 
                 // request
@@ -396,7 +391,7 @@ TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_sen
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
 
         // Act
-    ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
+        ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
 }
 
 TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_read_fails)
@@ -434,13 +429,12 @@ TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_rea
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
 
         // Act
-    ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
+        ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
 }
 
 
 TEST_F(serverside_websocket_tests, read_text_message_correctly)
 {
-
         MemBuffer message;
         std::unique_ptr<ServerSideWebSocket> websocket;
         make_server_side_websocket(websocket);

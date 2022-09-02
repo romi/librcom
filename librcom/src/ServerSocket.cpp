@@ -27,7 +27,7 @@
 
 namespace rcom {
         
-        ServerSocket::ServerSocket(std::shared_ptr<rpp::ILinux>& linux, IAddress& address)
+        ServerSocket::ServerSocket(std::shared_ptr<rcom::ILinux>& linux, IAddress& address)
                 : socket_(linux)
         {
                 if (!socket_.listen(address))

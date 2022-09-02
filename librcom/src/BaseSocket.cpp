@@ -31,12 +31,12 @@
 
 namespace rcom {
 
-        BaseSocket::BaseSocket(std::shared_ptr<rpp::ILinux>& linux)
+        BaseSocket::BaseSocket(std::shared_ptr<rcom::ILinux>& linux)
                 : linux_(linux), sockfd_(kInvalidSocket)
         {
         }
 
-        BaseSocket::BaseSocket(std::shared_ptr<rpp::ILinux>& linux, int sockfd)
+        BaseSocket::BaseSocket(std::shared_ptr<rcom::ILinux>& linux, int sockfd)
                 : linux_(linux), sockfd_(sockfd)
         {
         }
@@ -264,5 +264,10 @@ namespace rcom {
                         linux_->close(sockfd_);
                         sockfd_ = kInvalidSocket;
                 }
+        }
+
+        ILinux& BaseSocket::get_linux()
+        {
+                return *linux_;
         }
 }

@@ -1,14 +1,12 @@
 #include <iostream>
-#include <ClockAccessor.h>
 #include "gtest/gtest.h"
-#include "mock_linux.h"
 
 #include "Socket.mock.h"
 #include "RequestParser.mock.h"
 #include "Request.mock.h"
 #include "ResponseParser.mock.h"
 #include "Response.mock.h"
-#include "Clock.mock.h"
+#include "Linux.mock.h"
 
 #include "ClientSideWebSocket.h"
 #include "ServerSideWebSocket.h"
@@ -17,7 +15,6 @@
 
 using namespace std;
 using namespace rcom;
-using namespace rpp;
 
 using ::testing::Return;
 using ::testing::ReturnRef;
@@ -35,7 +32,7 @@ public:
         MockRequest mock_request_;
         MockResponseParser mock_response_parser_;
         MockResponse mock_response_;
-        std::shared_ptr<MockClock> mock_clock_;
+        std::shared_ptr<MockLinux> mock_linux_;
         MemBuffer input_data_;
         size_t input_data_offset_;
         vector<MemBuffer> output_data_;
@@ -117,7 +114,7 @@ protected:
                 mock_request_(),
                 mock_response_parser_(),
                 mock_response_(),
-                mock_clock_(),
+                mock_linux_(),
                 input_data_(),
                 input_data_offset_(0),
                 output_data_(),
@@ -131,13 +128,10 @@ protected:
                 for (int i = 0; i < 64; i++)
                         memcpy(&fill_buffer_[i*16], "0123456789abcdef", 16);
 
-                mock_clock_ = std::make_shared<MockClock>();
-                std::shared_ptr<IClock> gClock = mock_clock_;
-                rpp::ClockAccessor::SetInstance(gClock);
+                mock_linux_ = std::make_shared<MockLinux>();
         }
 
         ~clientside_websocket_tests() override {
-                rpp::ClockAccessor::SetInstance(nullptr);
         }
 
         void SetUp() override {
@@ -180,7 +174,7 @@ protected:
                         .WillRepeatedly(ReturnRef(mock_request_));
                 
                 // clock
-                EXPECT_CALL(*mock_clock_, time())
+                EXPECT_CALL(*mock_linux_, clock_gettime(_,_))
                         .WillRepeatedly(Return(0.0));
                 
                 // request
@@ -254,7 +248,6 @@ TEST_F(clientside_websocket_tests, successfull_creation_and_delete_of_client_sid
         // Arrange
         
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
-        std::shared_ptr<rpp::MockLinux> mock_linux = std::make_shared<rpp::MockLinux>();
         
         EXPECT_CALL(mock_response_parser_, parse(_))
                 .WillOnce(Return(true))
@@ -282,11 +275,11 @@ TEST_F(clientside_websocket_tests, successfull_creation_and_delete_of_client_sid
         
         EXPECT_CALL(*mock_socket, close());
 
-        EXPECT_CALL(*mock_clock_, time())
+        EXPECT_CALL(*mock_linux_, clock_gettime(_,_))
                 .WillRepeatedly(Return(0.0));
 
 
-        EXPECT_CALL(*mock_linux, getrandom(_,_,_))
+        EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
         .Times(2)
         .WillOnce(Invoke(getrandom_fake))
         .WillOnce(Invoke(getrandom_fake));
@@ -294,7 +287,7 @@ TEST_F(clientside_websocket_tests, successfull_creation_and_delete_of_client_sid
         input_append_server_1001_close_handshake();
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
-        std::shared_ptr<ILinux> linux = std::move(mock_linux);
+        std::shared_ptr<ILinux> linux = std::move(mock_linux_);
         Address remote_address;
 
         // Act
@@ -330,7 +323,6 @@ TEST_F(clientside_websocket_tests, when_endpoint_connected_close_connection_wait
     // Arrange
 
     std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
-    std::shared_ptr<rpp::MockLinux> mock_linux = std::make_shared<rpp::MockLinux>();
 
     EXPECT_CALL(mock_response_parser_, parse(_))
             .WillOnce(Return(true))
@@ -359,11 +351,11 @@ TEST_F(clientside_websocket_tests, when_endpoint_connected_close_connection_wait
 
     EXPECT_CALL(*mock_socket, close());
 
-    EXPECT_CALL(*mock_clock_, time())
+    EXPECT_CALL(*mock_linux_, clock_gettime(_,_))
             .WillRepeatedly(Return(0.0));
-    EXPECT_CALL(*mock_clock_, sleep(_)).Times(1);
+    //EXPECT_CALL(*mock_linux_, clock_nanosleep(_,_,_,_)).Times(1);
 
-    EXPECT_CALL(*mock_linux, getrandom(_,_,_))
+    EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
             .Times(2)
             .WillOnce(Invoke(getrandom_fake))
             .WillOnce(Invoke(getrandom_fake));
@@ -371,7 +363,7 @@ TEST_F(clientside_websocket_tests, when_endpoint_connected_close_connection_wait
     input_append_server_1001_close_handshake();
 
     std::unique_ptr<ISocket> socket = std::move(mock_socket);
-    std::shared_ptr<ILinux> linux = std::move(mock_linux);
+    std::shared_ptr<ILinux> linux = std::move(mock_linux_);
     Address remote_address;
 
     // Act
@@ -408,7 +400,6 @@ TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_sen
         // Arrange
         
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
-        std::shared_ptr<rpp::MockLinux> mock_linux = std::make_shared<rpp::MockLinux>();
 
         EXPECT_CALL(*mock_socket, send(_))
                 .WillOnce(Return(false));
@@ -417,13 +408,13 @@ TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_sen
                 .WillOnce(Return(false));
 
         EXPECT_CALL(*mock_socket, close());
-        EXPECT_CALL(*mock_clock_, time());
+        EXPECT_CALL(*mock_linux_, clock_gettime(_,_));
 
-        EXPECT_CALL(*mock_linux, getrandom(_,_,_))
+        EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
                 .WillOnce(Invoke(getrandom_fake));
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
-        std::shared_ptr<ILinux> linux = std::move(mock_linux);
+        std::shared_ptr<ILinux> linux = std::move(mock_linux_);
         Address remote_address;
         
         // Act
@@ -438,7 +429,6 @@ TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_on_fai
         // Arrange
         
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
-        std::shared_ptr<rpp::MockLinux> mock_linux = std::make_shared<rpp::MockLinux>();
         
         EXPECT_CALL(mock_response_parser_, parse(_))
                 .WillOnce(Return(false))
@@ -448,11 +438,11 @@ TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_on_fai
                 .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
                                       Return(true)));
 
-        EXPECT_CALL(*mock_linux, getrandom(_,_,_))
+        EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
                 .WillOnce(Invoke(getrandom_fake));
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
-        std::shared_ptr<ILinux> linux = std::move(mock_linux);
+        std::shared_ptr<ILinux> linux = std::move(mock_linux_);
         Address remote_address;
         
         // Act
@@ -467,7 +457,6 @@ TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_not
         // Arrange
         
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
-        std::shared_ptr<rpp::MockLinux> mock_linux = std::make_shared<rpp::MockLinux>();
         
         EXPECT_CALL(mock_response_parser_, parse(_))
                 .WillOnce(Return(true))
@@ -483,11 +472,11 @@ TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_not
         EXPECT_CALL(mock_response_, is_websocket(_))
                 .WillRepeatedly(Return(false));
 
-        EXPECT_CALL(*mock_linux, getrandom(_,_,_))
+        EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
                 .WillOnce(Invoke(getrandom_fake));
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
-        std::shared_ptr<ILinux> linux = std::move(mock_linux);
+        std::shared_ptr<ILinux> linux = std::move(mock_linux_);
         Address remote_address;
         
         // Act

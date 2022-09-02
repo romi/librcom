@@ -18,7 +18,7 @@
 
  */
 #include <iostream>
-#include "ConsoleLogger.h"
+#include <ConsoleLogger.h>
 #include <MessageLink.h>
 
 int main()

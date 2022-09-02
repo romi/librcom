@@ -27,6 +27,7 @@
 #include <MemBuffer.h>
 #include "IAddress.h"
 #include "WebSocketConstants.h"
+#include "ILinux.h"
 
 namespace rcom {
                 
@@ -55,6 +56,7 @@ namespace rcom {
                 virtual bool send(rcom::MemBuffer& message, MessageType type) = 0;
                 virtual void close(CloseCode code) = 0;
                 virtual bool is_connected() = 0;
+                virtual ILinux& get_linux() = 0;
         };
 }
 

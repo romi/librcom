@@ -35,8 +35,8 @@
 #include <WebSocketServer.h>
 #include <ServerSocket.h>
 #include <Address.h>
-#include <ClockAccessor.h>
-#include "ConsoleLogger.h"
+#include <ConsoleLogger.h>
+#include <util.h>
 
 
 std::atomic<bool> quit(false);
@@ -65,7 +65,7 @@ int main(int argc, const char **argv)
 
             std::shared_ptr<rcom::ISocketFactory> factory = std::make_shared<rcom::SocketFactory>();
             rcom::Registry registry;
-            std::shared_ptr<rpp::ILinux> linux = std::make_shared<rpp::Linux>();
+            std::shared_ptr<rcom::ILinux> linux = std::make_shared<rcom::Linux>();
 
             const char *ip = nullptr;
             if (argc == 2)
@@ -77,7 +77,7 @@ int main(int argc, const char **argv)
             std::shared_ptr<rcom::IMessageListener> registry_server
                     = std::make_shared<rcom::RegistryServer>(registry);
             rcom::WebSocketServer server(server_socket, factory, registry_server);
-
+            
             std::signal(SIGSEGV, SignalHandler);
             std::signal(SIGINT, SignalHandler);
 
@@ -87,7 +87,7 @@ int main(int argc, const char **argv)
 
             while (!quit) {
                     server.handle_events();
-                    rpp::ClockAccessor::GetInstance()->sleep(0.020);
+                    rcom_sleep(*linux, 0.020);
             }
                 
         } catch (nlohmann::json::exception& je) {

@@ -24,10 +24,9 @@
  */
 
 #include <cstring>
-
-#include "log.h"
+#include <stdarg.h>
 #include "MemBuffer.h"
-#include "StringUtils.h"
+#include "ConsoleLogger.h"
 
 namespace rcom
 {
@@ -66,7 +65,7 @@ namespace rcom
                 const int KB_32 = (32 * 1024);
                 size_t lens = strnlen(string, KB_32);
                 if (lens == KB_32)
-                        r_warn("MemBuffer::append_str() string truncated to 32kb");
+                        log_warning("MemBuffer::append_str() string truncated to 32kb");
                 data_.insert(data_.end(), (uint8_t *) string, (uint8_t *) string+lens);
         }
 
@@ -75,10 +74,21 @@ namespace rcom
                 va_list ap;
                 va_start(ap, format);
                 std::string formatted_string;
-                StringUtils::string_vprintf(formatted_string, format, ap);
+                vprintf(formatted_string, format, ap);
                 va_end(ap);
                 data_.insert(data_.end(), formatted_string.data(),
                              formatted_string.data()+formatted_string.length());
+        }
+        
+        void MemBuffer::vprintf(std::string& instring, const char* format, va_list ap)
+        {
+                va_list ap_copy;
+                va_copy(ap_copy, ap);
+                size_t size = (size_t) std::vsnprintf(nullptr, 0, format, ap);
+                std::vector<char> output(++size, '\0');
+                std::vsnprintf(&output[0], size, format, ap_copy);
+                va_end(ap_copy);
+                instring = output.data();
         }
 
         const std::vector<uint8_t>& MemBuffer::data() const

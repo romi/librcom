@@ -108,6 +108,7 @@ namespace rcom {
                 bool send(rcom::MemBuffer& message, MessageType type = kTextMessage);
                 void close(CloseCode code) override;
                 bool is_connected() override;
+                ILinux& get_linux() override;
 
         protected:
 

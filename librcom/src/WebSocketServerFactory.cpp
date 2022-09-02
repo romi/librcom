@@ -2,7 +2,7 @@
   rcom
 
   Copyright (C) 2019 Sony Computer Science Laboratories
-  Author(s) Peter Hanappe
+  Author(s) Peter Hanappe, Doug Boari
 
   rcom is light-weight libary for inter-node communication.
 
@@ -33,25 +33,28 @@
 
 namespace rcom {
         
-    WebSocketServerFactory::WebSocketServerFactory( const std::shared_ptr<ISocketFactory>& socket_factory) : socket_factory_(socket_factory)
-    {
-    }
+        WebSocketServerFactory::WebSocketServerFactory(const std::shared_ptr<ISocketFactory>& socket_factory)
+                : socket_factory_(socket_factory)
+        {
+        }
 
-    std::unique_ptr<IWebSocketServer>
-    WebSocketServerFactory::new_web_socket_server(const std::shared_ptr<IMessageListener>& listener, uint16_t port)
-    {
-        Address address(port);
-        std::shared_ptr<rpp::ILinux> linux = std::make_shared<rpp::Linux>();
-        std::unique_ptr<IServerSocket> server_socket = std::make_unique<ServerSocket>(linux, address);
+        std::unique_ptr<IWebSocketServer>
+        WebSocketServerFactory::new_web_socket_server(const std::shared_ptr<IMessageListener>& listener, uint16_t port)
+        {
+                Address address(port);
+                std::shared_ptr<rcom::ILinux> linux = std::make_shared<Linux>();
+                std::unique_ptr<IServerSocket> server_socket
+                        = std::make_unique<ServerSocket>(linux, address);
 
-        return std::make_unique<WebSocketServer>(server_socket,
-                                                    socket_factory_,
-                                                    listener);
-    }
+                return std::make_unique<WebSocketServer>(server_socket,
+                                                         socket_factory_,
+                                                         listener);
+        }
 
-    std::shared_ptr<IWebSocketServerFactory> WebSocketServerFactory::create() {
-
-        std::shared_ptr<rcom::ISocketFactory> socket_factory = std::make_shared<rcom::SocketFactory>();
-        return std::make_shared<rcom::WebSocketServerFactory>(socket_factory);
-    }
+        std::shared_ptr<IWebSocketServerFactory> WebSocketServerFactory::create()
+        {
+                std::shared_ptr<rcom::ISocketFactory> socket_factory
+                        = std::make_shared<rcom::SocketFactory>();
+                return std::make_shared<rcom::WebSocketServerFactory>(socket_factory);
+        }
 }

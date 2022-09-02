@@ -21,13 +21,13 @@
 #include <signal.h>
 #include <thread>
 #include <mutex>
-#include <log.h>
-#include <ClockAccessor.h>
-#include <MessageLink.h>
-#include "ConsoleLogger.h"
-
 #include <syslog.h>
 #include <atomic>
+
+#include <Linux.h>
+#include <MessageLink.h>
+#include <ConsoleLogger.h>
+#include <util.h>
 
 std::atomic<bool> quit(false);
 
@@ -36,13 +36,11 @@ void SignalHandler(int signal)
         if (signal == SIGSEGV){
                 syslog(1, "rcom-registry segmentation fault");
                 exit(signal);
-        }
-        else if (signal == SIGINT){
+        } else if (signal == SIGINT){
                 log_info("Ctrl-C Quitting Application");
                 perror("init_signal_handler");
                 quit = true;
-        }
-        else{
+        } else {
                 log_error("Unknown signam received %d", signal);
         }
 }
@@ -66,10 +64,10 @@ void print_available_messages(rcom::MessageLink *link)
 
 void handle_incoming_messages(rcom::MessageLink *link)
 {
-        auto clock = rpp::ClockAccessor::GetInstance();
+        rcom::Linux linux;
         while (!quit) {
                 print_available_messages(link);
-                clock->sleep(0.100);
+                rcom_sleep(linux, 0.100);
         }
 }
 

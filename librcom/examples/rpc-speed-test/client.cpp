@@ -19,9 +19,10 @@
  */
 #include <iostream>
 #include <signal.h>
-#include <log.h>
 #include <MessageLink.h>
-#include "ConsoleLogger.h"
+#include <ConsoleLogger.h>
+#include <Linux.h>
+#include <util.h>
 
 #include <syslog.h>
 #include <atomic>
@@ -33,13 +34,11 @@ void SignalHandler(int signal)
         if (signal == SIGSEGV){
                 syslog(1, "rcom-registry segmentation fault");
                 exit(signal);
-        }
-        else if (signal == SIGINT){
+        } else if (signal == SIGINT){
                 log_info("Ctrl-C Quitting Application");
                 perror("init_signal_handler");
                 quit = true;
-        }
-        else{
+        } else {
                 log_error("Unknown signal received %d", signal);
         }
 }
@@ -50,12 +49,12 @@ int main()
 
                 rcom::MessageLink link("speed");
                 uint8_t data[1024];
-                rpp::Clock clock;
+                rcom::Linux linux;
                 rcom::MemBuffer message;
                 message.append(data, 1024);
 
                 uint64_t total_bytes = 0;
-                double start_time = clock.time();
+                double start_time = rcom_time(linux);
                 double next_time = start_time + 1.0;
 
                 std::signal(SIGINT, SignalHandler);
@@ -67,10 +66,11 @@ int main()
 
                                 total_bytes += message.size();
 
-                                if (clock.time() > next_time) {
+                                double now = rcom_time(linux);
+                                if (now > next_time) {
                                         next_time += 1.0;
                                         printf("Bandwidth: %.3f MB/s\n",
-                                               (double) total_bytes / (clock.time() - start_time) / 1048576.0);
+                                               (double) total_bytes / (now - start_time) / 1048576.0);
                                 }
                         
                         } else {

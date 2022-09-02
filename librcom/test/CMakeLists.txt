@@ -25,7 +25,6 @@ add_executable(librcom_unit_tests ${SRCS})
 target_link_libraries(librcom_unit_tests
                         gtest
                         gmock
-                        rppmocks
                         rcommocks
                         rcom)
  
