@@ -25,6 +25,7 @@
 
 #include <cstring>
 #include <stdarg.h>
+
 #include "MemBuffer.h"
 #include "ConsoleLogger.h"
 

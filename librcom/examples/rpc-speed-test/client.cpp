@@ -19,13 +19,13 @@
  */
 #include <iostream>
 #include <signal.h>
+#include <syslog.h>
+#include <atomic>
+
 #include <MessageLink.h>
 #include <ConsoleLogger.h>
 #include <Linux.h>
 #include <util.h>
-
-#include <syslog.h>
-#include <atomic>
 
 std::atomic<bool> quit(false);
 
