@@ -29,4 +29,3 @@ The rcom library does not impose any format on the messages sent back
 and forth between the client and the server. Since the websocket
 standard makes a distinction between text-based, so does rcom. But
 under the hood, rcom is agnostic about the content of the messages.
-
