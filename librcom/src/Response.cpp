@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "ConsoleLogger.h"
-#include "Response.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/Response.h"
 
 namespace rcom {
 

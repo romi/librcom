@@ -4,9 +4,8 @@
 #include "Address.mock.h"
 #include "Linux.mock.h"
 
-#include "ServerSocket.h"
-#include "Address.h"
-
+#include "rcom/ServerSocket.h"
+#include "rcom/Address.h"
 
 using namespace std;
 using namespace rcom;

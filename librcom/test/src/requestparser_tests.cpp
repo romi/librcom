@@ -2,8 +2,8 @@
 
 #include "Socket.mock.h"
 
-#include "RequestParser.h"
-#include "Request.h"
+#include "rcom/RequestParser.h"
+#include "rcom/Request.h"
 
 using ::testing::Return;
 using ::testing::ReturnRef;

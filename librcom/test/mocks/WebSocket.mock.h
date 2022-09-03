@@ -1,5 +1,5 @@
 #include "gmock/gmock.h"
-#include "IWebSocket.h"
+#include "rcom/IWebSocket.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"

@@ -1,6 +1,6 @@
-#include "ConsoleLogger.h"
 #include "gtest/gtest.h"
-#include "Request.h"
+#include "rcom/Request.h"
+#include "rcom/ConsoleLogger.h"
 
 using namespace std;
 using namespace rcom;

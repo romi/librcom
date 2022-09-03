@@ -4,6 +4,7 @@ project(rcommocks)
 set(SOURCES
   Address.mock.h
   Clock.mock.h
+  Linux.mock.h
   MessageListener.mock.h
   Request.mock.h
   RequestParser.mock.h

@@ -21,10 +21,10 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "Frames.h"
-#include "ConsoleLogger.h"
-#include "ServerSideWebSocket.h"
 #include <stdexcept>
+#include "rcom/Frames.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/ServerSideWebSocket.h"
 
 namespace rcom {
         

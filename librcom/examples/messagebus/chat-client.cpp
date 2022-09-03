@@ -24,10 +24,10 @@
 #include <syslog.h>
 #include <atomic>
 
-#include <Linux.h>
-#include <MessageLink.h>
-#include <ConsoleLogger.h>
-#include <util.h>
+#include <rcom/Linux.h>
+#include <rcom/MessageLink.h>
+#include <rcom/ConsoleLogger.h>
+#include <rcom/util.h>
 
 std::atomic<bool> quit(false);
 

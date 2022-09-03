@@ -7,8 +7,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdexcept>
-#include "ConsoleLogger.h"
-#include "ip.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/ip.h"
 
 namespace rcom {
 

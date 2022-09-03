@@ -22,17 +22,16 @@
 
  */
 #include <memory>
-#include "Linux.h"
-#include "SocketFactory.h"
-#include "Socket.h"
-#include "Address.h"
-#include "Response.h"
-#include "ResponseParser.h"
-#include "Request.h"
-#include "RequestParser.h"
-#include "ServerSideWebSocket.h"
-#include "ClientSideWebSocket.h"
-
+#include "rcom/Linux.h"
+#include "rcom/SocketFactory.h"
+#include "rcom/Socket.h"
+#include "rcom/Address.h"
+#include "rcom/Response.h"
+#include "rcom/ResponseParser.h"
+#include "rcom/Request.h"
+#include "rcom/RequestParser.h"
+#include "rcom/ServerSideWebSocket.h"
+#include "rcom/ClientSideWebSocket.h"
 
 namespace rcom {
         

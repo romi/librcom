@@ -1,5 +1,5 @@
 #include "gmock/gmock.h"
-#include "IResponse.h"
+#include "rcom/IResponse.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"

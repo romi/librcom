@@ -9,50 +9,51 @@ output_compile_flags()
 ############################################################
 
 set(SOURCES
-    include/sha1.h
-    include/util.h
-    include/ip.h
-    include/Address.h
-    include/BaseSocket.h
-    include/ClientSideWebSocket.h
-    include/ConsoleLogger.h
-    include/DummyMessageListener.h
-    include/HttpParser.h
-    include/IAddress.h
-    include/IHttpParserListener.h
-    include/ILinux.h
-    include/IMessageHub.h
-    include/IMessageLink.h
-    include/IMessageListener.h
-    include/IRequest.h
-    include/IRequestParser.h
-    include/IResponse.h
-    include/IServerSocket.h
-    include/ISocket.h
-    include/ISocketFactory.h
-    include/IWebSocketServer.h
-    include/IWebSocketServerFactory.h
-    include/json.hpp
-    include/Linux.h
-    include/MemBuffer.h
-    include/MessageLink.h
-    include/MessageHub.h
-    include/RawMessageHub.h
-    include/RegistryEntry.h
-    include/Registry.h
-    include/RegistryProxy.h
-    include/RegistryServer.h
-    include/RequestParser.h
-    include/Response.h
-    include/ResponseParser.h
-    include/Socket.h
-    include/SocketFactory.h
-    include/ServerSideWebSocket.h
-    include/ServerSocket.h
-    include/WebSocket.h
-    include/WebSocketConstants.h
-    include/WebSocketServer.h
-    include/WebSocketServerFactory.h
+    include/rcom/sha1.h
+    include/rcom/util.h
+    include/rcom/ip.h
+    include/rcom/Address.h
+    include/rcom/BaseSocket.h
+    include/rcom/ClientSideWebSocket.h
+    include/rcom/ConsoleLogger.h
+    include/rcom/DummyMessageListener.h
+    include/rcom/Frames.h
+    include/rcom/HttpParser.h
+    include/rcom/IAddress.h
+    include/rcom/IHttpParserListener.h
+    include/rcom/ILinux.h
+    include/rcom/IMessageHub.h
+    include/rcom/IMessageLink.h
+    include/rcom/IMessageListener.h
+    include/rcom/IRequest.h
+    include/rcom/IRequestParser.h
+    include/rcom/IResponse.h
+    include/rcom/IServerSocket.h
+    include/rcom/ISocket.h
+    include/rcom/ISocketFactory.h
+    include/rcom/IWebSocketServer.h
+    include/rcom/IWebSocketServerFactory.h
+    include/rcom/json.hpp
+    include/rcom/Linux.h
+    include/rcom/MemBuffer.h
+    include/rcom/MessageLink.h
+    include/rcom/MessageHub.h
+    include/rcom/RawMessageHub.h
+    include/rcom/RegistryEntry.h
+    include/rcom/Registry.h
+    include/rcom/RegistryProxy.h
+    include/rcom/RegistryServer.h
+    include/rcom/RequestParser.h
+    include/rcom/Response.h
+    include/rcom/ResponseParser.h
+    include/rcom/Socket.h
+    include/rcom/SocketFactory.h
+    include/rcom/ServerSideWebSocket.h
+    include/rcom/ServerSocket.h
+    include/rcom/WebSocket.h
+    include/rcom/WebSocketConstants.h
+    include/rcom/WebSocketServer.h
+    include/rcom/WebSocketServerFactory.h
     
     src/sha1.cpp
     src/util.cpp
@@ -81,8 +82,7 @@ set(SOURCES
     src/SocketFactory.cpp
     src/WebSocket.cpp
     src/WebSocketServer.cpp
-    src/WebSocketServerFactory.cpp
-        include/Frames.h)
+    src/WebSocketServerFactory.cpp)
 
 add_library(rcom SHARED ${SOURCES})
 target_include_directories(rcom PUBLIC include)

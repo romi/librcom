@@ -26,8 +26,8 @@
 #include <cstring>
 #include <stdarg.h>
 
-#include "MemBuffer.h"
-#include "ConsoleLogger.h"
+#include "rcom/MemBuffer.h"
+#include "rcom/ConsoleLogger.h"
 
 namespace rcom
 {

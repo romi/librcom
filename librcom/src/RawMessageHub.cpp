@@ -21,17 +21,17 @@
   <http://www.gnu.org/licenses/>.
 
 */
-#include "ConsoleLogger.h"
 #include <algorithm>
 #include <utility>
-#include "RawMessageHub.h"
-#include "Address.h"
-#include "RegistryServer.h"
-#include "RegistryProxy.h"
-#include "ServerSocket.h"
-#include "util.h"
-#include "DummyMessageListener.h"
-#include "IWebSocketServerFactory.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/RawMessageHub.h"
+#include "rcom/Address.h"
+#include "rcom/RegistryServer.h"
+#include "rcom/RegistryProxy.h"
+#include "rcom/ServerSocket.h"
+#include "rcom/util.h"
+#include "rcom/DummyMessageListener.h"
+#include "rcom/IWebSocketServerFactory.h"
 
 namespace rcom {
 

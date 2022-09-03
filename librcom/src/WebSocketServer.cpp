@@ -23,8 +23,8 @@
  */
 #include <stdexcept>
 #include <algorithm>
-#include "ConsoleLogger.h"
-#include "WebSocketServer.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/WebSocketServer.h"
 
 namespace rcom {
         

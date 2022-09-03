@@ -1,17 +1,16 @@
 #include <iostream>
 #include "gtest/gtest.h"
 
+#include "rcom/ClientSideWebSocket.h"
+#include "rcom/ServerSideWebSocket.h"
+#include "rcom/Address.h"
+
 #include "Socket.mock.h"
 #include "RequestParser.mock.h"
 #include "Request.mock.h"
 #include "ResponseParser.mock.h"
 #include "Response.mock.h"
 #include "Linux.mock.h"
-
-#include "ClientSideWebSocket.h"
-#include "ServerSideWebSocket.h"
-#include "Address.h"
-
 
 using namespace std;
 using namespace rcom;
@@ -23,7 +22,6 @@ using ::testing::SetArgReferee;
 using ::testing::NiceMock;
 using ::testing::Assign;
 using ::testing::ReturnPointee;
-
 
 class clientside_websocket_tests : public ::testing::Test
 {

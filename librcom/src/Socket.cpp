@@ -23,8 +23,8 @@
  */
 #include <netinet/tcp.h>
 #include <stdexcept>
-#include "ConsoleLogger.h"
-#include "Socket.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/Socket.h"
 
 namespace rcom {
 

@@ -1,9 +1,8 @@
 #include <string>
 #include "gtest/gtest.h"
 
-#include "Address.h"
-#include "ip.h"
-
+#include "rcom/Address.h"
+#include "rcom/ip.h"
 
 using namespace rcom;
 

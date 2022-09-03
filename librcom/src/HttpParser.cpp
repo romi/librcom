@@ -23,8 +23,8 @@
  */
 #include <string.h>
 #include <ctype.h>
-#include "ConsoleLogger.h"
-#include "HttpParser.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/HttpParser.h"
 
 namespace rcom {
 

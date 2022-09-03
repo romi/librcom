@@ -22,8 +22,8 @@
 #include <syslog.h>
 #include <atomic>
 
-#include <MessageLink.h>
-#include <ConsoleLogger.h>
+#include <rcom/MessageLink.h>
+#include <rcom/ConsoleLogger.h>
 
 std::atomic<bool> quit(false);
 

@@ -23,10 +23,10 @@
  */
 #include <stdexcept>
 #include <cstring>
-#include "ConsoleLogger.h"
-#include "Frames.h"
-#include "ClientSideWebSocket.h"
-#include "util.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/Frames.h"
+#include "rcom/ClientSideWebSocket.h"
+#include "rcom/util.h"
 
 namespace rcom {
 

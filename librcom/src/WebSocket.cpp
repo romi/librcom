@@ -23,9 +23,9 @@
  */
 #include <exception>
 #include <string.h>
-#include "ConsoleLogger.h"
-#include "WebSocket.h"
-#include "util.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/WebSocket.h"
+#include "rcom/util.h"
 
 namespace rcom {        
 

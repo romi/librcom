@@ -25,9 +25,9 @@
 #include <arpa/inet.h>
 #include <stdexcept>
 #include <algorithm>
-#include "ConsoleLogger.h"
-#include "Address.h"
-#include "ip.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/Address.h"
+#include "rcom/ip.h"
 
 using namespace std;
 

@@ -1,7 +1,7 @@
 #include <string>
 #include "gtest/gtest.h"
 
-#include "Registry.h"
+#include "rcom/Registry.h"
 
 using namespace rcom;
 

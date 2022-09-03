@@ -26,8 +26,8 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
-#include "ConsoleLogger.h"
-#include "BaseSocket.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/BaseSocket.h"
 
 namespace rcom {
 

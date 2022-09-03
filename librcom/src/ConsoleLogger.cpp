@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <string>
 #include <iostream>
-#include "ConsoleLogger.h"
+#include "rcom/ConsoleLogger.h"
 
 #define ONE_KB_BUFFER (1024)
 #define LOG_INFO_SIZE (48) // Time, Type, Name, thread_id

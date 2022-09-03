@@ -22,9 +22,9 @@
 
  */
 #include <algorithm>
-#include "ConsoleLogger.h"
-#include "RegistryProxy.h"
-#include "util.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/RegistryProxy.h"
+#include "rcom/util.h"
 
 namespace rcom {
 

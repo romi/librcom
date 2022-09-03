@@ -22,7 +22,7 @@
 
  */
 #include <stdlib.h>
-#include "ResponseParser.h"
+#include "rcom/ResponseParser.h"
 
 namespace rcom {
 

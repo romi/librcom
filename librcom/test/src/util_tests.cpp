@@ -1,7 +1,7 @@
 #include <string>
 #include "gtest/gtest.h"
 
-#include "util.h"
+#include "rcom/util.h"
 
 using namespace rcom;
 

@@ -1,6 +1,6 @@
-#include "ConsoleLogger.h"
 #include "gtest/gtest.h"
-#include "WebSocketServer.h"
+#include "rcom/WebSocketServer.h"
+#include "rcom/ConsoleLogger.h"
 
 #include "ServerSocket.mock.h"
 #include "SocketFactory.mock.h"

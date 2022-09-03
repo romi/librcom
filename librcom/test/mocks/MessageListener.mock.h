@@ -1,5 +1,5 @@
 #include "gmock/gmock.h"
-#include "IMessageListener.h"
+#include "rcom/IMessageListener.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"

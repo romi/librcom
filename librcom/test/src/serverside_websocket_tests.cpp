@@ -7,11 +7,10 @@
 #include "ResponseParser.mock.h"
 #include "Response.mock.h"
 #include "Linux.mock.h"
-#include "Frames.h"
 
-#include "ServerSideWebSocket.h"
-#include "Address.h"
-
+#include "rcom/Frames.h"
+#include "rcom/ServerSideWebSocket.h"
+#include "rcom/Address.h"
 
 using namespace std;
 using namespace rcom;

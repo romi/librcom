@@ -1,11 +1,12 @@
 #include <string>
-#include <WebSocketServer.mock.h>
-#include <SocketFactory.mock.h>
-#include <Address.h>
 #include "gtest/gtest.h"
 
-#include "RawMessageHub.h"
-#include "MessageHub.h"
+#include "rcom/Address.h"
+#include "rcom/RawMessageHub.h"
+#include "rcom/MessageHub.h"
+
+#include "WebSocketServer.mock.h"
+#include "SocketFactory.mock.h"
 #include "MessageListener.mock.h"
 #include "WebSocketServerFactory.mock.h"
 #include "WebSocket.mock.h"

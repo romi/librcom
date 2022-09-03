@@ -18,8 +18,8 @@
 
  */
 #include <iostream>
-#include <ConsoleLogger.h>
-#include <MessageLink.h>
+#include <rcom/ConsoleLogger.h>
+#include <rcom/MessageLink.h>
 
 int main()
 {

@@ -23,12 +23,12 @@
 #include <syslog.h>
 #include <atomic>
 
-#include <Linux.h>
-#include <MessageHub.h>
-#include <IMessageListener.h>
-#include <WebSocketServerFactory.h>
-#include <util.h>
-#include <ConsoleLogger.h>
+#include <rcom/Linux.h>
+#include <rcom/MessageHub.h>
+#include <rcom/IMessageListener.h>
+#include <rcom/WebSocketServerFactory.h>
+#include <rcom/util.h>
+#include <rcom/ConsoleLogger.h>
 
 std::atomic<bool> quit(false);
 

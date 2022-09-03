@@ -22,7 +22,7 @@
 
  */
 
-#include "RegistryEntry.h"
+#include "rcom/RegistryEntry.h"
 
 namespace rcom {
         

@@ -21,11 +21,11 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "ConsoleLogger.h"
-#include "MessageHub.h"
-#include "WebSocketServer.h"
-#include "util.h"
-#include "DummyMessageListener.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/MessageHub.h"
+#include "rcom/WebSocketServer.h"
+#include "rcom/util.h"
+#include "rcom/DummyMessageListener.h"
 
 namespace rcom {
 

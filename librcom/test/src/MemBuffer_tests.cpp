@@ -1,7 +1,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "MemBuffer.h"
+#include "rcom/MemBuffer.h"
 
 class MemBuffer_tests : public ::testing::Test
 {

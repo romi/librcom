@@ -1,5 +1,5 @@
 #include "gmock/gmock.h"
-#include "ISocketFactory.h"
+#include "rcom/ISocketFactory.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"

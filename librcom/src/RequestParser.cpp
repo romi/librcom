@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "RequestParser.h"
-#include "HttpParser.h"
+#include "rcom/RequestParser.h"
+#include "rcom/HttpParser.h"
 
 namespace rcom {
 

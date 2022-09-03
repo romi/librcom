@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "ConsoleLogger.h"
-#include "Registry.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/Registry.h"
 
 namespace rcom {
 

@@ -24,9 +24,9 @@
 #include <math.h>
 #include <regex>
 #include <stdexcept>
-#include "ConsoleLogger.h"
-#include "util.h"
-#include "sha1.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/util.h"
+#include "rcom/sha1.h"
 
 namespace rcom {
         

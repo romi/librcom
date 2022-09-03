@@ -21,9 +21,9 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "ConsoleLogger.h"
-#include "RegistryServer.h"
-#include "Address.h"
+#include "rcom/ConsoleLogger.h"
+#include "rcom/RegistryServer.h"
+#include "rcom/Address.h"
 
 namespace rcom {
 

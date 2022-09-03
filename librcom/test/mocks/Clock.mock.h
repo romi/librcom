@@ -1,5 +1,5 @@
 #include "gmock/gmock.h"
-#include "IClock.h"
+#include "rcom/IClock.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"

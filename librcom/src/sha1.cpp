@@ -44,7 +44,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <endian.h>
-#include "sha1.h"
+#include "rcom/sha1.h"
 
 namespace rcom {
         

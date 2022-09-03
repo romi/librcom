@@ -1,5 +1,5 @@
 #include "gmock/gmock.h"
-#include "IRequest.h"
+#include "rcom/IRequest.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"

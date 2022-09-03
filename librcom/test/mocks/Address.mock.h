@@ -1,5 +1,5 @@
 #include "gmock/gmock.h"
-#include "IAddress.h"
+#include "rcom/IAddress.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
