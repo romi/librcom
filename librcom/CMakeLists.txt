@@ -28,6 +28,8 @@ set(SOURCES
     include/rcom/IRequest.h
     include/rcom/IRequestParser.h
     include/rcom/IResponse.h
+    include/rcom/IRPCHandler.h
+    include/rcom/IRPCServer.h
     include/rcom/IServerSocket.h
     include/rcom/ISocket.h
     include/rcom/ISocketFactory.h
@@ -39,10 +41,14 @@ set(SOURCES
     include/rcom/MessageLink.h
     include/rcom/MessageHub.h
     include/rcom/RawMessageHub.h
+    include/rcom/RcomClient.h
+    include/rcom/RcomMessageHandler.h
+    include/rcom/RcomServer.h
     include/rcom/RegistryEntry.h
     include/rcom/Registry.h
     include/rcom/RegistryProxy.h
     include/rcom/RegistryServer.h
+    include/rcom/RemoteStub.h
     include/rcom/RequestParser.h
     include/rcom/Response.h
     include/rcom/ResponseParser.h
@@ -68,11 +74,15 @@ set(SOURCES
     src/MessageLink.cpp
     src/MessageHub.cpp
     src/RawMessageHub.cpp
+    src/RcomClient.cpp
+    src/RcomMessageHandler.cpp
+    src/RcomServer.cpp
     src/RegistryEntry.cpp
     src/Registry.cpp
     src/RegistryProxy.cpp
     src/RegistryServer.cpp
     src/Request.cpp
+    src/RemoteStub.cpp
     src/RequestParser.cpp
     src/Response.cpp
     src/ResponseParser.cpp

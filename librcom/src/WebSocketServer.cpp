@@ -88,10 +88,6 @@ namespace rcom {
         void WebSocketServer::handle_new_connection(int sockfd)
         {
                 append(sockfd);
-                // // lock
-                // IWebSocket& websocket = append(sockfd);
-                // listener_->onconnect(*this, websocket);
-                // // unlock
         }
 
         void WebSocketServer::handle_new_messages()
@@ -135,11 +131,13 @@ namespace rcom {
                         close(index, kCloseInternalError);
                         
                 } else if (status == kRecvClosed) {
-                    log_error("WebSocketServer::handle_new_messages: kRecvClose. Socket will be removed.");
+                        //log_error("WebSocketServer::handle_new_messages: "
+                        // "kRecvClose. Socket will be removed.");
                 }
         }
 
-        void WebSocketServer::broadcast(rcom::MemBuffer& message, MessageType type, IWebSocket *exclude)
+        void WebSocketServer::broadcast(rcom::MemBuffer& message, MessageType type,
+                                        IWebSocket *exclude)
         {
                 for (size_t i = 0; i < links_.size(); i++) {
                         if (exclude != links_[i].get()) {

@@ -169,7 +169,8 @@ namespace rcom {
         {
                 log_error("RegistryProxy: %s: Request failed", method.c_str());
                 try {
-                        log_error("RegistryProxy: Reason: %s", jsonobj["message"].dump().c_str());
+                        log_error("RegistryProxy: Reason: %s",
+                                  jsonobj["message"].dump().c_str());
                 } catch (nlohmann::json::exception& jerr) {
                         log_error("RegistryProxy: %s", jerr.what());
                 }
@@ -191,7 +192,8 @@ namespace rcom {
                 return success;
         }
         
-        bool RegistryProxy::get_address(nlohmann::json& jsonobj, std::string& address_string)
+        bool RegistryProxy::get_address(nlohmann::json& jsonobj,
+                                        std::string& address_string)
         {
                 bool success = false;
                 try {

@@ -21,26 +21,31 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_RESPONSEPARSER_H_
-#define _LIBRCOM_I_RESPONSEPARSER_H_
+#ifndef _LIBRCOM_I_RPCHANDLER_H
+#define _LIBRCOM_I_RPCHANDLER_H
 
-#include "rcom/IResponse.h"
-#include "rcom/ISocket.h"
+#include <string>
+#include "rcom/json.hpp"
+#include "rcom/MemBuffer.h"
+#include "rcom/RPCError.h"
 
 namespace rcom {
-
-        class IResponseParser
+        
+        class IRPCHandler
         {
-        protected:
-
         public:
+                virtual ~IRPCHandler() = default;
                 
-                virtual ~IResponseParser() = default; 
-
-                virtual bool parse(ISocket& socket) = 0;
-                virtual IResponse& response() = 0;
+                virtual void execute(const std::string& method,
+                                     nlohmann::json &params,
+                                     nlohmann::json &result,
+                                     RPCError &status) = 0;
+                
+                virtual void execute(const std::string& method,
+                                     nlohmann::json &params,
+                                     rcom::MemBuffer& result,
+                                     RPCError &status) = 0;
         };
 }
 
-#endif // _LIBRCOM_I_RESPONSEPARSER_H_
-
+#endif // _LIBRCOM_I_RPCHANDLER_H

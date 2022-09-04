@@ -21,26 +21,31 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_RESPONSEPARSER_H_
-#define _LIBRCOM_I_RESPONSEPARSER_H_
+#ifndef _LIBRCOM_RCOMSERVER_H
+#define _LIBRCOM_RCOMSERVER_H
 
-#include "rcom/IResponse.h"
-#include "rcom/ISocket.h"
+#include <memory>
+#include "rcom/IMessageHub.h"
+#include "rcom/IRPCServer.h"
+#include "rcom/IRPCHandler.h"
 
 namespace rcom {
-
-        class IResponseParser
+        
+        class RcomServer : public IRPCServer
         {
         protected:
+                std::unique_ptr<rcom::IMessageHub> hub_;
 
         public:
                 
-                virtual ~IResponseParser() = default; 
+                static std::unique_ptr<IRPCServer> create(const std::string& topic,
+                                                          IRPCHandler &handler);
+                
+                RcomServer(std::unique_ptr<rcom::IMessageHub>& hub);
+                virtual ~RcomServer() = default;
 
-                virtual bool parse(ISocket& socket) = 0;
-                virtual IResponse& response() = 0;
+                void handle_events();
         };
 }
 
-#endif // _LIBRCOM_I_RESPONSEPARSER_H_
-
+#endif // _LIBRCOM_RCOMSERVER_H

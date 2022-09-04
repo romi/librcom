@@ -101,4 +101,5 @@ endif()
 ###########################################################3
 include(${CMAKE_MODULES_DIRECTORY}/RomiProjectBuildOptions.cmake)
 add_subdirectory(librcom)
+add_subdirectory(doc)
 add_subdirectory(applications/rcom_registry)

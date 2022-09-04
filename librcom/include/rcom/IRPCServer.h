@@ -21,26 +21,17 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_RESPONSEPARSER_H_
-#define _LIBRCOM_I_RESPONSEPARSER_H_
-
-#include "rcom/IResponse.h"
-#include "rcom/ISocket.h"
+#ifndef _librcom_I_RPCSERVER_H
+#define _librcom_I_RPCSERVER_H
 
 namespace rcom {
-
-        class IResponseParser
+        
+        class IRPCServer
         {
-        protected:
-
         public:
-                
-                virtual ~IResponseParser() = default; 
-
-                virtual bool parse(ISocket& socket) = 0;
-                virtual IResponse& response() = 0;
+                virtual ~IRPCServer() = default;
+                virtual void handle_events() = 0;
         };
 }
 
-#endif // _LIBRCOM_I_RESPONSEPARSER_H_
-
+#endif // _librcom_I_RPCSERVER_H
