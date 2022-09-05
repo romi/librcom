@@ -35,25 +35,18 @@ void MonsterAdaptor::execute(const std::string& method, nlohmann::json& params,
                              nlohmann::json& result, rcom::RPCError& error)
 {
         error.code = 0;
-                                
-        try {
-                if (method == "jump-around") {
-                        execute_jump_around();
-                                
-                } else if (method == "gently-scare-someone") {
-                        execute_gently_scare_someone(params);
-                                
-                } else if (method == "get-energy-level") {
-                        execute_get_energy_level(result);
-                                
-                } else {
-                        error.code = rcom::RPCError::kMethodNotFound;
-                        error.message = "Unknown method";
-                }
-                        
-        } catch (std::exception& e) {
-                error.code = rcom::RPCError::kInternalError;
-                error.message = e.what();
+        if (method == "jump-around") {
+                execute_jump_around();
+                
+        } else if (method == "gently-scare-someone") {
+                execute_gently_scare_someone(params);
+                
+        } else if (method == "get-energy-level") {
+                execute_get_energy_level(result);
+                
+        } else {
+                error.code = rcom::RPCError::kMethodNotFound;
+                error.message = "Unknown method";
         }
 }
 

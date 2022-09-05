@@ -91,7 +91,6 @@ if (BUILD_COVERAGE AND BUILD_TESTS)
     set( COVERAGE_EXCLUDES
             "/usr/*"
             "${CMAKE_SOURCE_DIR}/thirdparty/*"
-            "${CMAKE_SOURCE_DIR}/libr/*"
             "*test/*")
 
     append_coverage_compiler_flags()
@@ -101,5 +100,5 @@ endif()
 ###########################################################3
 include(${CMAKE_MODULES_DIRECTORY}/RomiProjectBuildOptions.cmake)
 add_subdirectory(librcom)
-add_subdirectory(doc)
+add_subdirectory(examples)
 add_subdirectory(applications/rcom_registry)
