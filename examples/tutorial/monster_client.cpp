@@ -62,7 +62,7 @@ int main()
                 RemoteMonster monster(client);        
                 monster.gently_scare_someone("you");
         } catch (std::exception& e) {
-                log_error("main: '%s'", e.what());
+                std::cout << "main: caught exception: " << e.what() << std::endl;
         }
         return 0;
 }

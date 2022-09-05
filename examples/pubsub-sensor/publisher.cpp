@@ -28,7 +28,6 @@
 #include <rcom/IMessageListener.h>
 #include <rcom/WebSocketServerFactory.h>
 #include <rcom/util.h>
-#include <rcom/ConsoleLogger.h>
 
 std::atomic<bool> quit(false);
 
@@ -38,14 +37,13 @@ void SignalHandler(int signal)
                 syslog(1, "rcom-registry segmentation fault");
                 exit(signal);
         } else if (signal == SIGINT){
-                log_info("Ctrl-C Quitting Application");
+                std::cout << "Ctrl-C Quitting Application" << std::endl;
                 perror("init_signal_handler");
                 quit = true;
         } else {
-                log_error("Unknown signam received %d", signal);
+                std::cout << "Unknown signal, received " << signal << std::endl;
         }
 }
-
 
 void initialize_random_generator()
 {
@@ -103,9 +101,9 @@ int main()
                 }
                 
         } catch (std::runtime_error& re) {
-                log_error("main: caught runtime_error: %s", re.what());
+                std::cout << "main: caught runtime_error: " << re.what() << std::endl;
         } catch (...) {
-                log_error("main: caught exception");
+                std::cout << "main: caught exception" << std::endl;
         }
 }
 

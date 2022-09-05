@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include "rcom/IRPCHandler.h"
 #include "rcom/RcomServer.h"
-#include "rcom/ConsoleLogger.h"
 #include "HappyMonster.h"
 
 class MonsterAdaptor : public rcom::IRPCHandler
@@ -89,7 +88,7 @@ int main()
                         usleep(1000);
                 }
         } catch (std::exception& e) {
-                log_error("main: '%s'", e.what());
+                std::cout << "main: caught exception: " << e.what() << std::endl;
         }
         return 0;
 }

@@ -48,12 +48,12 @@ void SignalHandler(int signal)
                 exit(signal);
         }
         else if (signal == SIGINT){
-                log_info("Ctrl-C Quitting Application");
+                rcom::log_info("Ctrl-C Quitting Application");
                 perror("init_signal_handler");
                 quit = true;
         }
         else{
-                log_error("Unknown signam received %d", signal);
+                rcom::log_error("Unknown signam received %d", signal);
         }
 }
 
@@ -83,7 +83,7 @@ int main(int argc, const char **argv)
 
             std::string s;
             address.tostring(s);
-            log_info("Registry server running at %s.", s.c_str());
+            rcom::log_info("Registry server running at %s.", s.c_str());
 
             while (!quit) {
                     server.handle_events();
@@ -91,11 +91,11 @@ int main(int argc, const char **argv)
             }
                 
         } catch (nlohmann::json::exception& je) {
-                log_error("main: caught JSON error: %s", je.what());
+                rcom::log_error("main: caught JSON error: %s", je.what());
         } catch (std::runtime_error& re) {
-                log_error("main: caught runtime_error: %s", re.what());
+                rcom::log_error("main: caught runtime_error: %s", re.what());
         } catch (...) {
-                log_error("main: caught exception");
+                rcom::log_error("main: caught exception");
         }
 }
 

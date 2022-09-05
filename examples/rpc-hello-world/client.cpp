@@ -18,7 +18,6 @@
 
  */
 #include <iostream>
-#include <rcom/ConsoleLogger.h>
 #include <rcom/MessageLink.h>
 
 int main()
@@ -35,13 +34,14 @@ int main()
                                   << std::endl;
                         
                 } else {
-                        log_error("main: failed to send & receive the message");
+                        std::cout << "main: failed to send & receive the message"
+                                  << std::endl;
                 }
                 
                 
         } catch (std::runtime_error& re) {
-                log_error("main: caught runtime_error: %s", re.what());
+                std::cout << "main: caught runtime_error: " << re.what() << std::endl;
         } catch (...) {
-                log_error("main: caught exception");
+                std::cout << "main: caught exception" << std::endl;
         }
 }
