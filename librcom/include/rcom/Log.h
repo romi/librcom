@@ -21,26 +21,30 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_WEB_SOCKET_SERVER_FACTORY_H_
-#define _LIBRCOM_I_WEB_SOCKET_SERVER_FACTORY_H_
+#ifndef _LIBRCOM_LOG_H
+#define _LIBRCOM_LOG_H
 
+#include <stdarg.h>
+#include <cstring>
 #include <memory>
-#include "rcom/IAddress.h"
-#include "rcom/ISocket.h"
-#include "rcom/IServerSocket.h"
-#include "rcom/IWebSocket.h"
-#include "rcom/IMessageListener.h"
-#include "rcom/IWebSocketServer.h"
+#include <mutex>
+#include "rcom/ILog.h"
 
 namespace rcom {
-        
-        class IWebSocketServerFactory
-        {
-        public:
-                virtual ~IWebSocketServerFactory() = default;
-                virtual std::unique_ptr<IWebSocketServer>
-                        new_web_socket_server(const std::shared_ptr<IMessageListener> &listener, uint16_t port) = 0;
-        };
+
+        void log_err(const std::shared_ptr<ILog>& log,
+                    const char* format, ...);
+        void log_warn(const std::shared_ptr<ILog>& log,
+                      const char* format, ...);
+        void log_debug(const std::shared_ptr<ILog>& log,
+                       const char* format, ...);
+        void log_info(const std::shared_ptr<ILog>& log,
+                      const char* format, ...);
+
+
+        void _log_error(const char* format, ...);
+        void _log_warning(const char* format, ...);
 }
 
-#endif
+
+#endif // _LIBRCOM_LOG_H
