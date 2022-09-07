@@ -66,9 +66,6 @@ namespace rcom {
                                     const std::shared_ptr<ILog>& log);
                 
                 ~ClientSideWebSocket() override;
-                
-        // private:
-        //     std::shared_ptr<ILinux> linux_;
         };
 }
 
