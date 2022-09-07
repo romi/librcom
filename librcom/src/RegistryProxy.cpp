@@ -164,6 +164,10 @@ namespace rcom {
                 bool success = false;
                 try {
                         success = jsonobj["success"];
+                        if (!success) {
+                                log_warn(log_, "RegistryProxy: request returned "
+                                         "success=false");
+                        }
                 } catch (nlohmann::json::exception& jerr) {
                         log_err(log_, "RegistryProxy: %s", jerr.what());
                 }
