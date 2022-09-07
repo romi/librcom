@@ -24,7 +24,6 @@
 #include <math.h>
 #include <regex>
 #include <stdexcept>
-#include "rcom/ConsoleLogger.h"
 #include "rcom/util.h"
 #include "rcom/sha1.h"
 
@@ -113,7 +112,7 @@ namespace rcom {
 
         double rcom_time(ILinux& linux)
         {
-                struct timespec spec;
+                struct timespec spec = {0, 0};
                 double result;
                 
                 linux.clock_gettime(CLOCK_REALTIME, &spec);
@@ -124,8 +123,8 @@ namespace rcom {
         
         void rcom_sleep(ILinux& linux, double seconds)
         {
-                struct timespec spec;
-                struct timespec remain;
+                struct timespec spec = {0, 0};
+                struct timespec remain = {0, 0};
                 
                 spec.tv_sec = (time_t) floor(seconds);
                 double nsec = seconds - (double) spec.tv_sec;
@@ -134,10 +133,8 @@ namespace rcom {
                 
                 if (r != 0) {
                         if (r == EINTR) {
-                                log_error("rcom_sleep: Interrupted");
                                 throw std::runtime_error("rcom_sleep: Interrupted");
                         } else {
-                                log_error("rcom_sleep: Failed: %d", r);
                                 throw std::runtime_error("rcom_sleep: Failed");
                         }
                 }

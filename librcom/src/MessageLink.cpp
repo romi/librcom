@@ -21,28 +21,56 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/MessageLink.h"
 #include "rcom/Address.h"
 #include "rcom/RegistryProxy.h"
 #include "rcom/RegistryServer.h"
 #include "rcom/util.h"
+#include "rcom/ConsoleLog.h"
+#include "rcom/Linux.h"
+#include "rcom/SocketFactory.h"
 
 namespace rcom {
+        
+        std::unique_ptr<IMessageLink> MessageLink::create(const std::string& topic,
+                                                          double timeout)
+        {
+                std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
+                return create(topic, timeout, log);
+        }
 
-        MessageLink::MessageLink(const std::string& topic, double timeout)
-                : factory_(),
+        std::unique_ptr<IMessageLink> MessageLink::create(const std::string& topic,
+                                                          double timeout,
+                                                          const std::shared_ptr<ILog>& log)
+        {
+                std::shared_ptr<ILinux> linux = std::make_shared<Linux>();                
+                std::shared_ptr<ISocketFactory> factory
+                        = std::make_shared<SocketFactory>(linux, log);
+                return std::make_unique<MessageLink>(topic, timeout, factory, linux, log);
+        }
+
+        MessageLink::MessageLink(const std::string& topic,
+                                 double timeout,
+                                 const std::shared_ptr<ISocketFactory>& factory,
+                                 const std::shared_ptr<ILinux>& linux,
+                                 const std::shared_ptr<ILog>& log)
+                : factory_(factory),
                   websocket_(),
                   topic_(topic),
-                  recv_status_(kRecvText)
+                  recv_status_(kRecvText),
+                  linux_(linux),
+                  log_(log)
         {
                 if (!is_valid_topic(topic_)) {
-                        log_error("MessageLink: Ill-formatted topic string: %s", topic.c_str());
+                        log_err(log_, "MessageLink: Ill-formatted topic string: %s",
+                                topic.c_str());
                         throw std::runtime_error("MessageLink: Ill-formatted topic string");
                 }
                 
                 if (!connect(timeout)) {
-                        log_error("MessageLink: Failed to connect: %s", topic.c_str());
+                        log_err(log_, "MessageLink: Failed to connect: %s",
+                                topic.c_str());
                         throw std::runtime_error("MessageLink: Failed to connect");
                 }
         }
@@ -58,11 +86,11 @@ namespace rcom {
 
                 Address hub_address;
                 if (get_remote_address(hub_address, timeout)) {
-                        websocket_ = factory_.new_client_side_websocket(hub_address);
+                        websocket_ = factory_->new_client_side_websocket(hub_address);
                         success = true;
                 } else {
-                        log_warning("MessageLink::connect: Failed to obtain address for "
-                               "topic '%s'", topic_.c_str());
+                        log_warn(log_, "MessageLink::connect: Failed to obtain address for "
+                                 "topic '%s'", topic_.c_str());
                 }
                 return success;
         }
@@ -72,8 +100,8 @@ namespace rcom {
                 Address registry_address;
                 RegistryServer::get_address(registry_address);
                 std::unique_ptr<IWebSocket> registry_socket
-                        = factory_.new_client_side_websocket(registry_address);
-                RegistryProxy registry(registry_socket);
+                        = factory_->new_client_side_websocket(registry_address);
+                RegistryProxy registry(registry_socket, linux_, log_);
                 return registry.get(topic_, address, timeout);
         }
 
@@ -82,7 +110,7 @@ namespace rcom {
                 return topic_;
         }
         
-        bool MessageLink::recv(rcom::MemBuffer& message, double timeout)
+        bool MessageLink::recv(MemBuffer& message, double timeout)
         {
                 recv_status_ = websocket_->recv(message, timeout);
                 return obtained_message();
@@ -99,7 +127,7 @@ namespace rcom {
                 return recv_status_;
         }
 
-        bool MessageLink::send(rcom::MemBuffer& message, MessageType type)
+        bool MessageLink::send(MemBuffer& message, MessageType type)
         {
                 return websocket_->send(message, type);
         }

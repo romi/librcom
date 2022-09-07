@@ -21,7 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "rcom/ConsoleLogger.h"
+#include <stdexcept>
+#include "rcom/Log.h"
 #include "rcom/Request.h"
 #include "rcom/util.h"
 
@@ -69,51 +70,46 @@ namespace rcom {
                 return found;
         }
         
-        bool Request::is_websocket()
+        void Request::assert_websocket()
         {
-                return http_method_is_get()
-                        && has_valid_websocket_key()
-                        && has_valid_websocket_version()
-                        && connection_header_is_upgrade()
-                        && upgrade_header_is_websocket();
+                http_method_is_get();
+                has_valid_websocket_key();
+                has_valid_websocket_version();
+                connection_header_is_upgrade();
+                upgrade_header_is_websocket();
         }
 
-        bool Request::http_method_is_get()
+        void Request::http_method_is_get()
         {
-                return method_ == kGetMethod;
+                if (method_ != kGetMethod) {
+                        throw std::runtime_error("Request: Bad HTTP method");
+                }
         }
 
-        bool Request::has_valid_websocket_key()
+        void Request::has_valid_websocket_key()
         {
-                bool valid;
                 std::string header_value;
-        
-                valid = (get_header_value("Sec-WebSocket-Key", header_value)
-                         && is_valid_websocket_key(header_value));
-        
-                if (!valid) {
-                        log_warning("Request: Bad Sec-WebSocket-Key header");
+                
+                bool has = get_header_value("Sec-WebSocket-Key", header_value);
+                if (!has) {
+                        throw std::runtime_error("Request: Missing "
+                                                 "Sec-WebSocket-Key header");
                 }
-
-                return valid;
+                is_valid_websocket_key(header_value);
         }
         
-        bool Request::is_valid_websocket_key(const std::string& key)
+        void Request::is_valid_websocket_key(const std::string& key)
         {
-                bool valid = false;
                 if (key.length() != 24) {
-                        log_debug("is_valid_websocket_key: bad key length: '%s'", key.c_str());
+                        throw std::runtime_error("Request: bad key length");
                 } else if (key[22] != '=' || key[23] != '=') {
-                        log_debug("is_valid_websocket_key: expected closing '=' chars");
+                        throw std::runtime_error("Request: expected closing '=' chars");
                 } else if (!is_base64_string(key)) {
-                        log_debug("is_valid_websocket_key: invalid char");
-                } else {
-                        valid = true;
+                        throw std::runtime_error("Request: invalid char");
                 }
-                return valid;
         }
 
-        bool Request::has_valid_websocket_version()
+        void Request::has_valid_websocket_version()
         {
                 std::string header_value;
         
@@ -121,13 +117,12 @@ namespace rcom {
                               && (header_value == "13"));
         
                 if (!valid) {
-                        log_warning("Request: Bad Sec-WebSocket-Version header");
+                        throw std::runtime_error("Request: Bad "
+                                                 "Sec-WebSocket-Version header");
                 }
-
-                return valid;
         }
 
-        bool Request::connection_header_is_upgrade()
+        void Request::connection_header_is_upgrade()
         {
                 std::string header_value;
 
@@ -139,13 +134,11 @@ namespace rcom {
                                   || header_value.find("upgrade") != std::string::npos));
         
                 if (!valid) {
-                        log_warning("Request: Bad Connection header");
+                        throw std::runtime_error("Request: Bad Connection header");
                 }
-
-                return valid;
         }
 
-        bool Request::upgrade_header_is_websocket()
+        void Request::upgrade_header_is_websocket()
         {
                 std::string header_value;
                 
@@ -153,10 +146,8 @@ namespace rcom {
                               && (header_value == "websocket"));
                 
                 if (!valid) {
-                        log_warning("Request: Bad Upgrade header");
+                        throw std::runtime_error("Request: Bad Upgrade header");
                 }
-
-                return valid;
         }
 }
 

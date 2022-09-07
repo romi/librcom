@@ -67,33 +67,31 @@ namespace rcom {
                 };
                 
                 State state_;
-                int status_code_;
-                std::string status_message_;
-                rcom::MemBuffer buffer_;
+                MemBuffer buffer_;
                 std::string name_;
                 
-                bool parse(ISocket& socket);
-                bool read_char(ISocket& socket);
-                bool handle_char(uint8_t c);
+                void parse(ISocket& socket);
+                void read_char(ISocket& socket);
+                void handle_char(uint8_t c);
                 bool is_separator(uint8_t c);
                 bool is_token_character(uint8_t c);
-                void store_header_name();
-                void error(int code, const char *what);
                 bool is_valid_version_char(uint8_t c);
+                void store_header_name();
+                void error(const char *what);
                 
-                virtual bool set_method() = 0;
-                virtual bool set_uri() = 0;
-                virtual bool set_version() = 0;
-                virtual bool set_code() = 0;
-                virtual bool set_reason() = 0;
-                virtual bool add_header() = 0;
+                virtual void set_method() = 0;
+                virtual void set_uri() = 0;
+                virtual void set_version() = 0;
+                virtual void set_code() = 0;
+                virtual void set_reason() = 0;
+                virtual void add_header() = 0;
 
         public:
                 HttpParser();
                 virtual ~HttpParser() = default; 
 
-                bool parse_request(ISocket& socket);
-                bool parse_response(ISocket& socket);
+                void parse_request(ISocket& socket);
+                void parse_response(ISocket& socket);
                 
         };
 }

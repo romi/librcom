@@ -44,10 +44,12 @@ namespace rcom {
                 Registry();
                 virtual ~Registry() = default; 
 
-                bool set(const std::string& topic, IAddress& address) override; 
+                void set(const std::string& topic, IAddress& address) override;
+                
                 bool get(const std::string& topic, IAddress& address,
-                         double timeout_in_seconds = 12.0) override; 
-                bool remove(const std::string& topic) override; 
+                         double timeout_in_seconds = 12.0) override;
+                
+                void remove(const std::string& topic) override; 
         };
 }
 

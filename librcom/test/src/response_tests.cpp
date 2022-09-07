@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "rcom/Response.h"
-#include "rcom/ConsoleLogger.h"
+#include "rcom/ConsoleLog.h"
 
 using namespace std;
 using namespace rcom;
@@ -21,7 +21,7 @@ protected:
         }
 };
 
-TEST_F(response_tests, response_is_websocket_returns_true)
+TEST_F(response_tests, response_assert_websocket_doesnt_throw)
 {
         // Arrange
         Response response;
@@ -31,13 +31,11 @@ TEST_F(response_tests, response_is_websocket_returns_true)
         response.add_header("Sec-WebSocket-Accept", "ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
         
         // Act
-        bool success = response.is_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
-
         // Assert
-        ASSERT_TRUE(success);
+        ASSERT_NO_THROW(response.assert_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI="));
 }
 
-TEST_F(response_tests, response_is_websocket_returns_false_on_bad_code)
+TEST_F(response_tests, response_assert_websocket_throws_on_bad_code)
 {
         // Arrange
         Response response;
@@ -47,13 +45,12 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_bad_code)
         response.add_header("Sec-WebSocket-Accept", "ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
         
         // Act
-        bool success = response.is_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(response.assert_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI="),
+                     std::runtime_error);
 }
 
-TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_1)
+TEST_F(response_tests, response_assert_websocket_throws_on_missing_header_1)
 {
         // Arrange
         Response response;
@@ -62,13 +59,12 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_1)
         response.add_header("Sec-WebSocket-Accept", "ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
         
         // Act
-        bool success = response.is_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(response.assert_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI="),
+                     std::runtime_error);
 }
 
-TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_2)
+TEST_F(response_tests, response_assert_websocket_throws_on_missing_header_2)
 {
         // Arrange
         Response response;
@@ -77,13 +73,12 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_2)
         response.add_header("Sec-WebSocket-Accept", "ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
         
         // Act
-        bool success = response.is_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(response.assert_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI="),
+                     std::runtime_error);
 }
 
-TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_3)
+TEST_F(response_tests, response_assert_websocket_throws_on_missing_header_3)
 {
         // Arrange
         Response response;
@@ -92,13 +87,12 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_missing_header_3)
         response.add_header("Upgrade", "websocket");
         
         // Act
-        bool success = response.is_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(response.assert_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI="),
+                     std::runtime_error);
 }
 
-TEST_F(response_tests, response_is_websocket_returns_false_on_bad_accept_header)
+TEST_F(response_tests, response_assert_websocket_throws_on_bad_accept_header)
 {
         // Arrange
         Response response;
@@ -108,8 +102,7 @@ TEST_F(response_tests, response_is_websocket_returns_false_on_bad_accept_header)
         response.add_header("Sec-WebSocket-Accept", "ICX+Yqv66kxgM0=");
         
         // Act
-        bool success = response.is_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI=");
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(response.assert_websocket("ICX+Yqv66kxgM0FcWaLWlFLwTAI="),
+                     std::runtime_error);
 }

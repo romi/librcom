@@ -35,10 +35,10 @@ namespace rcom {
         protected:
                 struct sockaddr_in addr_;
 
-                bool set_ip(const char *ip);
-                bool set_port(uint16_t port);
+                void set_ip(const char *ip);
+                void set_port(uint16_t port);
                 bool is_valid_integer(std::string& s);
-                bool parse(const std::string& str);
+                void parse(const std::string& str);
 
         public:
                 Address();
@@ -54,9 +54,9 @@ namespace rcom {
                     return (std::memcmp(&addr_, (void*)&other_addr, sizeof(addr_)) == 0);
                 }
                 
-                bool set(const char *ip, uint16_t port) override;
-                bool set(const std::string& str) override;
-                bool set(const IAddress& other) override;
+                void set(const char *ip, uint16_t port) override;
+                void set(const std::string& str) override;
+                void set(const IAddress& other) override;
                 bool is_set() override;
                 std::string& tostring(std::string& str) override;
                 

@@ -36,32 +36,37 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IWebSocket> websocket_;
+                std::shared_ptr<ILinux> linux_;
+                std::shared_ptr<ILog> log_;
                         
-                void make_register_request(rcom::MemBuffer& request,
+                void make_register_request(MemBuffer& request,
                                            const std::string& topic,
                                            IAddress& address);
-                void make_unregister_request(rcom::MemBuffer& request,
+                void make_unregister_request(MemBuffer& request,
                                              const std::string& topic);
                 
-                void make_get_request(rcom::MemBuffer& request, const std::string& topic);
+                void make_get_request(MemBuffer& request, const std::string& topic);
                 
-                bool send_request(rcom::MemBuffer& request);
-                bool response_is_success(const std::string& method); 
-                bool read_response(rcom::MemBuffer& response);
-                nlohmann::json parse_response(rcom::MemBuffer& response);
+                void send_request(MemBuffer& request);
+                void response_assert_success(); 
+                void read_response(MemBuffer& response);
+                nlohmann::json parse_response(MemBuffer& response);
                 bool is_success(nlohmann::json& jsonobj);
+                void assert_success(nlohmann::json& jsonobj);
                 void print_error(nlohmann::json& jsonobj, const std::string& method);
                 bool read_address(IAddress& address); 
                 bool get_address(nlohmann::json& jsonobj, std::string& address_string);
 
         public:
-                RegistryProxy(std::unique_ptr<IWebSocket>& websocket);
+                RegistryProxy(std::unique_ptr<IWebSocket>& websocket,
+                              const std::shared_ptr<ILinux>& linux,
+                              const std::shared_ptr<ILog>& log);
                 ~RegistryProxy() override;
 
-                bool set(const std::string& topic, IAddress& address) override; 
+                void set(const std::string& topic, IAddress& address) override; 
                 bool get(const std::string& topic, IAddress& address,
                          double timeout_in_seconds = 12.0) override;
-                bool remove(const std::string& topic) override; 
+                void remove(const std::string& topic) override; 
         };
 }
 

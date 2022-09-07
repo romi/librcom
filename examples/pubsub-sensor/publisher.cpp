@@ -22,11 +22,11 @@
 #include <cstdlib>
 #include <syslog.h>
 #include <atomic>
+#include <unistd.h>
 
 #include <rcom/Linux.h>
 #include <rcom/MessageHub.h>
 #include <rcom/IMessageListener.h>
-#include <rcom/WebSocketServerFactory.h>
 #include <rcom/util.h>
 
 std::atomic<bool> quit(false);
@@ -68,7 +68,7 @@ double get_sensor_value()
         return get_random_value_between(18.0, 22.0);
 }
 
-void broadcast_sensor_value(rcom::MessageHub& hub)
+void broadcast_sensor_value(rcom::IMessageHub& hub)
 {
         double temperature = get_sensor_value();
         rcom::MemBuffer message;
@@ -79,13 +79,7 @@ void broadcast_sensor_value(rcom::MessageHub& hub)
 int main()
 {
         try {
-
-                auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
-                std::shared_ptr<rcom::ISocketFactory> socket_factory
-                        = std::make_shared<rcom::SocketFactory>();
-
-                rcom::MessageHub hub("sensor", socket_factory, webserver_socket_factory);
-                rcom::Linux linux;
+                auto hub = rcom::MessageHub::create("sensor");
                 
                 std::signal(SIGINT, SignalHandler);
 
@@ -93,11 +87,11 @@ int main()
                         
                         /* Don't forget to handle the incoming client
                          * connections. */
-                        hub.handle_events();
+                        hub->handle_events();
                         
-                        broadcast_sensor_value(hub);
+                        broadcast_sensor_value(*hub);
                         
-                        rcom_sleep(linux, 1.0);
+                        sleep(1);
                 }
                 
         } catch (std::runtime_error& re) {

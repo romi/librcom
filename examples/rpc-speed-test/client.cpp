@@ -46,7 +46,7 @@ int main()
 {
         try {
 
-                rcom::MessageLink link("speed");
+                auto link = rcom::MessageLink::create("speed", 10.0);
                 uint8_t data[1024];
                 rcom::Linux linux;
                 rcom::MemBuffer message;
@@ -60,8 +60,8 @@ int main()
                 
                 while (!quit) {
                         
-                        if (link.send(message)
-                            && link.recv(message, 1.0)) {
+                        if (link->send(message)
+                            && link->recv(message, 1.0)) {
 
                                 total_bytes += message.size();
 

@@ -48,7 +48,7 @@ void SignalHandler(int signal)
  * synchronize the access to the message link. */
 std::mutex mutex_;
 
-void print_available_messages(rcom::MessageLink *link)
+void print_available_messages(rcom::IMessageLink& link)
 {
         std::lock_guard<std::mutex> lock(mutex_);
         rcom::MemBuffer message;
@@ -56,12 +56,12 @@ void print_available_messages(rcom::MessageLink *link)
         /* The loop will treat all the available messages. When there
          * are no more messages (and after waiting for an additional
          * 10 ms) the loop will quit.  */
-        while (link->recv(message, 0.010)) {
+        while (link.recv(message, 0.010)) {
                 std::cout << "> " << message.tostring() << std::endl;
         }
 }
 
-void handle_incoming_messages(rcom::MessageLink *link)
+void handle_incoming_messages(rcom::IMessageLink& link)
 {
         rcom::Linux linux;
         while (!quit) {
@@ -85,14 +85,14 @@ void readline(rcom::MemBuffer& message)
         }
 }
 
-void send_message(rcom::MessageLink *link, rcom::MemBuffer& message)
+void send_message(rcom::IMessageLink& link, rcom::MemBuffer& message)
 {
         std::lock_guard<std::mutex> lock(mutex_);
         std::cout << "< " << message.tostring() << std::endl;
-        link->send(message);
+        link.send(message);
 }
 
-void handle_user_messages(rcom::MessageLink *link)
+void handle_user_messages(rcom::IMessageLink& link)
 {
         rcom::MemBuffer message;
         while (!quit) {
@@ -111,17 +111,18 @@ int main(int argc, char **argv)
                 topic = argv[1];
         
         try {
-                rcom::MessageLink link(topic);
+                auto link = rcom::MessageLink::create(topic, 10.0);
                 rcom::MemBuffer message;
 
                 std::signal(SIGINT, SignalHandler);
 
                 /* One thread will handle the incoming messages while
                  * another will read the user input. */
-                std::thread incoming(handle_incoming_messages, &link);
-                std::thread outgoing(handle_user_messages, &link);
+                std::thread incoming(handle_incoming_messages, std::ref(*link));
+                std::thread outgoing(handle_user_messages, std::ref(*link));
                         
-                std::cout << "Type your message in the console and press enter." << std::endl;
+                std::cout << "Type your message in the console and press enter."
+                          << std::endl;
                 
                 incoming.join();
                 outgoing.join();

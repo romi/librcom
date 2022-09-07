@@ -34,9 +34,9 @@ namespace rcom {
         public:
                 virtual ~IAddress() = default;
 
-                virtual bool set(const char *ip, uint16_t port) = 0;
-                virtual bool set(const std::string& str) = 0;
-                virtual bool set(const IAddress& other) = 0;
+                virtual void set(const char *ip, uint16_t port) = 0;
+                virtual void set(const std::string& str) = 0;
+                virtual void set(const IAddress& other) = 0;
                 virtual bool is_set() = 0;
 
                 virtual std::string& tostring(std::string& str) = 0;                

@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_SERVER_SIDE_WEBSOCKET_H_
-#define _LIBRCOM_SERVER_SIDE_WEBSOCKET_H_
+#ifndef _LIBRCOM_SERVERSIDEWEBSOCKET_H_
+#define _LIBRCOM_SERVERSIDEWEBSOCKET_H_
 
 #include "rcom/WebSocket.h"
 #include "rcom/IRequestParser.h"
@@ -34,20 +34,20 @@ namespace rcom {
         protected:
                 uint8_t input_mask_[4];
 
-                bool handshake(IRequestParser& parser);
-                bool upgrade_connection(IRequest& request);
-                void make_http_response(rcom::MemBuffer& response, std::string &accept);
+                void handshake(IRequestParser& parser);
+                void upgrade_connection(IRequest& request);
+                void make_http_response(MemBuffer& response, std::string &accept);
                 void unmask_data(uint8_t *out, const uint8_t *in, size_t length);
                 void input_read_payload_mask();
                 
                 void input_assert_mask_flag() override;
                 void input_read_header() override;
                 void input_append_payload(uint8_t *data, size_t length) override;
-                void output_append_header(rcom::MemBuffer& output,
+                void output_append_header(MemBuffer& output,
                                           Opcode opcode,
-                                          rcom::MemBuffer& message) override;
-                void output_append_payload(rcom::MemBuffer& output,
-                                           rcom::MemBuffer& message) override;
+                                          MemBuffer& message) override;
+                void output_append_payload(MemBuffer& output,
+                                           MemBuffer& message) override;
                 bool output_send_payload(const uint8_t *data, size_t length) override;
                 void close_connection() override;
 
@@ -55,10 +55,12 @@ namespace rcom {
         public:
                 
                 ServerSideWebSocket(std::unique_ptr<ISocket>& socket,
-                                    IRequestParser& parser);
+                                    IRequestParser& parser,
+                                    const std::shared_ptr<ILinux>& linux,
+                                    const std::shared_ptr<ILog>& log);
                 
-                virtual ~ServerSideWebSocket() override;
+                ~ServerSideWebSocket() override = default;
         };
 }
 
-#endif // _LIBRCOM_SERVER_SIDE_WEBSOCKET_H_
+#endif // _LIBRCOM_SERVERSIDEWEBSOCKET_H_

@@ -26,24 +26,42 @@
 #include <string.h>
 #include "rcom/RcomServer.h"
 #include "rcom/MessageHub.h"
-#include "rcom/WebSocketServerFactory.h"
 #include "rcom/RcomMessageHandler.h"
+#include "rcom/MessageHub.h"
+#include "rcom/ConsoleLog.h"
+#include "rcom/Log.h"
+#include "rcom/Address.h"
+#include "rcom/ServerSocket.h"
+#include "rcom/WebSocketServer.h"
 
 namespace rcom {
 
         std::unique_ptr<IRPCServer> RcomServer::create(const std::string& topic,
-                                                       IRPCHandler &handler)
+                                                       IRPCHandler &handler,
+                                                       const std::shared_ptr<ILog>& log)
         {
-                auto webserver_socket_factory = WebSocketServerFactory::create();
+                Address address(0);
+                std::shared_ptr<ILinux> linux = std::make_shared<Linux>();
                 std::shared_ptr<ISocketFactory> socket_factory
-                        = std::make_shared<SocketFactory>();
+                        = std::make_shared<SocketFactory>(linux, log);
                 std::shared_ptr<IMessageListener> listener
                         = std::make_shared<RcomMessageHandler>(handler);
+                std::unique_ptr<IServerSocket> server_socket
+                        = std::make_unique<ServerSocket>(linux, log, address);
+                std::unique_ptr<IWebSocketServer> ws_server
+                        = std::make_unique<WebSocketServer>(server_socket, socket_factory,
+                                                            listener, log);
                 std::unique_ptr<IMessageHub> hub
-                        = std::make_unique<MessageHub>(topic, listener,
-                                                       socket_factory,
-                                                       webserver_socket_factory);
+                        = std::make_unique<MessageHub>(topic, ws_server, socket_factory,
+                                                       linux, log);
                 return std::make_unique<RcomServer>(hub);
+        }
+
+        std::unique_ptr<IRPCServer> RcomServer::create(const std::string& topic,
+                                                       IRPCHandler &handler)
+        {
+                std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
+                return create(topic, handler, log);
         }
         
         RcomServer::RcomServer(std::unique_ptr<IMessageHub>& hub)

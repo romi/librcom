@@ -37,15 +37,19 @@ namespace rcom {
 
         public:
 
-                Socket(std::shared_ptr<rcom::ILinux>& linux, int sockfd);
-                Socket(std::shared_ptr<rcom::ILinux>& linux, IAddress& address);
+                Socket(const std::shared_ptr<ILinux>& linux,
+                       const std::shared_ptr<ILog>& log,
+                       int sockfd);
+                Socket(const std::shared_ptr<ILinux>& linux,
+                       const std::shared_ptr<ILog>& log,
+                       IAddress& address);
                 ~Socket() override = default;
                 
                 void close() override;
                 bool is_connected() override;
                 bool is_endpoint_connected() override;
                 
-                bool send(rcom::MemBuffer& buffer) override;
+                bool send(MemBuffer& buffer) override;
                 bool send(const uint8_t *buffer, size_t length) override;
                 bool read(uint8_t *buffer, size_t length) override;
 

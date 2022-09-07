@@ -11,6 +11,7 @@
 #include "ResponseParser.mock.h"
 #include "Response.mock.h"
 #include "Linux.mock.h"
+#include "Log.mock.h"
 
 using namespace std;
 using namespace rcom;
@@ -22,6 +23,12 @@ using ::testing::SetArgReferee;
 using ::testing::NiceMock;
 using ::testing::Assign;
 using ::testing::ReturnPointee;
+using ::testing::AtLeast;
+
+ACTION(ThrowRuntimeException)
+{
+        throw std::runtime_error("mocked runtime exception");
+}
 
 class clientside_websocket_tests : public ::testing::Test
 {
@@ -31,6 +38,7 @@ public:
         MockResponseParser mock_response_parser_;
         MockResponse mock_response_;
         std::shared_ptr<MockLinux> mock_linux_;
+        std::shared_ptr<MockLog> mock_log_;
         MemBuffer input_data_;
         size_t input_data_offset_;
         vector<MemBuffer> output_data_;
@@ -113,6 +121,7 @@ protected:
                 mock_response_parser_(),
                 mock_response_(),
                 mock_linux_(),
+                mock_log_(),
                 input_data_(),
                 input_data_offset_(0),
                 output_data_(),
@@ -127,6 +136,7 @@ protected:
                         memcpy(&fill_buffer_[i*16], "0123456789abcdef", 16);
 
                 mock_linux_ = std::make_shared<MockLinux>();
+                mock_log_ = std::make_shared<MockLog>();
         }
 
         ~clientside_websocket_tests() override {
@@ -141,55 +151,6 @@ protected:
         void TearDown() override {
         }
 
-
-        void make_server_side_websocket(std::unique_ptr<ServerSideWebSocket>& websocket) {
-                // socket
-                std::unique_ptr<NiceMock<MockSocket>> mock_socket = make_unique<NiceMock<MockSocket>>();
-
-                EXPECT_CALL(*mock_socket, send(_))
-                        .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
-                                              Return(true)));
-
-                EXPECT_CALL(*mock_socket, wait(_))
-                        .WillRepeatedly(Return(WaitStatus::kWaitOK));
-
-                EXPECT_CALL(*mock_socket, read(_,_))
-                        .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_input),
-                                              Return(true)));
-
-                EXPECT_CALL(*mock_socket, close())
-                        .WillRepeatedly(Assign(&socket_connected_, false));
-
-                EXPECT_CALL(*mock_socket, is_connected())
-                        .WillRepeatedly(ReturnPointee(&socket_connected_));
-
-                // parser
-                EXPECT_CALL(mock_request_parser_, parse(_))
-                        .WillOnce(Return(true))
-                        .RetiresOnSaturation();
-        
-                EXPECT_CALL(mock_request_parser_, request())
-                        .WillRepeatedly(ReturnRef(mock_request_));
-                
-                // clock
-                EXPECT_CALL(*mock_linux_, clock_gettime(_,_))
-                        .WillRepeatedly(Return(0.0));
-                
-                // request
-                EXPECT_CALL(mock_request_, is_websocket())
-                        .WillRepeatedly(Return(true));
-        
-                EXPECT_CALL(mock_request_, get_header_value("Sec-WebSocket-Key",_))
-                        .WillRepeatedly(DoAll(SetArgReferee<1>(request_key_header_value_),
-                                              Return(true)));
-
-                
-                std::unique_ptr<ISocket> socket = std::move(mock_socket);
-
-                websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_);
-        }
-
-        
 public:
         void input_append(const uint8_t *buffer, size_t length) {
                 input_data_.append(buffer, length);
@@ -236,7 +197,7 @@ public:
 using ::testing::Invoke;
 ssize_t getrandom_fake(void *buf, size_t buflen, unsigned int flags)
 {
-    (void)flags;
+    (void) flags;
     memset(buf, 0, buflen);
     return (ssize_t)buflen;
 }
@@ -248,17 +209,16 @@ TEST_F(clientside_websocket_tests, successfull_creation_and_delete_of_client_sid
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
         
         EXPECT_CALL(mock_response_parser_, parse(_))
-                .WillOnce(Return(true))
                 .RetiresOnSaturation();
         
         EXPECT_CALL(mock_response_parser_, response())
                 .WillRepeatedly(ReturnRef(mock_response_));
         
-        EXPECT_CALL(mock_response_, is_websocket(_))
-                .WillRepeatedly(Return(true));
+        EXPECT_CALL(mock_response_, assert_websocket(_));
 
         EXPECT_CALL(*mock_socket, send(_))
-                .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
+                .WillRepeatedly(DoAll(Invoke(this,
+                                             &clientside_websocket_tests::copy_output),
                                       Return(true)));
 
         EXPECT_CALL(*mock_socket, wait(_))
@@ -278,19 +238,20 @@ TEST_F(clientside_websocket_tests, successfull_creation_and_delete_of_client_sid
 
 
         EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
-        .Times(2)
-        .WillOnce(Invoke(getrandom_fake))
-        .WillOnce(Invoke(getrandom_fake));
+                .Times(2)
+                .WillOnce(Invoke(getrandom_fake))
+                .WillOnce(Invoke(getrandom_fake));
         
         input_append_server_1001_close_handshake();
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
-        std::shared_ptr<ILinux> linux = std::move(mock_linux_);
         Address remote_address;
 
         // Act
         std::unique_ptr<ClientSideWebSocket> websocket
-                = make_unique<ClientSideWebSocket>(linux, socket, mock_response_parser_, remote_address);
+                = make_unique<ClientSideWebSocket>(socket, mock_response_parser_,
+                                                   remote_address,
+                                                   mock_linux_, mock_log_);
         websocket->close(kCloseGoingAway);
         
         // Assert
@@ -318,80 +279,79 @@ TEST_F(clientside_websocket_tests, successfull_creation_and_delete_of_client_sid
 
 TEST_F(clientside_websocket_tests, when_endpoint_connected_close_connection_waits_for_disconnected_endpoint)
 {
-    // Arrange
+        // Arrange
 
-    std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
+        std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
 
-    EXPECT_CALL(mock_response_parser_, parse(_))
-            .WillOnce(Return(true))
-            .RetiresOnSaturation();
+        EXPECT_CALL(mock_response_parser_, parse(_))
+                .RetiresOnSaturation();
 
-    EXPECT_CALL(mock_response_parser_, response())
-            .WillRepeatedly(ReturnRef(mock_response_));
+        EXPECT_CALL(mock_response_parser_, response())
+                .WillRepeatedly(ReturnRef(mock_response_));
 
-    EXPECT_CALL(mock_response_, is_websocket(_))
-            .WillRepeatedly(Return(true));
+        EXPECT_CALL(mock_response_, assert_websocket(_));
 
-    EXPECT_CALL(*mock_socket, send(_))
-            .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
-                                  Return(true)));
+        EXPECT_CALL(*mock_socket, send(_))
+                .WillRepeatedly(DoAll(Invoke(this,
+                                             &clientside_websocket_tests::copy_output),
+                                      Return(true)));
 
-    EXPECT_CALL(*mock_socket, wait(_))
-            .WillRepeatedly(Return(WaitStatus::kWaitOK));
+        EXPECT_CALL(*mock_socket, wait(_))
+                .WillRepeatedly(Return(WaitStatus::kWaitOK));
 
-    EXPECT_CALL(*mock_socket, read(_,_))
-            .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_input),
-                                  Return(true)));
+        EXPECT_CALL(*mock_socket, read(_,_))
+                .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_input),
+                                      Return(true)));
 
-    EXPECT_CALL(*mock_socket, is_endpoint_connected())
-            .WillOnce(Return(true))
-            .WillOnce(Return(false));
+        EXPECT_CALL(*mock_socket, is_endpoint_connected())
+                .WillOnce(Return(true))
+                .WillOnce(Return(false));
 
-    EXPECT_CALL(*mock_socket, close());
+        EXPECT_CALL(*mock_socket, close());
 
-    EXPECT_CALL(*mock_linux_, clock_gettime(_,_))
-            .WillRepeatedly(Return(0.0));
-    //EXPECT_CALL(*mock_linux_, clock_nanosleep(_,_,_,_)).Times(1);
+        EXPECT_CALL(*mock_linux_, clock_gettime(_,_))
+                .WillRepeatedly(Return(0.0));
+        EXPECT_CALL(*mock_linux_, clock_nanosleep(_,_,_,_))
+                .Times(AtLeast(1));
 
-    EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
-            .Times(2)
-            .WillOnce(Invoke(getrandom_fake))
-            .WillOnce(Invoke(getrandom_fake));
+        EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
+                .Times(2)
+                .WillOnce(Invoke(getrandom_fake))
+                .WillOnce(Invoke(getrandom_fake));
 
-    input_append_server_1001_close_handshake();
+        input_append_server_1001_close_handshake();
 
-    std::unique_ptr<ISocket> socket = std::move(mock_socket);
-    std::shared_ptr<ILinux> linux = std::move(mock_linux_);
-    Address remote_address;
+        std::unique_ptr<ISocket> socket = std::move(mock_socket);
+        Address remote_address;
 
-    // Act
-    std::unique_ptr<ClientSideWebSocket> websocket
-            = make_unique<ClientSideWebSocket>(linux, socket, mock_response_parser_, remote_address);
-    websocket->close(kCloseGoingAway);
+        // Act
+        std::unique_ptr<ClientSideWebSocket> websocket
+                = make_unique<ClientSideWebSocket>(socket, mock_response_parser_,
+                                                   remote_address, mock_linux_, mock_log_);
+        websocket->close(kCloseGoingAway);
 
-    // Assert
+        // Assert
 
-    ASSERT_EQ(output_data_.size(), 2);
+        ASSERT_EQ(output_data_.size(), 2);
 
-    // HTTP handshake
-    ASSERT_EQ(output_data_[0].tostring()
-                      .find("GET / HTTP/1.1"), 0);
-    ASSERT_NE(output_data_[0].tostring().find("Connection: Upgrade"),
-              std::string::npos);
-    ASSERT_NE(output_data_[0].tostring().find("Upgrade: websocket"),
-              std::string::npos);
-    ASSERT_NE(output_data_[0].tostring().find("Sec-WebSocket-Version: 13"),
-              std::string::npos);
-    ASSERT_NE(output_data_[0].tostring().find("Sec-WebSocket-Key"),
-              std::string::npos);
+        // HTTP handshake
+        ASSERT_EQ(output_data_[0].tostring()
+                  .find("GET / HTTP/1.1"), 0);
+        ASSERT_NE(output_data_[0].tostring().find("Connection: Upgrade"),
+                  std::string::npos);
+        ASSERT_NE(output_data_[0].tostring().find("Upgrade: websocket"),
+                  std::string::npos);
+        ASSERT_NE(output_data_[0].tostring().find("Sec-WebSocket-Version: 13"),
+                  std::string::npos);
+        ASSERT_NE(output_data_[0].tostring().find("Sec-WebSocket-Key"),
+                  std::string::npos);
 
-    // Close message
-    ASSERT_EQ(output_data_[1].size(), sizeof(client_1001_close_handshake));
-    ASSERT_EQ(memcmp(output_data_[1].data().data(),
-                     client_1001_close_handshake,
-                     sizeof(client_1001_close_handshake)), 0);
+        // Close message
+        ASSERT_EQ(output_data_[1].size(), sizeof(client_1001_close_handshake));
+        ASSERT_EQ(memcmp(output_data_[1].data().data(),
+                         client_1001_close_handshake,
+                         sizeof(client_1001_close_handshake)), 0);
 }
-
 
 TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_send_fails)
 {
@@ -410,16 +370,19 @@ TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_sen
 
         EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
                 .WillOnce(Invoke(getrandom_fake));
+
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
-        std::shared_ptr<ILinux> linux = std::move(mock_linux_);
         Address remote_address;
         
         // Act
-    ASSERT_THROW(std::unique_ptr<ClientSideWebSocket> websocket
-                         = make_unique<ClientSideWebSocket>(linux, socket, mock_response_parser_,
-                         remote_address),
-                            std::runtime_error);
+        ASSERT_THROW(std::unique_ptr<ClientSideWebSocket> websocket
+                     = make_unique<ClientSideWebSocket>(socket, mock_response_parser_,
+                                                        remote_address, mock_linux_,
+                                                        mock_log_),
+                     std::runtime_error);
 }
 
 TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_on_failed_parse)
@@ -429,25 +392,32 @@ TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_on_fai
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
         
         EXPECT_CALL(mock_response_parser_, parse(_))
-                .WillOnce(Return(false))
+                .WillOnce(ThrowRuntimeException())
                 .RetiresOnSaturation();
 
         EXPECT_CALL(*mock_socket, send(_))
-                .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
+                .WillRepeatedly(DoAll(Invoke(this,
+                                             &clientside_websocket_tests::copy_output),
                                       Return(true)));
 
         EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
                 .WillOnce(Invoke(getrandom_fake));
+        
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+
+        EXPECT_CALL(*mock_log_, warn(_))
+                .Times(AtLeast(0));
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
-        std::shared_ptr<ILinux> linux = std::move(mock_linux_);
         Address remote_address;
         
         // Act
-    ASSERT_THROW(std::unique_ptr<ClientSideWebSocket> websocket
-            = make_unique<ClientSideWebSocket>(linux, socket, mock_response_parser_,
-                         remote_address),
-                 std::runtime_error);
+        ASSERT_THROW(std::unique_ptr<ClientSideWebSocket> websocket
+                     = make_unique<ClientSideWebSocket>(socket, mock_response_parser_,
+                                                        remote_address, mock_linux_,
+                                                        mock_log_),
+                     std::runtime_error);
 }
 
 TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_not_websocket)
@@ -457,29 +427,35 @@ TEST_F(clientside_websocket_tests, new_client_side_websocket_throws_error_if_not
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
         
         EXPECT_CALL(mock_response_parser_, parse(_))
-                .WillOnce(Return(true))
                 .RetiresOnSaturation();
 
         EXPECT_CALL(*mock_socket, send(_))
-                .WillRepeatedly(DoAll(Invoke(this, &clientside_websocket_tests::copy_output),
+                .WillRepeatedly(DoAll(Invoke(this,
+                                             &clientside_websocket_tests::copy_output),
                                       Return(true)));
 
         EXPECT_CALL(mock_response_parser_, response())
                 .WillRepeatedly(ReturnRef(mock_response_));
         
-        EXPECT_CALL(mock_response_, is_websocket(_))
-                .WillRepeatedly(Return(false));
+        EXPECT_CALL(mock_response_, assert_websocket(_))
+                .WillRepeatedly(ThrowRuntimeException());
 
         EXPECT_CALL(*mock_linux_, getrandom(_,_,_))
                 .WillOnce(Invoke(getrandom_fake));
-                                                           
+        
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+
+        EXPECT_CALL(*mock_log_, warn(_))
+                .Times(AtLeast(0));
+
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
-        std::shared_ptr<ILinux> linux = std::move(mock_linux_);
         Address remote_address;
         
         // Act
-    ASSERT_THROW(std::unique_ptr<ClientSideWebSocket> websocket
-            = make_unique<ClientSideWebSocket>(linux, socket, mock_response_parser_,
-                         remote_address),
-                 std::runtime_error);
+        ASSERT_THROW(std::unique_ptr<ClientSideWebSocket> websocket
+                     = make_unique<ClientSideWebSocket>(socket, mock_response_parser_,
+                                                        remote_address, mock_linux_,
+                                                        mock_log_),
+                     std::runtime_error);
 }

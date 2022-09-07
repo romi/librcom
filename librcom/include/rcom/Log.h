@@ -40,11 +40,6 @@ namespace rcom {
                        const char* format, ...);
         void log_info(const std::shared_ptr<ILog>& log,
                       const char* format, ...);
-
-
-        void _log_error(const char* format, ...);
-        void _log_warning(const char* format, ...);
 }
-
 
 #endif // _LIBRCOM_LOG_H

@@ -38,7 +38,7 @@ TEST_F(MemBuffer_tests, can_copy_construct)
     // Arrange
     rcom::MemBuffer MemBufferOrig;
     std::string expected("teststring");
-    MemBufferOrig.append_string(expected.c_str());
+    MemBufferOrig.append(expected);
 
     rcom::MemBuffer MemBufferCopy(MemBufferOrig);
 
@@ -56,8 +56,8 @@ TEST_F(MemBuffer_tests, equals_operator_correct_when_equal)
     std::string data("teststring");
     rcom::MemBuffer MemBufferL;
     rcom::MemBuffer MemBufferR;
-    MemBufferL.append_string(data.c_str());
-    MemBufferR.append_string(data.c_str());
+    MemBufferL.append(data);
+    MemBufferR.append(data);
 
     // Act
     auto actual = (MemBufferL == MemBufferR);
@@ -73,7 +73,7 @@ TEST_F(MemBuffer_tests, equals_operator_correct_when_not_equal)
     std::string data("teststring");
     rcom::MemBuffer MemBufferL;
     rcom::MemBuffer MemBufferR;
-    MemBufferL.append_string(data.c_str());
+    MemBufferL.append(data);
 
     // Act
 
@@ -149,7 +149,21 @@ TEST_F(MemBuffer_tests, append_string_appends_string)
         rcom::MemBuffer MemBuffer;
 
         // Act
-        MemBuffer.append_string(expected.c_str());
+        MemBuffer.append_string_truncates_to_32k(expected.c_str());
+        auto actual = MemBuffer.tostring();
+
+        //Assert
+        ASSERT_EQ(actual, expected);
+}
+
+TEST_F(MemBuffer_tests, append_string_appends_string_2)
+{
+        // Arrange
+        std::string expected("teststring");
+        rcom::MemBuffer MemBuffer;
+
+        // Act
+        MemBuffer.append(expected);
         auto actual = MemBuffer.tostring();
 
         //Assert
@@ -168,7 +182,7 @@ TEST_F(MemBuffer_tests, append_string_truncates_to_32k)
         rcom::MemBuffer MemBuffer;
 
         // Act
-        MemBuffer.append_string(large_string);
+        MemBuffer.append_string_32k_max(large_string);
         auto actual = MemBuffer.data();
 
         //Assert

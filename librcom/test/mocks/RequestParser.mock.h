@@ -7,7 +7,7 @@
 class MockRequestParser : public rcom::IRequestParser
 {
 public:
-        MOCK_METHOD(bool, parse, (rcom::ISocket& socket), (override));
+        MOCK_METHOD(void, parse, (rcom::ISocket& socket), (override));
         MOCK_METHOD(rcom::IRequest&, request, (), (override));
 };
 

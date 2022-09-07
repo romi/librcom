@@ -26,18 +26,21 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/BaseSocket.h"
 
 namespace rcom {
 
-        BaseSocket::BaseSocket(std::shared_ptr<rcom::ILinux>& linux)
-                : linux_(linux), sockfd_(kInvalidSocket)
+        BaseSocket::BaseSocket(const std::shared_ptr<ILinux>& linux,
+                               const std::shared_ptr<ILog>& log)
+                : BaseSocket(linux, log, kInvalidSocket)
         {
         }
 
-        BaseSocket::BaseSocket(std::shared_ptr<rcom::ILinux>& linux, int sockfd)
-                : linux_(linux), sockfd_(sockfd)
+        BaseSocket::BaseSocket(const std::shared_ptr<ILinux>& linux,
+                               const std::shared_ptr<ILog>& log,
+                               int sockfd)
+                : linux_(linux), log_(log), sockfd_(sockfd)
         {
         }
 
@@ -59,11 +62,12 @@ namespace rcom {
                                                 length - sent, MSG_NOSIGNAL);
                         
                         if (n < 0) {
-                                log_error("socket_send: send failed: %s", strerror(errno));
+                                log_err(log_, "socket_send: send failed: %s",
+                                        strerror(errno));
                                 success = false;
                                 break;
                         } else if (n == 0) {
-                                log_error("socket_send: send() returned zero");
+                                log_err(log_, "socket_send: send() returned zero");
                                 success = false;
                                 break;
                         } else {                        
@@ -119,11 +123,11 @@ namespace rcom {
                                 success = true;
 
                         } else {
-                                log_error("Socket::connect: failed to bind the socket");
+                                log_err(log_, "Socket::connect: failed to bind the socket");
                                 linux_->close(sockfd);
                         }
                 } else {
-                        log_error("Socket::connect: failed to create the socket");
+                        log_err(log_, "Socket::connect: failed to create the socket");
                 }
         
                 return success;
@@ -147,17 +151,18 @@ namespace rcom {
                                         success = true;
                                         
                                 } else {
-                                        log_error("ServerSocket::open: listen failed: %s",
-                                              strerror(errno));
+                                        log_err(log_, "ServerSocket::open: listen failed: "
+                                                "%s", strerror(errno));
                                 }
                                 
                         } else {
-                                log_error("ServerSocket::open: bind failed: %s",
-                                      strerror(errno));
+                                log_err(log_, "ServerSocket::open: bind failed: %s",
+                                        strerror(errno));
                         }
 
                 } else {
-                        log_error("ServerSocket::open: socket failed: %s", strerror(errno));
+                        log_err(log_, "ServerSocket::open: socket failed: %s",
+                                strerror(errno));
                 }
         
                 return success;
@@ -174,12 +179,13 @@ namespace rcom {
                 WaitStatus wait_status = wait(timeout_in_seconds);
                 
                 if (wait_status == kWaitOK) {
-                        clientfd = linux_->accept(sockfd_, (struct sockaddr*) &addr, &addrlen);
+                        clientfd = linux_->accept(sockfd_, (struct sockaddr*) &addr,
+                                                  &addrlen);
                         if (clientfd < 0) {
                                 // Server socket is probably being closed
                                 // FIXME: is this true?
-                                log_error("server_socket_accept: accept failed: %s",
-                                      strerror(errno)); 
+                                log_err(log_, "server_socket_accept: accept failed: %s",
+                                        strerror(errno)); 
                         }
                 }
 
@@ -191,14 +197,15 @@ namespace rcom {
                 return (sockfd_ != kInvalidSocket);
         }
 
-        bool BaseSocket::is_endpoint_connected() const {
-            char buffer[32];
-            bool connected = true;
-            // if recv returns zero, that means the connection has been closed:
-            if (recv(sockfd_, buffer, sizeof(buffer), MSG_PEEK | MSG_DONTWAIT) == 0)
-                connected = false;
-//            log_debug("BaseSocket::is_endpoint_connected() socketfd = %d = %s", sockfd_, (connected ? "true" : "false"));
-            return connected;
+        bool BaseSocket::is_endpoint_connected() const
+        {
+                char buffer[32];
+                bool connected = true;
+                // if recv returns zero, that means the connection has
+                // been closed:
+                if (recv(sockfd_, buffer, sizeof(buffer), MSG_PEEK | MSG_DONTWAIT) == 0)
+                        connected = false;
+                return connected;
         }
 
         void BaseSocket::get_address(IAddress& address)
@@ -232,7 +239,7 @@ namespace rcom {
                 
                 int pollrc = linux_->poll(fds, 1, timeout_ms);
                 if (pollrc < 0) {
-                        log_error("do_wait: poll error %d", errno);
+                        log_err(log_, "do_wait: poll error %d", errno);
                         
                 } else if (pollrc > 0) {
                         if (fds[0].revents & POLLIN) {

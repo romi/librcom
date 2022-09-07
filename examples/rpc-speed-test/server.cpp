@@ -21,10 +21,10 @@
 #include <signal.h>
 #include <syslog.h>
 #include <atomic>
+#include <unistd.h>
 
 #include <rcom/MessageHub.h>
 #include <rcom/IMessageListener.h>
-#include <rcom/WebSocketServerFactory.h>
 #include <rcom/util.h>
 
 std::atomic<bool> quit(false);
@@ -48,10 +48,12 @@ class MessageListener : public rcom::IMessageListener
 public:
         ~MessageListener() override = default;
 
-        void onmessage(rcom::IWebSocket& websocket,
+        void onmessage(rcom::IWebSocketServer& server,
+                       rcom::IWebSocket& websocket,
                        rcom::MemBuffer& message,
                        rcom::MessageType type) override {
-                (void) type; // Tell the compiler it's not used
+                (void) server; // Tell the compiler the argument is not used
+                (void) type; 
                 websocket.send(message, rcom::kTextMessage);
         }
 };
@@ -59,20 +61,15 @@ public:
 int main()
 {
         try {
-                auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
-                std::shared_ptr<rcom::ISocketFactory> socket_factory
-                        = std::make_shared<rcom::SocketFactory>();
                 std::shared_ptr<rcom::IMessageListener> listener
                         = std::make_shared<MessageListener>();
-                rcom::MessageHub message_hub("speed", listener, socket_factory,
-                                             webserver_socket_factory);
-                rcom::Linux linux;
+                auto message_hub = rcom::MessageHub::create("speed", listener);
 
                 std::signal(SIGINT, SignalHandler);
         
                 while (!quit) {
-                        message_hub.handle_events();
-                        rcom_sleep(linux, 0.001); // FIXME
+                        message_hub->handle_events();
+                        usleep(1000); 
                 }
                 
         } catch (std::runtime_error& re) {

@@ -52,7 +52,7 @@ namespace rcom {
 
                 /* Returns true if the data was sucessfully written
                  * and false in case of error. */
-                virtual bool send(rcom::MemBuffer& buffer) = 0;
+                virtual bool send(MemBuffer& buffer) = 0;
                 virtual bool send(const uint8_t *buffer, size_t length) = 0;
 
                 /* This function blocks until all data has been

@@ -27,7 +27,7 @@ TEST_F(registry_tests, constructor_returns_empty_register_duh)
         // Act
         Registry registry;
 
-        //Assert
+        // Assert
         ASSERT_FALSE(registry.get("bugs", address)); // and we're done
 }
 
@@ -40,13 +40,12 @@ TEST_F(registry_tests, get_returns_expected_values)
         Registry registry;
         
         // Actc
-        bool set_succeeded = registry.set(topic, expected_address);
+        registry.set(topic, expected_address);
         bool get_succeeded  = registry.get(topic, actual_address);
         
-        //Assert
+        // Assert
         std::string s;
         std::string t;
-        ASSERT_TRUE(set_succeeded);
         ASSERT_TRUE(get_succeeded);
         ASSERT_STREQ(actual_address.tostring(s).c_str(),
                      expected_address.tostring(t).c_str());
@@ -61,12 +60,11 @@ TEST_F(registry_tests, remove_removes_entry)
         Registry registry;
         
         // Actc
-        bool set_succeeded = registry.set(topic, address);
+        registry.set(topic, address);
         registry.remove(topic);
         bool has = registry.get(topic, actual_address);
         
-        //Assert
-        ASSERT_TRUE(set_succeeded);
+        // Assert
         ASSERT_FALSE(has);
 }
 
@@ -80,15 +78,13 @@ TEST_F(registry_tests, set_removes_old_value)
         Registry registry;
         
         // Act
-        bool first_success = registry.set(topic, first_address);
-        bool second_success = registry.set(topic, second_address);
+        registry.set(topic, first_address);
+        registry.set(topic, second_address);
         bool get_succeeded  = registry.get(topic, actual_address);
         
-        //Assert
+        // Assert
         std::string s;
         std::string t;
-        ASSERT_TRUE(first_success);
-        ASSERT_TRUE(second_success);
         ASSERT_TRUE(get_succeeded);
         ASSERT_STREQ(actual_address.tostring(s).c_str(),
                      second_address.tostring(t).c_str());

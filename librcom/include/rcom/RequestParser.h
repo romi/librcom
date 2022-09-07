@@ -35,18 +35,18 @@ namespace rcom {
         protected:
                 IRequest& request_;
                 
-                bool set_method() override;
-                bool set_uri() override;
-                bool set_version() override;
-                bool set_code() override;
-                bool set_reason() override;
-                bool add_header() override;
+                void set_method() override;
+                void set_uri() override;
+                void set_version() override;
+                void set_code() override;
+                void set_reason() override;
+                void add_header() override;
 
         public:
                 RequestParser(IRequest& request);
                 virtual ~RequestParser() = default; 
 
-                bool parse(ISocket& socket) override;
+                void parse(ISocket& socket) override;
                 IRequest& request() override;
         };
 }

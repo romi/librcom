@@ -27,8 +27,10 @@
 
 namespace rcom {
         
-        ServerSocket::ServerSocket(std::shared_ptr<rcom::ILinux>& linux, IAddress& address)
-                : socket_(linux)
+        ServerSocket::ServerSocket(const std::shared_ptr<ILinux>& linux,
+                                   const std::shared_ptr<ILog>& log,
+                                   IAddress& address)
+                : socket_(linux, log)
         {
                 if (!socket_.listen(address))
                         throw std::runtime_error("ServerSocket: open failed");

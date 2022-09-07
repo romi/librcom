@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_CLIENT_SIDE_WEBSOCKET_H_
-#define _LIBRCOM_CLIENT_SIDE_WEBSOCKET_H_
+#ifndef _LIBRCOM_CLIENTSIDEWEBSOCKET_H_
+#define _LIBRCOM_CLIENTSIDEWEBSOCKET_H_
 
 #include "rcom/WebSocket.h"
 #include "rcom/IResponseParser.h"
@@ -35,10 +35,10 @@ namespace rcom {
         protected:
                 uint8_t output_mask_[4]{};
 
-                bool handshake(IResponseParser& parser, IAddress& address);
+                void handshake(IResponseParser& parser, IAddress& address);
                 void make_key(std::string& key);
-                bool send_http_request(std::string& host, std::string& key);
-                void make_http_request(rcom::MemBuffer& request, std::string& host,
+                void send_http_request(std::string& host, std::string& key);
+                void make_http_request(MemBuffer& request, std::string& host,
                                        std::string& key);
                 void make_mask();
                 void mask_data(uint8_t *out, const uint8_t *in, size_t length);
@@ -48,26 +48,28 @@ namespace rcom {
                 void input_read_header() override;
                 void input_append_payload(uint8_t *data, size_t length) override;
                 
-                void output_append_header(rcom::MemBuffer& output,
+                void output_append_header(MemBuffer& output,
                                           Opcode opcode,
-                                          rcom::MemBuffer& message) override;
-                void output_append_payload(rcom::MemBuffer& output,
-                                           rcom::MemBuffer& message) override;
+                                          MemBuffer& message) override;
+                void output_append_payload(MemBuffer& output,
+                                           MemBuffer& message) override;
                 bool output_send_payload(const uint8_t *data, size_t length) override;
 
                 void close_connection() override;
                 
         public:
                 
-                ClientSideWebSocket(std::shared_ptr<rcom::ILinux>& linux,
-                                    std::unique_ptr<ISocket>& socket,
+                ClientSideWebSocket(std::unique_ptr<ISocket>& socket,
                                     IResponseParser& parser,
-                                    IAddress& remote_address);
+                                    IAddress& remote_address,
+                                    const std::shared_ptr<ILinux>& linux,
+                                    const std::shared_ptr<ILog>& log);
                 
                 ~ClientSideWebSocket() override;
-        private:
-            std::shared_ptr<rcom::ILinux> linux_;
+                
+        // private:
+        //     std::shared_ptr<ILinux> linux_;
         };
 }
 
-#endif // _LIBRCOM_CLIENT_SIDE_WEBSOCKET_H_
+#endif // _LIBRCOM_CLIENTSIDEWEBSOCKET_H_

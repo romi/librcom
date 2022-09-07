@@ -6,7 +6,7 @@
 class MockResponseParser : public rcom::IResponseParser
 {
 public:
-        MOCK_METHOD(bool, parse, (rcom::ISocket& socket), (override));
+        MOCK_METHOD(void, parse, (rcom::ISocket& socket), (override));
         MOCK_METHOD(rcom::IResponse&, response, (), (override));
 };
 

@@ -432,12 +432,33 @@ buffer. This is the reason for the second `execute` method in the
 adapter class discussed above.
 
 
-TODO: example of sending binary message
+On the client side, you will have to do the following: 
 
+```c++
+rcom::MemBuffer& MyClass::call_method_with_binary_output(rcom::MemBuffer& buffer)
+{
+        nlohmann::json params;
+        RPCError error;
 
-The is currently no method for sending a buffer of binary data without
-encoding it.
+        buffer.clear();
+        client_->execute("method-id", params, buffer, error);
+        
+        if (error.code != 0) {
+                // ...
+        }
 
+        return buffer;
+}
+```
+
+In the example above, we don't use the `execute` methods of the stub
+but directly the `execute` method of the client connection maintained
+the stub.
+
+Currently, it is only possible to obtain binary data from the server.
+There is no method, yet, for sending a buffer of binary data to the
+server. If you have to send binary data, you will have to encode it
+and sending it as part of the JSON request.
 
 
 # The generic API
@@ -465,4 +486,83 @@ standard makes a distinction between text-based, so does rcom. But
 under the hood, rcom is agnostic about the content of the messages.
 
 # The logger
+
+# Fixed port
+
+# No registration
+
+# Security
+
+
+# Specifying the address of the registry
+
+# Behind a web server 
+
+# Connecting from Javascript
+
+Connecting to a remote object from Javascript is a two-step process:
+
+1. Create a websocket to rcom-registry to obtain the address of the
+requested object.
+
+2. Create a websocket to the remote object using the obtained address.
+
+
+
+# Connecting from Python
+
+## http
+
+## https
+
+
+# Classes
+
+ILinux, Linux, MockLinux: To facilitate unit testing, the system
+functions are abstracted in the ILinux interface. The Linux class
+provides the default implementation, and MockLinux the implementation
+used for testing.
+
+The interface `ISocket` defines a standard TCP/IP socket API. The
+class Socket is the default implementation of the API. Similarly,
+`IServerSocket` defines the API for a socket that accepts incoming
+connection. It's default implementation can be found in the
+`ServerSocket` class. Both `Socket` and `ServerSocket` actually share
+a lot of functionality. This functionality is grouped together in the
+class `BaseSocket`, which encapsulates the standard BSD socket
+interface. Both Both `Socket` and `ServerSocket` delegate most of the
+methods to `BaseSocket`.
+
+Websockets have there own API, defined in `IWebSocket`. This interface
+basically defines the methods to send or receive a message. The
+`WebSocket` class provides the default implementation. It uses an
+`ISocket` to send and receive data on the TCP/IP connection and then
+implements the websocket protocol as defined in [RFC
+6455](https://www.rfc-editor.org/rfc/rfc6455).
+
+Most of the code doesn't create WebSockets directly but uses an
+instance of `ISocketFactory` to create them. Again, this facilitates
+the testing of the code by passing in a `MockSocketFactory`.
+
+The `WebSocketServer` implements a server that waits for incoming
+websocket connections and creates a new `WebSocket` after a successful
+handshake. It also maintains the list of all open connections. This
+allows to send broadcast messages to all client connected to this
+server. The `handle_events` method should be called regularly to deal
+with the incoming connection requests.
+
+
+A `MessageHub` is like a `WebSocketServer` with the following
+additional functionality:
+
+* It has a topic name.
+* It registers the topic and its address to the remote registry.
+
+
+
+ServerSideWebSocket: The websocket created on the server-side in
+response to a new incoming connection.
+
+ClientSideWebSocket: The websocket created by the client to connect to
+a WebSocketServer.
 

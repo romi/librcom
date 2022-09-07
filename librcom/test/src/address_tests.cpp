@@ -81,13 +81,6 @@ TEST_F(address_tests, address_with_null_and_port_sets_default_ip)
         ASSERT_EQ(actual, expected);
 }
 
-TEST_F(address_tests, address_with_null_throws_exception)
-{
-        // Arrange
-        ASSERT_THROW(Address address(nullptr), std::exception);
-
-}
-
 TEST_F(address_tests, address_too_short_throws_exception)
 {
         // Arrange
@@ -131,10 +124,9 @@ TEST_F(address_tests, address_with_empty_port_throws_exception)
 
 TEST_F(address_tests, address_with_port_throws_exception)
 {
-    // Arrange
-    const char *bad_address = "127.0.0.1";
-    ASSERT_THROW(Address address(bad_address), std::runtime_error);
-
+        // Arrange
+        const char *bad_address = "127.0.0.1";
+        ASSERT_THROW(Address address(bad_address), std::runtime_error);
 }
 
 TEST_F(address_tests, address_with_spaces_parses_ok)
@@ -156,19 +148,19 @@ TEST_F(address_tests, address_with_spaces_parses_ok)
 
 TEST_F(address_tests, address_with_spaces_parses_ok_duplicate)
 {
-    // Arrange
-    const char *ip = "127.0.0.1";
-    uint16_t port = 123;
-    const char *s = "127.0.0.1  :  123";
+        // Arrange
+        const char *ip = "127.0.0.1";
+        uint16_t port = 123;
+        const char *s = "127.0.0.1  :  123";
 
-    // Act
-    Address address(s);
+        // Act
+        Address address(s);
 
-    //Assert
-    std::string actual_ip;
-    ASSERT_TRUE(address.is_set());
-    ASSERT_STREQ(address.ip(actual_ip).c_str(), ip);
-    ASSERT_EQ(address.port(), port);
+        //Assert
+        std::string actual_ip;
+        ASSERT_TRUE(address.is_set());
+        ASSERT_STREQ(address.ip(actual_ip).c_str(), ip);
+        ASSERT_EQ(address.port(), port);
 }
 
 TEST_F(address_tests, set_with_two_args_initializes_the_address)

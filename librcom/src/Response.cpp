@@ -21,7 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/Response.h"
 
 namespace rcom {
@@ -59,21 +59,19 @@ namespace rcom {
                 return found;
         }
                 
-        bool Response::is_websocket(const std::string& accept)
+        void Response::assert_websocket(const std::string& accept)
         {
-                return status_equals_101()
-                        && connection_header_equals_upgrade()
-                        && upgrade_header_equals_websocket()
-                        && accept_header_is_valid(accept);
+                status_equals_101();
+                connection_header_equals_upgrade();
+                upgrade_header_equals_websocket();
+                accept_header_is_valid(accept);
         }
 
-        bool Response::status_equals_101()
+        void Response::status_equals_101()
         {
-                int valid = (code_ == 101);
-                if (!valid) {
-                        log_error("Response: Expected 101 status, got %d", code_);
+                if (code_ != 101) {
+                        throw std::runtime_error("Response: Expected 101 status");
                 }
-                return valid;
         }
 
         bool Response::header_equals(const std::string& name,
@@ -84,32 +82,29 @@ namespace rcom {
                 return (found && value.compare(expected) == 0);
         }
         
-        bool Response::connection_header_equals_upgrade()
+        void Response::connection_header_equals_upgrade()
         {
                 bool valid = (header_equals("Connection", "Upgrade")
                               || header_equals("Connection", "upgrade"));                  
                 if (!valid) {
-                        log_error("Response: Bad 'Connection' header");
+                        throw std::runtime_error("Response: Bad 'Connection' header");
                 }
-
-                return valid;
         }
         
-        bool Response::upgrade_header_equals_websocket()
+        void Response::upgrade_header_equals_websocket()
         {
                 bool valid = header_equals("Upgrade", "websocket");
                 if (!valid) {
-                        log_error("Response: Bad 'Upgrade' header");
+                        throw std::runtime_error("Response: Bad 'Upgrade' header");
                 }
-                return valid;
         }
 
-        bool Response::accept_header_is_valid(const std::string& accept)
+        void Response::accept_header_is_valid(const std::string& accept)
         {
                 bool valid = header_equals("Sec-WebSocket-Accept", accept);
                 if (!valid) {
-                        log_error("Response: Bad 'Sec-WebSocket-Accept' header");
+                        throw std::runtime_error("Response: Bad 'Sec-WebSocket-Accept' "
+                                                 "header");
                 }
-                return valid;
         }
 }

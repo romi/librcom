@@ -31,8 +31,13 @@ namespace rcom {
         
         class SocketFactory : public ISocketFactory
         {
+        protected:
+                std::shared_ptr<ILinux> linux_;
+                std::shared_ptr<ILog> log_;
+
         public:
-                SocketFactory();
+                SocketFactory(const std::shared_ptr<ILinux>& linux,
+                              const std::shared_ptr<ILog>& log);
                 ~SocketFactory() override = default;
 
                 std::unique_ptr<IWebSocket>
@@ -40,7 +45,6 @@ namespace rcom {
                 
                 std::unique_ptr<IWebSocket>
                         new_client_side_websocket(IAddress& remote_address) override;
-
         };
 }
 

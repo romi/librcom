@@ -21,11 +21,12 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_CONSOLELOGGER_H
-#define _LIBRCOM_CONSOLELOGGER_H
+#ifndef _LIBRCOM_CONSOLELOG_H
+#define _LIBRCOM_CONSOLELOG_H
 
 #include <stdarg.h>
 #include <cstring>
+#include <memory>
 #include <mutex>
 #include "rcom/ILog.h"
 
@@ -33,29 +34,18 @@ namespace rcom {
 
         static const size_t kLogBufferSize = 1024;
 
-        class ConsoleLogger : public ILog
+        class ConsoleLog : public ILog
         {
-        protected:
-                char buffer_[kLogBufferSize];
-                std::mutex mutex_;
-
-                
-                void buffer_printf(const char* format, va_list ap);
-
         public:
-                ConsoleLogger();
-                ~ConsoleLogger() override = default;
-                void error(const char *format, ...) override;
-                void warn(const char *format, ...) override;
-                void info(const char *format, ...) override;
-                void debug(const char *format, ...) override;
-        };
+                ConsoleLog();
+                ~ConsoleLog() override = default;
 
-        void log_error(const char* format, ...);
-        void log_warning(const char* format, ...);
-        void log_debug(const char* format, ...);
-        void log_info(const char* format, ...);
+                void error(const std::string& message) override;
+                void warn(const std::string& message) override;
+                void info(const std::string& message) override;
+                void debug(const std::string& message) override;
+        };
 }
 
 
-#endif // _LIBRCOM_CONSOLELOGGER_H
+#endif // _LIBRCOM_CONSOLELOG_H

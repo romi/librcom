@@ -23,61 +23,51 @@
  */
 #include <stdexcept>
 #include "rcom/Frames.h"
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/ServerSideWebSocket.h"
 
 namespace rcom {
         
         ServerSideWebSocket::ServerSideWebSocket(std::unique_ptr<ISocket>& socket,
-                                                 IRequestParser& parser)
-                : WebSocket(socket)
+                                                 IRequestParser& parser,
+                                                 const std::shared_ptr<ILinux>& linux,
+                                                 const std::shared_ptr<ILog>& log)
+                : WebSocket(socket, linux, log)
         {
-                if (!handshake(parser)) {
-                        log_error("ServerSideWebSocket::handhake failed");
-                        throw std::runtime_error("ServerSideWebSocket: Handshake failed");
+                try {
+                        handshake(parser);
+                        
+                } catch (std::exception& e) {
+                        log_err(log_, "ServerSideWebSocket::handhake failed");
+                        throw;
                 }
         }
-        
-        ServerSideWebSocket::~ServerSideWebSocket()
-        = default;
 
-        bool ServerSideWebSocket::handshake(IRequestParser& parser)
+        void ServerSideWebSocket::handshake(IRequestParser& parser)
         {
-                bool success = false;        
-        
-                if (parser.parse(*socket_)) {
-                        IRequest& request = parser.request();
-                        if (request.is_websocket()) {
-                                if (upgrade_connection(request)) {
-                                        success = true;        
-
-                                } else {
-                                        log_warning("ServerSideWebSocket::handshake: upgrade failed");
-                                }
-                        } else {
-                                log_warning("ServerSideWebSocket::handshake: not a websocket");
-                        }
-                } else {
-                        log_warning("ServerSideWebSocket::handshake: parsing failed");
-                }
-                
-                return success;
+                parser.parse(*socket_);
+                IRequest& request = parser.request();
+                request.assert_websocket();
+                upgrade_connection(request);
         }
 
-        bool ServerSideWebSocket::upgrade_connection(IRequest& request)
+        void ServerSideWebSocket::upgrade_connection(IRequest& request)
         {
                 std::string key;
                 std::string accept;
-                rcom::MemBuffer response;
+                MemBuffer response;
                         
                 request.get_header_value("Sec-WebSocket-Key", key);
                 make_accept_string(accept, key);
                 make_http_response(response, accept);
                 
-                return socket_send(response);
+                if (!socket_send(response)) {
+                        throw std::runtime_error("ServerSideWebSocket::upgrade_connection"
+                                                 " send failed");
+                }
         }
         
-        void ServerSideWebSocket::make_http_response(rcom::MemBuffer& response,
+        void ServerSideWebSocket::make_http_response(MemBuffer& response,
                                                      std::string &accept)
         {
                 response.printf("HTTP/1.1 101 Switching Protocols\r\n"
@@ -101,7 +91,8 @@ namespace rcom {
                 // have this bit set to 1.
 
                 if (!frame_header_.mask) {
-                        log_error("ServerSideWebSocket: The client sent an unmasked frame.");
+                        log_err(log_, "ServerSideWebSocket: The client sent an "
+                                "unmasked frame.");
                         throw RecvError("Client sent unmasked frame", kCloseProtocolError);
                 }
         }
@@ -135,9 +126,9 @@ namespace rcom {
                 apply_mask(out, in, length, input_mask_);
         }
 
-        void ServerSideWebSocket::output_append_header(rcom::MemBuffer& output,
+        void ServerSideWebSocket::output_append_header(MemBuffer& output,
                                                        Opcode opcode,
-                                                       rcom::MemBuffer& message)
+                                                       MemBuffer& message)
         {
                 size_t length = message.size();
                 uint8_t frame[14];
@@ -171,8 +162,8 @@ namespace rcom {
                 output.append(frame, n);
         }
 
-        void ServerSideWebSocket::output_append_payload(rcom::MemBuffer& output,
-                                                        rcom::MemBuffer& message)
+        void ServerSideWebSocket::output_append_payload(MemBuffer& output,
+                                                        MemBuffer& message)
         {
                 output.append(message);
         }

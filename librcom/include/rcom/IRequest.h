@@ -44,10 +44,12 @@ namespace rcom {
                 virtual std::string& get_uri() = 0;
                 virtual void set_uri(const std::string& uri) = 0;
 
-                virtual void add_header(const std::string& name, const std::string& value) = 0;
-                virtual bool get_header_value(const std::string& name, std::string& value) = 0;
+                virtual void add_header(const std::string& name,
+                                        const std::string& value) = 0;
+                virtual bool get_header_value(const std::string& name,
+                                              std::string& value) = 0;
                 
-                virtual bool is_websocket() = 0;
+                virtual void assert_websocket() = 0;
         };
 }
 

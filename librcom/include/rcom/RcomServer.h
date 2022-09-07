@@ -28,20 +28,25 @@
 #include "rcom/IMessageHub.h"
 #include "rcom/IRPCServer.h"
 #include "rcom/IRPCHandler.h"
+#include "rcom/ILog.h"
 
 namespace rcom {
         
         class RcomServer : public IRPCServer
         {
         protected:
-                std::unique_ptr<rcom::IMessageHub> hub_;
+                std::unique_ptr<IMessageHub> hub_;
 
         public:
                 
                 static std::unique_ptr<IRPCServer> create(const std::string& topic,
                                                           IRPCHandler &handler);
                 
-                RcomServer(std::unique_ptr<rcom::IMessageHub>& hub);
+                static std::unique_ptr<IRPCServer> create(const std::string& topic,
+                                                          IRPCHandler &handler,
+                                                          const std::shared_ptr<ILog>& log);
+                
+                RcomServer(std::unique_ptr<IMessageHub>& hub);
                 virtual ~RcomServer() = default;
 
                 void handle_events();

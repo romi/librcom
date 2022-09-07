@@ -46,12 +46,12 @@ namespace rcom {
                 std::string uri_;
                 std::vector<RequestHeader> headers_;
 
-                bool http_method_is_get();
-                bool has_valid_websocket_key();
-                bool is_valid_websocket_key(const std::string& key);
-                bool has_valid_websocket_version();
-                bool connection_header_is_upgrade();
-                bool upgrade_header_is_websocket();
+                void http_method_is_get();
+                void has_valid_websocket_key();
+                void is_valid_websocket_key(const std::string& key);
+                void has_valid_websocket_version();
+                void connection_header_is_upgrade();
+                void upgrade_header_is_websocket();
                 
         public:
                         
@@ -67,7 +67,7 @@ namespace rcom {
                 void add_header(const std::string& name, const std::string& value) override;
                 bool get_header_value(const std::string& name, std::string& value) override;
                 
-                bool is_websocket() override;
+                void assert_websocket() override;
         };
 }
 

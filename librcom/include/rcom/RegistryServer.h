@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_REGISTRY_SERVER_H_
-#define _LIBRCOM_REGISTRY_SERVER_H_
+#ifndef _LIBRCOM_REGISTRYSERVER_H
+#define _LIBRCOM_REGISTRYSERVER_H
 
 #include "rcom/MemBuffer.h"
 #include "rcom/json.hpp"
@@ -42,31 +42,35 @@ namespace rcom {
                 
         protected:
                 IRegistry& registry_;
-                rcom::MemBuffer response_;
+                std::shared_ptr<ILog> log_;
+                MemBuffer response_;
                 
-                bool set(const std::string& topic, IAddress& address); 
+                void set(const std::string& topic, IAddress& address); 
                 bool get(const std::string& topic, IAddress& address);
-                bool remove(const std::string& topic);
+                void remove(const std::string& topic);
 
-                void handle_message(IWebSocket& websocket, rcom::MemBuffer& message);
+                void handle_message(IWebSocket& websocket, MemBuffer& message);
                 void handle_json_message(IWebSocket& websocket, nlohmann::json& message);
                 void handle_register(IWebSocket& websocket, nlohmann::json& message);
                 void handle_unregister(IWebSocket& websocket, nlohmann::json& message);
                 void handle_get(IWebSocket& websocket, nlohmann::json& message);
                 void send_address(IWebSocket& websocket, IAddress& address);
+                void send_empty_address(IWebSocket& websocket);
                 void send_fail(IWebSocket& websocket, const std::string& message);
                 void send_success(IWebSocket& websocket);
                 void send_response(IWebSocket& websocket);
                 
         public:
-                RegistryServer(IRegistry& registry);
+                RegistryServer(IRegistry& registry,
+                               const std::shared_ptr<ILog>& log);
                 virtual ~RegistryServer() override;
                 
-                void onmessage(IWebSocket& websocket,
-                               rcom::MemBuffer& message,
+                void onmessage(IWebSocketServer& server,
+                               IWebSocket& websocket,
+                               MemBuffer& message,
                                MessageType type) override;                
         };
 }
 
-#endif // _LIBRCOM_REGISTRY_SERVER_H_
+#endif // _LIBRCOM_REGISTRYSERVER_H
 

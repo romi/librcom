@@ -37,7 +37,7 @@ namespace rcom {
                 
                 virtual ~IResponseParser() = default; 
 
-                virtual bool parse(ISocket& socket) = 0;
+                virtual void parse(ISocket& socket) = 0;
                 virtual IResponse& response() = 0;
         };
 }

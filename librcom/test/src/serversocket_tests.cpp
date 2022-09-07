@@ -3,9 +3,11 @@
 
 #include "Address.mock.h"
 #include "Linux.mock.h"
+#include "Log.mock.h"
 
 #include "rcom/ServerSocket.h"
 #include "rcom/Address.h"
+#include "rcom/Log.h"
 
 using namespace std;
 using namespace rcom;
@@ -18,15 +20,21 @@ using ::testing::NiceMock;
 using ::testing::Assign;
 using ::testing::ReturnPointee;
 using ::testing::DoAll;
+using ::testing::AtLeast;
 
 class serversocket_tests : public ::testing::Test
 {
 protected:
         MockAddress address_;
         struct sockaddr_in sockaddr_;
+        std::shared_ptr<MockLog> mock_log_;
         
-        serversocket_tests() : address_(), sockaddr_() {
+        serversocket_tests()
+                : address_(),
+                  sockaddr_(),
+                  mock_log_() {
                 memset(&sockaddr_, 0, sizeof(struct sockaddr_in));
+                mock_log_ = std::make_shared<MockLog>();
         }
 
         ~serversocket_tests() override = default;
@@ -60,7 +68,7 @@ TEST_F(serversocket_tests, successfull_creation)
         // Act
         {
                 std::shared_ptr<rcom::ILinux> linux = std::move(mock_linux);
-                ServerSocket socket(linux, address_);
+                ServerSocket socket(linux, mock_log_, address_);
         }
         
         // Assert
@@ -89,7 +97,7 @@ TEST_F(serversocket_tests, close_only_called_once)
         // Act
         {
                 std::shared_ptr<ILinux> linux = std::move(mock_linux);
-                ServerSocket socket(linux, address_);
+                ServerSocket socket(linux, mock_log_, address_);
                 socket.close();
         }
         
@@ -104,11 +112,13 @@ TEST_F(serversocket_tests, failed_socket_creation_throws_exception)
                 .WillOnce(Return(sockaddr_));
         EXPECT_CALL(*mock_linux, socket(_,_,_))
                 .WillOnce(Return(-1));
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
         
         // Act
         try {
                 std::shared_ptr<ILinux> linux = std::move(mock_linux);
-                ServerSocket socket(linux, address_);
+                ServerSocket socket(linux, mock_log_, address_);
                 FAIL() << "Expected std::runtime_error";
         } catch(std::runtime_error const & err) {
                 // OK
@@ -138,10 +148,13 @@ TEST_F(serversocket_tests, failed_bind_throws_exception)
         EXPECT_CALL(*mock_linux, close(_))
                 .WillOnce(Return(0));
         
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+        
         // Act
         try {
                 std::shared_ptr<ILinux> linux = std::move(mock_linux);
-                ServerSocket socket(linux, address_);
+                ServerSocket socket(linux, mock_log_, address_);
                 FAIL() << "Expected std::runtime_error";
         } catch(std::runtime_error const & err) {
                 // OK
@@ -173,10 +186,13 @@ TEST_F(serversocket_tests, failed_listen_throws_exception)
         EXPECT_CALL(*mock_linux, close(_))
                 .WillOnce(Return(0));
         
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+        
         // Act
         try {
                 std::shared_ptr<ILinux> linux = std::move(mock_linux);
-                ServerSocket socket(linux, address_);
+                ServerSocket socket(linux, mock_log_, address_);
                 FAIL() << "Expected std::runtime_error";
         } catch(std::runtime_error const & err) {
                 // OK
@@ -220,7 +236,7 @@ TEST_F(serversocket_tests, accept_returns_expected_socket)
         int client;
         {
                 std::shared_ptr<ILinux> linux = std::move(mock_linux);
-                ServerSocket socket(linux, address_);
+                ServerSocket socket(linux, mock_log_, address_);
                 client = socket.accept(10.0);
         }
         
@@ -255,7 +271,7 @@ TEST_F(serversocket_tests, accept_returns_invalid_socket_after_timeout)
         int client;
         {
                 std::shared_ptr<ILinux> linux = std::move(mock_linux);
-                ServerSocket socket(linux, address_);
+                ServerSocket socket(linux, mock_log_, address_);
                 client = socket.accept(10.0);
         }
         
@@ -265,36 +281,36 @@ TEST_F(serversocket_tests, accept_returns_invalid_socket_after_timeout)
 
 TEST_F(serversocket_tests, address_returns_address)
 {
-    // Arrange
-    rcom::Address actual_address;
-    rcom::Address expected_address("10.1.1.10", 24);
-    auto expected_sockaddress = expected_address.get_sockaddr();
-    const struct sockaddr *pexpected_sockaddress = (struct sockaddr *)&expected_sockaddress;
+        // Arrange
+        rcom::Address actual_address;
+        rcom::Address expected_address("10.1.1.10", 24);
+        auto expected_sockaddress = expected_address.get_sockaddr();
+        const struct sockaddr *pexpected_sockaddress = (struct sockaddr *)&expected_sockaddress;
 
-    std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
-    EXPECT_CALL(*mock_linux, socket(_,_,_))
-            .WillOnce(Return(1));
-    EXPECT_CALL(*mock_linux, bind(_,_,_))
-            .WillOnce(Return(0));
-    EXPECT_CALL(*mock_linux, listen(_,_))
-            .WillOnce(Return(0));
-    EXPECT_CALL(*mock_linux, shutdown(_,_))
-            .WillOnce(Return(0));
-    EXPECT_CALL(*mock_linux, recv(_,_,_,_))
-            .WillOnce(Return(0));
-    EXPECT_CALL(*mock_linux, close(_))
-            .WillOnce(Return(0));
+        std::shared_ptr<MockLinux> mock_linux = std::make_shared<MockLinux>();
+        EXPECT_CALL(*mock_linux, socket(_,_,_))
+                .WillOnce(Return(1));
+        EXPECT_CALL(*mock_linux, bind(_,_,_))
+                .WillOnce(Return(0));
+        EXPECT_CALL(*mock_linux, listen(_,_))
+                .WillOnce(Return(0));
+        EXPECT_CALL(*mock_linux, shutdown(_,_))
+                .WillOnce(Return(0));
+        EXPECT_CALL(*mock_linux, recv(_,_,_,_))
+                .WillOnce(Return(0));
+        EXPECT_CALL(*mock_linux, close(_))
+                .WillOnce(Return(0));
 
-    EXPECT_CALL(*mock_linux, getsockname(_,_,_))
-            .WillOnce(DoAll(testing::SetArgPointee<1>(testing::ByRef(*pexpected_sockaddress)), Return(0)));
+        EXPECT_CALL(*mock_linux, getsockname(_,_,_))
+                .WillOnce(DoAll(testing::SetArgPointee<1>(testing::ByRef(*pexpected_sockaddress)), Return(0)));
 
-    std::shared_ptr<ILinux> linux = std::move(mock_linux);
+        std::shared_ptr<ILinux> linux = std::move(mock_linux);
 
-    ServerSocket socket(linux, expected_address);
+        ServerSocket socket(linux, mock_log_, expected_address);
 
-    // Act
-    socket.get_address(actual_address);
+        // Act
+        socket.get_address(actual_address);
 
-    // Assert
-    ASSERT_EQ(actual_address, expected_address);
+        // Assert
+        ASSERT_EQ(actual_address, expected_address);
 }

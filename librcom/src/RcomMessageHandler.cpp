@@ -33,10 +33,12 @@ namespace rcom {
         {
         }
 
-        void RcomMessageHandler::onmessage(IWebSocket& websocket,
+        void RcomMessageHandler::onmessage(IWebSocketServer& server,
+                                           IWebSocket& websocket,
                                            MemBuffer& message,
                                            MessageType type)
         {
+                (void) server;
                 if (type == kTextMessage)
                         handle_json_request(websocket, message);
                 else
@@ -71,9 +73,8 @@ namespace rcom {
                         websocket.send(result, kBinaryMessage);
                         
                 } else {
-                        // FIXME! improve nlohmann::json and/or MemBuffer
                         MemBuffer serialised;
-                        serialised.append_string(response.dump().c_str());
+                        serialised.append(response.dump());
                         websocket.send(serialised, kTextMessage);
                 }
         }
@@ -107,7 +108,7 @@ namespace rcom {
                 }
                 
                 MemBuffer serialised;
-                serialised.append_string(response.dump().c_str());
+                serialised.append(response.dump());
                 websocket.send(serialised, kTextMessage);
         }
         

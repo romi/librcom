@@ -26,8 +26,9 @@
 
 #include <memory>
 #include "rcom/IMessageLink.h"
-#include "rcom/SocketFactory.h"
+#include "rcom/ISocketFactory.h"
 #include "rcom/IWebSocket.h"
+#include "rcom/ILog.h"
 #include "rcom/Address.h"
 
 namespace rcom {
@@ -36,23 +37,35 @@ namespace rcom {
         {
         protected:
 
-                SocketFactory factory_;
+                std::shared_ptr<ISocketFactory> factory_;
                 std::unique_ptr<IWebSocket> websocket_;
                 std::string topic_;
                 RecvStatus recv_status_;
+                std::shared_ptr<ILinux> linux_;
+                std::shared_ptr<ILog> log_;
                 
                 bool connect(double timeout);
                 bool get_remote_address(Address& address, double timeout);
                 bool obtained_message();
 
         public:
+
+                static std::unique_ptr<IMessageLink> create(const std::string& topic,
+                                                            double timeout);
+                static std::unique_ptr<IMessageLink> create(const std::string& topic,
+                                                            double timeout,
+                                                            const std::shared_ptr<ILog>& log);
                 
-                MessageLink(const std::string& topic, double timeout = 7.0);                
+                MessageLink(const std::string& topic,
+                            double timeout,
+                            const std::shared_ptr<ISocketFactory>& factory,
+                            const std::shared_ptr<ILinux>& linux,
+                            const std::shared_ptr<ILog>& log);                
                 virtual ~MessageLink();
 
                 std::string& get_topic() override;                
-                bool recv(rcom::MemBuffer& message, double timeout = 0.0) override;
-                bool send(rcom::MemBuffer& message,
+                bool recv(MemBuffer& message, double timeout) override;
+                bool send(MemBuffer& message,
                           MessageType type = kTextMessage) override;
                 RecvStatus recv_status() override;
                 bool is_connected() override;

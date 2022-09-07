@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdexcept>
-#include "rcom/ConsoleLogger.h"
 #include "rcom/ip.h"
 
 namespace rcom {
@@ -23,8 +22,6 @@ namespace rcom {
                 if (s == 0) {
                         ip = host;
                 } else {
-                        log_warning("getnameinfo() failed for interface %s: "
-                               "%s\n", ifa->ifa_name, gai_strerror(s));
                         throw std::runtime_error("getnameinfo() failed");
                 }
         }
@@ -43,13 +40,6 @@ namespace rcom {
                         }
                 }
         }
-
-        void log_errno()
-        {
-                char buf[128];
-                auto res = strerror_r(errno, buf, sizeof(buf));
-                log_warning("getifaddrs: %s", res);
-        }
         
         // https://stackoverflow.com/questions/2283494/get-ip-address-of-an-interface-on-linux
         std::string get_local_ip()
@@ -61,7 +51,7 @@ namespace rcom {
                         scan_interfaces(ip, ifaddr);
                         freeifaddrs(ifaddr);
                 } else {
-                        log_errno();
+                        throw std::runtime_error("getifaddrs() failed");
                 }
 
                 return ip;

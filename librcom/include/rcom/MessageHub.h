@@ -21,37 +21,70 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_MESSAGE_HUB_H_
-#define _LIBRCOM_MESSAGE_HUB_H_
+#ifndef _LIBRCOM_MESSAGEHUB_H_
+#define _LIBRCOM_MESSAGEHUB_H_
 
 #include <memory>
 #include "rcom/Linux.h"
 #include "rcom/SocketFactory.h"
-#include "rcom/RawMessageHub.h"
+#include "rcom/IMessageHub.h"
 #include "rcom/IWebSocketServer.h"
 #include "rcom/IMessageListener.h"
 
 namespace rcom {
 
-        class MessageHub : public RawMessageHub
+        class MessageHub : public IMessageHub
         {
+        protected:
+                std::unique_ptr<IWebSocketServer> server_;
+                std::shared_ptr<ISocketFactory> socket_factory_;
+                std::string topic_;
+                std::shared_ptr<ILinux> linux_;
+                std::shared_ptr<ILog> log_;
+                
         public:
                 
-                MessageHub(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener,
-                           const std::shared_ptr<ISocketFactory>& socketFactory,
-                           const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory);
+                static std::unique_ptr<IMessageHub>
+                create(const std::string& topic,
+                       const std::shared_ptr<IMessageListener>& listener,
+                       const std::shared_ptr<ILog>& log,
+                       uint16_t port,
+                       bool standalone);
+                
+                static std::unique_ptr<IMessageHub>
+                create(const std::string& topic,
+                       const std::shared_ptr<IMessageListener>& listener,
+                       const std::shared_ptr<ILog>& log);
 
-                /* This constructor is used for publisher-subscriber
-                 * patterns in which the message hub does not expect
-                 * to receive any messages from the subscribers. */
-                /* Should really be a different class if it's not a HUB. REFACTOR */
-                explicit MessageHub(const std::string& topic,
-                                    const std::shared_ptr<ISocketFactory>& socketFactory,
-                                    const std::shared_ptr<IWebSocketServerFactory>& webSocketServerFactory);
+                static std::unique_ptr<IMessageHub>
+                create(const std::string& topic,
+                       const std::shared_ptr<IMessageListener>& listener);
+                
+                static std::unique_ptr<IMessageHub>
+                create(const std::string& topic);
+                
+                static std::unique_ptr<IMessageHub>
+                create(const std::string& topic,
+                       const std::shared_ptr<ILog>& log);
+
+                //
+                
+                MessageHub(const std::string& topic,
+                           std::unique_ptr<IWebSocketServer>& server_socket,
+                           const std::shared_ptr<ISocketFactory>& socket_factory,
+                           const std::shared_ptr<ILinux>& linux,
+                           const std::shared_ptr<ILog>& log);
+
                 ~MessageHub() override = default;
+                
+                std::string& topic() override;
+                void handle_events() override;
+                void broadcast(MemBuffer &message, MessageType type,
+                               IWebSocket *exclude) override;
+                size_t count_links() override;
+                void register_topic();
         };
 }
 
-#endif // _LIBRCOM_MESSAGE_HUB_H_
+#endif // _LIBRCOM_MESSAGEHUB_H_
 

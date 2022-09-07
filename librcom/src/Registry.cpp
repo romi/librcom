@@ -21,7 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "rcom/ConsoleLogger.h"
+#include <stdexcept>
+#include "rcom/Log.h"
 #include "rcom/Registry.h"
 
 namespace rcom {
@@ -61,20 +62,14 @@ namespace rcom {
         
         //
         
-        bool Registry::set(const std::string& topic, IAddress& address)
+        void Registry::set(const std::string& topic, IAddress& address)
         {
-                bool success = false;
-                
                 if (address.is_set()) {
                         erase(topic);
                         insert(topic, address);
-                        success = true;
-                        
                 } else {
-                        log_error("Registry::add: address not set");
+                        throw std::runtime_error("Registry::add: address not set");
                 }
-                
-                return success;
         }
         
         bool Registry::get(const std::string& topic, IAddress& address, double timeout)
@@ -89,12 +84,11 @@ namespace rcom {
                 return found;
         }
                 
-        bool Registry::remove(const std::string& topic)
+        void Registry::remove(const std::string& topic)
         {
                 ssize_t index = find(topic);
                 if (index >= 0)
                         erase(index);
-                return true;
         }
 }
 

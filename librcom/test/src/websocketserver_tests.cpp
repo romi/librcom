@@ -1,11 +1,12 @@
 #include "gtest/gtest.h"
 #include "rcom/WebSocketServer.h"
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 
 #include "ServerSocket.mock.h"
 #include "SocketFactory.mock.h"
 #include "MessageListener.mock.h"
 #include "WebSocket.mock.h"
+#include "Log.mock.h"
 
 using namespace std;
 using namespace rcom;
@@ -13,6 +14,7 @@ using namespace rcom;
 using ::testing::Return;
 using ::testing::ByMove;
 using ::testing::_;
+using ::testing::AtLeast;
 
 class websocketserver_tests : public ::testing::Test
 {
@@ -23,6 +25,7 @@ protected:
         std::shared_ptr<MockSocketFactory> mock_factory_;
         std::shared_ptr<rcom::ISocketFactory> factory_;
         std::shared_ptr<MockMessageListener> mock_listener_;
+        std::shared_ptr<MockLog> mock_log_;
         std::shared_ptr<rcom::IMessageListener> listener_;
         rcom::MemBuffer read_data_;
         size_t current_read_char_;
@@ -30,18 +33,21 @@ protected:
 
         // CLOSE_GOING_AWAY
         // FIN(0x80)+CLOSE(0x08) + MASK(0x80)|LEN(2) + MASK(4) + CODE(1001=0x03e9)
-        static constexpr const uint8_t client_1001_close_handshake[] = { 0x88, 0x82,
-                                                                         0x00, 0x00, 0x00, 0x00,
-                                                                         0x03, 0xe9 };
+        static constexpr const uint8_t
+        client_1001_close_handshake[] = { 0x88, 0x82,
+                                          0x00, 0x00, 0x00, 0x00,
+                                          0x03, 0xe9 };
         
         websocketserver_tests()
                 : mock_factory_(),
                   factory_(),
+                  mock_log_(),
                   read_data_(),
                   current_read_char_(0) {
                 mock_factory_ = std::make_shared<MockSocketFactory>();
                 factory_ = mock_factory_;
                 mock_listener_ = std::make_shared<MockMessageListener>();
+                mock_log_ = std::make_shared<MockLog>();
                 listener_ = mock_listener_;
         }
         
@@ -56,7 +62,7 @@ protected:
 
         void set_read_data(const char *data) {
                 read_data_.clear();
-                read_data_.append_string(data);
+                read_data_.append_string_32k_max(data);
         }
 
         void set_read_data(const uint8_t *data, size_t length) {
@@ -72,7 +78,7 @@ public:
         }
 
         void debug_close(CloseCode code) {
-                log_warning("debug_close %d", code);
+                log_warn(mock_log_, "debug_close %d", code);
         }
 };
 
@@ -85,7 +91,8 @@ TEST_F(websocketserver_tests, new_websocketserver_is_successful)
 
         // Act
         unique_ptr<WebSocketServer> server
-                = make_unique<WebSocketServer>(i_server_socket, factory_, listener_);
+                = make_unique<WebSocketServer>(i_server_socket, factory_,
+                                               listener_, mock_log_);
 
         // Assert
 }
@@ -113,7 +120,8 @@ TEST_F(websocketserver_tests, accepts_new_connections_and_calls_onconnect)
 
         // Act
         unique_ptr<WebSocketServer> server
-                = make_unique<WebSocketServer>(i_server_socket, factory_, listener_);
+                = make_unique<WebSocketServer>(i_server_socket, factory_,
+                                               listener_, mock_log_);
         server->handle_events();
         
         // Assert
@@ -142,7 +150,8 @@ TEST_F(websocketserver_tests, close_message_removes_link)
 
         // Act
         unique_ptr<WebSocketServer> server
-                = make_unique<WebSocketServer>(i_server_socket, factory_, listener_);
+                = make_unique<WebSocketServer>(i_server_socket, factory_,
+                                               listener_, mock_log_);
         server->handle_events();
         
         // Assert
@@ -169,10 +178,14 @@ TEST_F(websocketserver_tests, recv_error_closes_and_removes_link)
 
         EXPECT_CALL(*mock_factory_, new_server_side_websocket(_))
                 .WillOnce(Return(ByMove(unique_ptr<IWebSocket>(websocket))));
+
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
         
         // Act
         unique_ptr<WebSocketServer> server
-                = make_unique<WebSocketServer>(i_server_socket, factory_, listener_);
+                = make_unique<WebSocketServer>(i_server_socket, factory_,
+                                               listener_, mock_log_);
         server->handle_events();
         
         // Assert
@@ -197,9 +210,13 @@ TEST_F(websocketserver_tests, webserver_logs_error_when_factory_throws_exception
         EXPECT_CALL(*mock_factory_, new_server_side_websocket(_))
                 .WillOnce(ThrowRuntimeException());        
 
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+
         // Act
         unique_ptr<WebSocketServer> server
-                = make_unique<WebSocketServer>(i_server_socket, factory_, listener_);
+                = make_unique<WebSocketServer>(i_server_socket, factory_,
+                                               listener_, mock_log_);
         server->handle_events();
         
         // Assert
@@ -228,13 +245,17 @@ TEST_F(websocketserver_tests, failed_send_removes_link)
 
         EXPECT_CALL(*mock_factory_, new_server_side_websocket(_))
                 .WillOnce(Return(ByMove(unique_ptr<IWebSocket>(websocket))));
+
+        EXPECT_CALL(*mock_log_, warn(_))
+                .Times(AtLeast(1));
         
         rcom::MemBuffer message;
-        message.append_string("abc");
+        message.append("abc");
         
         // Act
         unique_ptr<WebSocketServer> server
-                = make_unique<WebSocketServer>(i_server_socket, factory_, listener_);
+                = make_unique<WebSocketServer>(i_server_socket, factory_,
+                                               listener_, mock_log_);
         server->handle_events();
         server->broadcast(message, kTextMessage, nullptr);
         

@@ -15,13 +15,14 @@ set(SOURCES
     include/rcom/Address.h
     include/rcom/BaseSocket.h
     include/rcom/ClientSideWebSocket.h
-    include/rcom/ConsoleLogger.h
+    include/rcom/ConsoleLog.h
     include/rcom/DummyMessageListener.h
     include/rcom/Frames.h
     include/rcom/HttpParser.h
     include/rcom/IAddress.h
     include/rcom/IHttpParserListener.h
     include/rcom/ILinux.h
+    include/rcom/ILog.h
     include/rcom/IMessageHub.h
     include/rcom/IMessageLink.h
     include/rcom/IMessageListener.h
@@ -34,13 +35,12 @@ set(SOURCES
     include/rcom/ISocket.h
     include/rcom/ISocketFactory.h
     include/rcom/IWebSocketServer.h
-    include/rcom/IWebSocketServerFactory.h
     include/rcom/json.hpp
     include/rcom/Linux.h
+    include/rcom/Log.h
     include/rcom/MemBuffer.h
     include/rcom/MessageLink.h
     include/rcom/MessageHub.h
-    include/rcom/RawMessageHub.h
     include/rcom/RcomClient.h
     include/rcom/RcomMessageHandler.h
     include/rcom/RcomServer.h
@@ -59,7 +59,6 @@ set(SOURCES
     include/rcom/WebSocket.h
     include/rcom/WebSocketConstants.h
     include/rcom/WebSocketServer.h
-    include/rcom/WebSocketServerFactory.h
     
     src/sha1.cpp
     src/util.cpp
@@ -67,13 +66,13 @@ set(SOURCES
     src/Address.cpp
     src/BaseSocket.cpp
     src/ClientSideWebSocket.cpp
-    src/ConsoleLogger.cpp
+    src/ConsoleLog.cpp
     src/HttpParser.cpp
     src/Linux.cpp
+    src/Log.cpp
     src/MemBuffer.cpp
     src/MessageLink.cpp
     src/MessageHub.cpp
-    src/RawMessageHub.cpp
     src/RcomClient.cpp
     src/RcomMessageHandler.cpp
     src/RcomServer.cpp
@@ -91,8 +90,7 @@ set(SOURCES
     src/Socket.cpp
     src/SocketFactory.cpp
     src/WebSocket.cpp
-    src/WebSocketServer.cpp
-    src/WebSocketServerFactory.cpp)
+    src/WebSocketServer.cpp)
 
 add_library(rcom SHARED ${SOURCES})
 target_include_directories(rcom PUBLIC include)

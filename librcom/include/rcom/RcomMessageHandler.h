@@ -54,7 +54,8 @@ namespace rcom {
                 explicit RcomMessageHandler(IRPCHandler& handler);
                 ~RcomMessageHandler() override = default;
 
-                void onmessage(IWebSocket& websocket,
+                void onmessage(IWebSocketServer& server,
+                               IWebSocket& websocket,
                                MemBuffer& message,
                                MessageType type) override;
         };

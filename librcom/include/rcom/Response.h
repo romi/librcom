@@ -47,10 +47,10 @@ namespace rcom {
                                 
                 bool header_equals(const std::string& name,
                                    const std::string& expected);
-                bool status_equals_101();
-                bool connection_header_equals_upgrade();
-                bool upgrade_header_equals_websocket();
-                bool accept_header_is_valid(const std::string& accept);
+                void status_equals_101();
+                void connection_header_equals_upgrade();
+                void upgrade_header_equals_websocket();
+                void accept_header_is_valid(const std::string& accept);
                 
         public:
                 Response();
@@ -61,7 +61,7 @@ namespace rcom {
                 void add_header(const std::string& name,
                                 const std::string& value) override;
                 bool get_header_value(const std::string& name, std::string& value);
-                bool is_websocket(const std::string& accept) override;
+                void assert_websocket(const std::string& accept) override;
         };
 }
 

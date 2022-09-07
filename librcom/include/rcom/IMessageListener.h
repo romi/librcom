@@ -21,10 +21,12 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _RCOM_I_MESSAGE_LISTENER_H_
-#define _RCOM_I_MESSAGE_LISTENER_H_
+#ifndef _RCOM_I_MESSAGELISTENER_H_
+#define _RCOM_I_MESSAGELISTENER_H_
 
+#include "rcom/IMessageHub.h"
 #include "rcom/IWebSocket.h"
+#include "rcom/IWebSocketServer.h"
 
 namespace rcom {
 
@@ -33,9 +35,11 @@ namespace rcom {
         public:
                 virtual ~IMessageListener() = default;
                 
-                virtual void onmessage(IWebSocket& link, rcom::MemBuffer& message,
+                virtual void onmessage(IWebSocketServer& server,
+                                       IWebSocket& link,
+                                       MemBuffer& message,
                                        MessageType type) = 0;
         };
 }
 
-#endif // _RCOM_I_MESSAGE_LISTENER_H_
+#endif // _RCOM_I_MESSAGELISTENER_H_

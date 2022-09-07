@@ -38,7 +38,9 @@ namespace rcom {
 
         public:
                 
-                ServerSocket(std::shared_ptr<rcom::ILinux>& linux, IAddress& address);
+                ServerSocket(const std::shared_ptr<ILinux>& linux,
+                             const std::shared_ptr<ILog>& log,
+                             IAddress& address);
                 ~ServerSocket() override = default;
                 
                 int accept(double timeout_in_seconds) override;

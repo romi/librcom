@@ -39,7 +39,7 @@ namespace rcom {
                                         const std::string& value) = 0;
                 virtual bool get_header_value(const std::string& name,
                                               std::string& value) = 0;
-                virtual bool is_websocket(const std::string& accept) = 0;
+                virtual void assert_websocket(const std::string& accept) = 0;
         };
 }
 

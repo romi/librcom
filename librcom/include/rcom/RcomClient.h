@@ -27,6 +27,7 @@
 #include <memory>
 #include "rcom/IMessageLink.h"
 #include "rcom/IRPCClient.h"
+#include "rcom/ILog.h"
 
 namespace rcom {
         
@@ -51,6 +52,9 @@ namespace rcom {
 
                 static std::unique_ptr<IRPCClient> create(const std::string& topic,
                                                           double timeout_seconds);
+                static std::unique_ptr<IRPCClient> create(const std::string& topic,
+                                                          double timeout_seconds,
+                                                          const std::shared_ptr<ILog>& log);
                 
                 RcomClient(std::unique_ptr<IMessageLink>& link,
                            double timeout_seconds);

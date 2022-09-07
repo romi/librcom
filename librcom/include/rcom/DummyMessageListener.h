@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _RCOM_DUMMY_MESSAGE_LISTENER_H_
-#define _RCOM_DUMMY_MESSAGE_LISTENER_H_
+#ifndef _LIBRCOM_DUMMYMESSAGELISTENER_H
+#define _LIBRCOM_DUMMYMESSAGELISTENER_H
 
 #include <stdexcept>
 #include "rcom/IWebSocket.h"
@@ -34,12 +34,13 @@ namespace rcom {
         public:
                 virtual ~DummyMessageListener() = default;
                 
-                void onmessage(IWebSocket&, rcom::MemBuffer&, MessageType) override
+                void onmessage(IWebSocketServer&,
+                               IWebSocket&,
+                               MemBuffer&,
+                               MessageType) override
                 {
-                        throw std::runtime_error("DummyMessageListener::onmessage: "
-                                                 "Should not be called");
                 }
         };
 }
 
-#endif // _RCOM_DUMMY_MESSAGE_LISTENER_H_
+#endif // _LIBRCOM_DUMMYMESSAGELISTENER_H

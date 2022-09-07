@@ -43,7 +43,7 @@ namespace rcom {
                 
                 virtual void execute(const std::string& method,
                                      nlohmann::json &params,
-                                     rcom::MemBuffer& result,
+                                     MemBuffer& result,
                                      RPCError &status) = 0;
         };
 }

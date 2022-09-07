@@ -23,12 +23,12 @@
 int main()
 {
         try {
-                rcom::MessageLink link("hello-world");
+                auto link = rcom::MessageLink::create("hello-world", 10.0);
                 rcom::MemBuffer message;
-                message.append_string("hello");
+                message.append("hello");
 
-                if (link.send(message)
-                    && link.recv(message, 1.0)) {
+                if (link->send(message)
+                    && link->recv(message, 1.0)) {
 
                         std::cout << "Server replies '" << message.tostring() << "'"
                                   << std::endl;

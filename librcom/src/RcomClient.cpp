@@ -24,7 +24,8 @@
 #include <stdexcept>
 #include "rcom/MessageLink.h"
 #include "rcom/WebSocketServer.h"
-#include "rcom/ConsoleLogger.h"
+#include "rcom/ConsoleLog.h"
+#include "rcom/Log.h"
 #include "rcom/RcomClient.h"
 
 namespace rcom {
@@ -32,8 +33,15 @@ namespace rcom {
         std::unique_ptr<IRPCClient> RcomClient::create(const std::string& topic,
                                                        double timeout_seconds)
         {
-                std::unique_ptr<IMessageLink> link
-                        = std::make_unique<MessageLink>(topic, timeout_seconds);
+                std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
+                return create(topic, timeout_seconds, log);
+        }
+        
+        std::unique_ptr<IRPCClient> RcomClient::create(const std::string& topic,
+                                                       double timeout_seconds,
+                                                       const std::shared_ptr<ILog>& log)
+        {
+                auto link = MessageLink::create(topic, timeout_seconds, log);
                 return std::make_unique<RcomClient>(link, timeout_seconds);
         }
         
@@ -79,7 +87,7 @@ namespace rcom {
                 request["params"] = params;
 
                 buffer_.clear();
-                buffer_.append_string(request.dump().c_str());
+                buffer_.append(request.dump());
         }
 
         bool RcomClient::send_request(MessageType type, RPCError &error)

@@ -14,8 +14,7 @@ set(SOURCES
   SocketFactory.mock.h
   Socket.mock.h
   WebSocket.mock.h
-  WebSocketServer.mock.h
-  WebSocketServerFactory.mock.h)
+  WebSocketServer.mock.h)
 
 add_library(rcommocks SHARED ${SOURCES})
 set_target_properties(rcommocks PROPERTIES LINKER_LANGUAGE CXX)

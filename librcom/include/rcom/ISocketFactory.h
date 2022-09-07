@@ -31,6 +31,8 @@
 #include "rcom/IWebSocket.h"
 #include "rcom/IMessageListener.h"
 #include "rcom/IWebSocketServer.h"
+#include "rcom/ILog.h"
+#include "rcom/ILinux.h"
 
 namespace rcom {
         

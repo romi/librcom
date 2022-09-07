@@ -23,23 +23,27 @@
  */
 #include <netinet/tcp.h>
 #include <stdexcept>
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/Socket.h"
 
 namespace rcom {
 
-        Socket::Socket(std::shared_ptr<rcom::ILinux>& linux, int sockfd)
-                : socket_(linux, sockfd)
+        Socket::Socket(const std::shared_ptr<ILinux>& linux,
+                       const std::shared_ptr<ILog>& log,
+                       int sockfd)
+                : socket_(linux, log, sockfd)
         {
         }
 
-        Socket::Socket(std::shared_ptr<rcom::ILinux>& linux, IAddress& address)
-                : socket_(linux)
+        Socket::Socket(const std::shared_ptr<ILinux>& linux,
+                       const std::shared_ptr<ILog>& log,
+                       IAddress& address)
+                : socket_(linux, log)
         {
                 if (!socket_.connect(address)) {
                         std::string s;
-                        log_error("Socket::Socket: Failed to connect to address %s",
-                              address.tostring(s).c_str());
+                        log_err(log, "Socket::Socket: Failed to connect to address %s",
+                                address.tostring(s).c_str());
                         throw std::runtime_error("Socket: Failed to connect");
                 }
         }
@@ -58,7 +62,7 @@ namespace rcom {
                 socket_.close();
         }
         
-        bool Socket::send(rcom::MemBuffer& buffer)
+        bool Socket::send(MemBuffer& buffer)
         {
                 const std::vector<uint8_t>& data = buffer.data();;
                 return send(&data[0], buffer.size());

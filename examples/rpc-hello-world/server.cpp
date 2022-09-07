@@ -21,11 +21,11 @@
 #include <signal.h>
 #include <syslog.h>
 #include <atomic>
+#include <unistd.h>
 
 #include <rcom/MessageHub.h>
 #include <rcom/IMessageListener.h>
 #include <rcom/Linux.h>
-#include <rcom/WebSocketServerFactory.h>
 #include <rcom/util.h>
 
 std::atomic<bool> quit(false);
@@ -49,13 +49,15 @@ class HelloWorldListener : public rcom::IMessageListener
 public:
         ~HelloWorldListener() override = default;
 
-        void onmessage(rcom::IWebSocket& websocket,
+        void onmessage(rcom::IWebSocketServer& server,
+                       rcom::IWebSocket& websocket,
                        rcom::MemBuffer& message,
                        rcom::MessageType type) override {
+                (void) server;
                 (void) type;
                 std::cout << "Client says '" << message.tostring() << "'" << std::endl;
                 rcom::MemBuffer reply;
-                reply.append_string("world");
+                reply.append("world");
                 websocket.send(reply, rcom::kTextMessage);
         }
 };
@@ -64,21 +66,15 @@ public:
 int main()
 {
         try {
-                auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
-                std::shared_ptr<rcom::ISocketFactory> socket_factory
-                        = std::make_shared<rcom::SocketFactory>();
-
                 std::shared_ptr<rcom::IMessageListener> hello_world
                         = std::make_shared<HelloWorldListener>();
-                rcom::MessageHub message_hub("hello-world", hello_world, socket_factory,
-                                             webserver_socket_factory);
-                rcom::Linux linux;
+                auto message_hub = rcom::MessageHub::create("hello-world", hello_world);
 
                 std::signal(SIGINT, SignalHandler);
         
                 while (!quit) {
-                        message_hub.handle_events();
-                        rcom_sleep(linux, 0.050);
+                        message_hub->handle_events();
+                        usleep(1000);
                 }
                 
         } catch (std::runtime_error& re) {

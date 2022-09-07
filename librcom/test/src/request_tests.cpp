@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "rcom/Request.h"
-#include "rcom/ConsoleLogger.h"
+#include "rcom/ConsoleLog.h"
 
 using namespace std;
 using namespace rcom;
@@ -21,7 +21,7 @@ protected:
         }
 };
 
-TEST_F(request_tests, request_is_websocket_returns_true)
+TEST_F(request_tests, request_assert_websocket_doesnt_throw)
 {
         // Arrange
         Request request;
@@ -32,13 +32,11 @@ TEST_F(request_tests, request_is_websocket_returns_true)
         request.add_header("Sec-WebSocket-Version", "13");
         
         // Act
-        bool success = request.is_websocket();
-
         // Assert
-        ASSERT_TRUE(success);
+        ASSERT_NO_THROW(request.assert_websocket());
 }
 
-TEST_F(request_tests, request_is_websocket_returns_false_on_bad_method)
+TEST_F(request_tests, request_assert_websocket_throws_on_bad_method)
 {
         // Arrange
         Request request;
@@ -49,13 +47,11 @@ TEST_F(request_tests, request_is_websocket_returns_false_on_bad_method)
         request.add_header("Sec-WebSocket-Version", "13");
         
         // Act
-        bool success = request.is_websocket();
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(request.assert_websocket(), std::runtime_error);
 }
 
-TEST_F(request_tests, request_is_websocket_returns_false_on_missing_header_1)
+TEST_F(request_tests, request_assert_websocket_throws_on_missing_header_1)
 {
         // Arrange
         Request request;
@@ -65,13 +61,11 @@ TEST_F(request_tests, request_is_websocket_returns_false_on_missing_header_1)
         request.add_header("Sec-WebSocket-Version", "13");
         
         // Act
-        bool success = request.is_websocket();
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(request.assert_websocket(), std::runtime_error);
 }
 
-TEST_F(request_tests, request_is_websocket_returns_false_on_missing_header_2)
+TEST_F(request_tests, request_assert_websocket_throws_on_missing_header_2)
 {
         // Arrange
         Request request;
@@ -81,13 +75,11 @@ TEST_F(request_tests, request_is_websocket_returns_false_on_missing_header_2)
         request.add_header("Sec-WebSocket-Version", "13");
         
         // Act
-        bool success = request.is_websocket();
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(request.assert_websocket(), std::runtime_error);
 }
 
-TEST_F(request_tests, request_is_websocket_returns_false_on_missing_header_3)
+TEST_F(request_tests, request_assert_websocket_throws_on_missing_header_3)
 {
         // Arrange
         Request request;
@@ -97,13 +89,11 @@ TEST_F(request_tests, request_is_websocket_returns_false_on_missing_header_3)
         request.add_header("Sec-WebSocket-Version", "13");
         
         // Act
-        bool success = request.is_websocket();
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(request.assert_websocket(), std::runtime_error);
 }
 
-TEST_F(request_tests, request_is_websocket_returns_false_on_missing_header_4)
+TEST_F(request_tests, request_assert_websocket_throws_on_missing_header_4)
 {
         // Arrange
         Request request;
@@ -113,13 +103,11 @@ TEST_F(request_tests, request_is_websocket_returns_false_on_missing_header_4)
         request.add_header("Sec-WebSocket-Key", "AAAAAAAAAAAAAAAAAAAAAA==");
         
         // Act
-        bool success = request.is_websocket();
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(request.assert_websocket(), std::runtime_error);
 }
 
-TEST_F(request_tests, request_is_websocket_returns_false_on_bad_key_header)
+TEST_F(request_tests, request_assert_websocket_throws_on_bad_key_header)
 {
         // Arrange
         Request request;
@@ -130,13 +118,11 @@ TEST_F(request_tests, request_is_websocket_returns_false_on_bad_key_header)
         request.add_header("Sec-WebSocket-Version", "13");
         
         // Act
-        bool success = request.is_websocket();
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(request.assert_websocket(), std::runtime_error);
 }
 
-TEST_F(request_tests, request_is_websocket_returns_false_on_bad_version_header)
+TEST_F(request_tests, request_assert_websocket_throws_on_bad_version_header)
 {
         // Arrange
         Request request;
@@ -147,8 +133,6 @@ TEST_F(request_tests, request_is_websocket_returns_false_on_bad_version_header)
         request.add_header("Sec-WebSocket-Version", "12");
         
         // Act
-        bool success = request.is_websocket();
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(request.assert_websocket(), std::runtime_error);
 }

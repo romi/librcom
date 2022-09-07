@@ -30,70 +30,54 @@ namespace rcom {
                 : HttpParser(), response_(response)
         {}
 
-        bool ResponseParser::parse(ISocket& socket)
+        void ResponseParser::parse(ISocket& socket)
         {
                 return parse_response(socket);
         }
 
-        bool ResponseParser::set_method()
+        void ResponseParser::set_method()
         {
-                error(kHttpStatusInternalServerError,
-                              "Didn't expect a method");
-                return false;
+                error("Didn't expect a method");
         }
         
-        bool ResponseParser::set_uri()
+        void ResponseParser::set_uri()
         {
-                error(kHttpStatusInternalServerError,
-                      "Didn't expect an URI");
-                return false;
+                error("Didn't expect an URI");
         }
         
-        bool ResponseParser::set_version()
+        void ResponseParser::set_version()
         {
-                bool success = false;
                 std::string value = buffer_.tostring();
                 // This function only checks whether the HTTP version is
                 // 1.1. The code is currently not designed for HTTP/2 (and
                 // websockets are not designed for HTTP/2 and vice versa). Nor
                 // should HTTP/1.0 be used anymore.
-                if (value == "HTTP/1.1") {
-                        success = true;
-                } else {
-                        error(kHttpStatusHTTPVersionNotSupported,
-                                      "Unsupported HTTP version");
+                if (value.compare("HTTP/1.1") != 0) {
+                        error("Unsupported HTTP version");
                 }
-                return success;
         }
         
-        bool ResponseParser::set_code()
+        void ResponseParser::set_code()
         {
-                bool success = false;
                 std::string value = buffer_.tostring();
                 char *endptr = nullptr;
                 long code = strtol(value.c_str(), &endptr, 10);
                 if (endptr != nullptr && *endptr == '\0'
                     && code >= 100 && code < 600) {
                         response_.set_code((int)code);
-                        success = true;
                 } else {
-                        error(kHttpStatusInternalServerError,
-                              "Invalid status code");
+                        error("Invalid status code");
                 }
-                return success;
         }
         
-        bool ResponseParser::set_reason()
+        void ResponseParser::set_reason()
         {
-                // The "reason" string is not needed
-                return true;
         }
 
-        bool ResponseParser::add_header()
+        void ResponseParser::add_header()
         {
                 std::string value = buffer_.tostring();
                 response_.add_header(name_, value);
-                return true;
         }
 
         IResponse& ResponseParser::response()

@@ -21,7 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/RegistryServer.h"
 #include "rcom/Address.h"
 
@@ -44,8 +44,9 @@ namespace rcom {
 
         //
         
-        RegistryServer::RegistryServer(IRegistry& registry)
-                : registry_(registry), response_()
+        RegistryServer::RegistryServer(IRegistry& registry,
+                                       const std::shared_ptr<ILog>& log)
+                : registry_(registry), log_(log), response_()
         {
         }
         
@@ -53,9 +54,9 @@ namespace rcom {
         {
         }
 
-        bool RegistryServer::set(const std::string& topic, IAddress& address)
+        void RegistryServer::set(const std::string& topic, IAddress& address)
         {
-                return registry_.set(topic, address);
+                registry_.set(topic, address);
         }
                         
         bool RegistryServer::get(const std::string& topic, IAddress& address)
@@ -63,43 +64,48 @@ namespace rcom {
                 return registry_.get(topic, address);
         }
         
-        bool RegistryServer::remove(const std::string& topic)
+        void RegistryServer::remove(const std::string& topic)
         {
-                return registry_.remove(topic);
+                registry_.remove(topic);
         }        
         
-        void RegistryServer::onmessage(IWebSocket& websocket,
-                                       rcom::MemBuffer& message,
+        void RegistryServer::onmessage(IWebSocketServer& server,
+                                       IWebSocket& websocket,
+                                       MemBuffer& message,
                                        MessageType type)
         {
+                (void) server;
                 (void) type;
-                log_info("RegistryServer: Received message: %s", message.tostring().c_str());
+                
+                log_info(log_, "RegistryServer: Received message: %s",
+                         message.tostring().c_str());
                 
                 try {
                         handle_message(websocket, message);
 
                 } catch (nlohmann::json::exception& je) {
-                        log_error("RegistryServer: json error: %s", je.what());
+                        log_err(log_, "RegistryServer: json error: %s", je.what());
                         send_fail(websocket, je.what());
                         
                 } catch (std::runtime_error& re) {
-                        log_error("RegistryServer: runtime error: %s", re.what());
+                        log_err(log_, "RegistryServer: runtime error: %s", re.what());
                         send_fail(websocket, re.what());
                         
                 } catch (...) {
-                        log_error("RegistryServer: exception");
+                        log_err(log_, "RegistryServer: exception");
                         send_fail(websocket, "Internal error");
                 }                    
         }
         
         void RegistryServer::handle_message(IWebSocket& websocket,
-                                            rcom::MemBuffer& message)
+                                            MemBuffer& message)
         {
                 nlohmann::json obj = nlohmann::json::parse(message.tostring());
                 handle_json_message(websocket, obj);
         }
 
-        void RegistryServer::handle_json_message(IWebSocket& websocket, nlohmann::json& message)
+        void RegistryServer::handle_json_message(IWebSocket& websocket,
+                                                 nlohmann::json& message)
         {
                 std::string request = message["request"];
                 if (request == "register") {
@@ -112,49 +118,63 @@ namespace rcom {
                         handle_get(websocket, message);                
                 
                 } else {
-                        log_warning("Unknown request: %s", request.c_str());
+                        log_warn(log_, "Unknown request: %s", request.c_str());
                         send_fail(websocket, "Unknown request");
                 }
         }
         
-        void RegistryServer::handle_register(IWebSocket& websocket, nlohmann::json& message)
+        void RegistryServer::handle_register(IWebSocket& websocket,
+                                             nlohmann::json& message)
         {
-                std::string topic = message["topic"];
-                std::string address_string = message["address"];
-                Address address(address_string);
+                try {
+                        std::string topic = message["topic"];
+                        std::string address_string = message["address"];
+                        Address address(address_string);
                 
-                if (set(topic, address)) {
+                        set(topic, address);
                         send_success(websocket);
-                        log_info("RegistryServer: Register topic '%s' at %s",
-                               topic.c_str(), address_string.c_str());
-                } else {
-                        send_fail(websocket, "set() failed");
+                        log_info(log_, "RegistryServer: Register topic '%s' at %s",
+                                 topic.c_str(), address_string.c_str());
+                        
+                } catch (std::exception& e) {
+                        log_err(log_, "RegistryServer: handle_register: %s", e.what());
+                        send_fail(websocket, "RegistryServer: set failed");
                 }
         }
 
-        void RegistryServer::handle_unregister(IWebSocket& websocket, nlohmann::json& message)
+        void RegistryServer::handle_unregister(IWebSocket& websocket,
+                                               nlohmann::json& message)
         {
-                std::string topic = message["topic"];
-                
-                if (remove(topic)) {
+                try {
+                        std::string topic = message["topic"];
+                        remove(topic);
                         send_success(websocket);
-                        log_info("RegistryServer: Unregister topic '%s'", topic.c_str());
-                } else {
-                        send_fail(websocket, "remove() failed");
+                        log_info(log_, "RegistryServer: Unregister topic '%s'",
+                                 topic.c_str());
+                } catch (std::exception& e) {
+                        log_err(log_, "RegistryServer: handle_unregister: %s", e.what());
+                        send_fail(websocket, "RegistryServer: remove failed");
                 }
         }
 
         void RegistryServer::handle_get(IWebSocket& websocket, nlohmann::json& message)
         {
-                std::string topic = message["topic"];
-                Address address;
-                
-                if (get(topic, address)) {
-                        send_address(websocket, address);
-                        log_info("RegistryServer: Get topic '%s'", topic.c_str());
-                } else {
-                        log_info("RegistryServer: Get topic '%s' failed", topic.c_str());
-                        send_fail(websocket, "No such topic");
+                try {
+                        Address address;
+                        std::string topic = message["topic"];
+                        
+                        if (get(topic, address)) {
+                                send_address(websocket, address);
+                                log_info(log_, "RegistryServer: Get topic '%s'",
+                                         topic.c_str());
+                        } else {
+                                send_empty_address(websocket);
+                                log_info(log_, "RegistryServer: No such topic: '%s'",
+                                         topic.c_str());
+                        }
+                } catch (std::runtime_error& e) {
+                        log_info(log_, "RegistryServer: Get topic failed: %s", e.what());
+                        send_fail(websocket, e.what());
                 }
         }
 
@@ -169,9 +189,16 @@ namespace rcom {
                 send_response(websocket);
         }
 
+        void RegistryServer::send_empty_address(IWebSocket& websocket)
+        {
+                response_.clear();
+                response_.printf(R"({"success":true})");
+                send_response(websocket);
+        }
+
         void RegistryServer::send_fail(IWebSocket& websocket, const std::string& message)
         {
-                log_warning("RegistryServer: Failure: %s", message.c_str());
+                log_warn(log_, "RegistryServer: Failure: %s", message.c_str());
                 response_.clear();
                 response_.printf(R"({"success":false, "message":"%s"})",
                                  message.c_str());
@@ -188,7 +215,7 @@ namespace rcom {
         void RegistryServer::send_response(IWebSocket& websocket)
         {
                 if (!websocket.send(response_, kTextMessage)) {
-                        log_error("RegistryServer: IWebSocket.send failed");
+                        log_err(log_, "RegistryServer: IWebSocket.send failed");
                 }
         }
 }

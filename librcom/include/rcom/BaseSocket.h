@@ -27,6 +27,7 @@
 #include <string>
 #include <memory>
 #include "rcom/ILinux.h"
+#include "rcom/ILog.h"
 #include "rcom/IAddress.h"
 #include "rcom/ISocket.h"
 
@@ -34,15 +35,19 @@ namespace rcom {
 
         class BaseSocket {
         protected:
-                std::shared_ptr<rcom::ILinux> linux_;
+                std::shared_ptr<ILinux> linux_;
+                std::shared_ptr<ILog> log_;
                 int sockfd_;
                 
                 WaitStatus do_wait(double timeout);
                 
         public:
 
-                BaseSocket(std::shared_ptr<rcom::ILinux>& linux);
-                BaseSocket(std::shared_ptr<rcom::ILinux>& linux, int sockfd);
+                BaseSocket(const std::shared_ptr<ILinux>& linux,
+                           const std::shared_ptr<ILog>& log);
+                BaseSocket(const std::shared_ptr<ILinux>& linux,
+                           const std::shared_ptr<ILog>& log,
+                           int sockfd);
                 virtual ~BaseSocket();
                         
                 bool listen(IAddress& address);

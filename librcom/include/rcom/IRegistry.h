@@ -34,10 +34,15 @@ namespace rcom {
         public:
                 virtual ~IRegistry() = default; 
                 
-                virtual bool set(const std::string& topic, IAddress& address) = 0; 
+                virtual void set(const std::string& topic, IAddress& address) = 0;
+                
+                // Returns true if the the address was found, false if
+                // it wasn't found. Throws a runtime_error is
+                // something goes wrong.
                 virtual bool get(const std::string& topic, IAddress& address,
                                  double timeout_in_seconds = 12.0) = 0;
-                virtual bool remove(const std::string& topic) = 0; 
+                
+                virtual void remove(const std::string& topic) = 0; 
         };
 }
 

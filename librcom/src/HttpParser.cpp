@@ -23,7 +23,7 @@
  */
 #include <string.h>
 #include <ctype.h>
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/HttpParser.h"
 
 namespace rcom {
@@ -32,50 +32,46 @@ namespace rcom {
 
         HttpParser::HttpParser()
                 : state_(HttpParser::kErrorState),
-                  status_code_(),
-                  status_message_(),
                   buffer_(),
                   name_()
         {}
         
-        bool HttpParser::parse_request(ISocket& socket)
+        void HttpParser::parse_request(ISocket& socket)
         {
                 state_ = kRequestMethod;
-                return parse(socket);
+                parse(socket);
         }
 
-        bool HttpParser::parse_response(ISocket& socket)
+        void HttpParser::parse_response(ISocket& socket)
         {
                 state_ = kResponseVersion;
-                return parse(socket);
+                parse(socket);
         }
 
-        bool HttpParser::parse(ISocket& socket)
+        void HttpParser::parse(ISocket& socket)
         {
-                bool success = false;
                 buffer_.clear();
 
                 while (true) {
                         WaitStatus status = socket.wait(parse_timeout_seconds);
-                        if (status == kWaitOK) {
-                                success = read_char(socket);
-                                if (!success)
-                                        break;
-                                if (state_ == kBody)
-                                        break;
-                        } else {
-                                log_error("HttpParser: Failed to read the socket (status=%s)",
-                                      status == kWaitTimeout? "timeout" : "error");
-                                break;
+                        if (status != kWaitOK) {
+                                error("Socket timed out");
                         }
+                        
+                        read_char(socket);
+                        
+                        if (state_ == kBody)
+                                break;
                 }
-                return success;
         }
 
-        bool HttpParser::read_char(ISocket& socket)
+        void HttpParser::read_char(ISocket& socket)
         {
                 uint8_t c;
-                return socket.read(&c, 1) && handle_char(c);
+                if (!socket.read(&c, 1)) {
+                        error("read_char failed");
+                }
+                handle_char(c);
         }
 
         bool HttpParser::is_valid_version_char(uint8_t c)
@@ -83,19 +79,19 @@ namespace rcom {
                 return strchr("HTTP/0123456789.", c) != nullptr;
         }
         
-        bool HttpParser::handle_char(uint8_t c)
+        void HttpParser::handle_char(uint8_t c)
         {
                 switch (state_) {
                 case kRequestMethod:
                         if (buffer_.size() > 8) {
-                                error(kHttpStatusBadRequest, "Method string too long");
+                                error("Method string too long");
                         } else if (c == ' ') {
-                                if (set_method())
-                                        state_ = kRequestMethodSpaces;
+                                set_method();
+                                state_ = kRequestMethodSpaces;
                         } else if (isupper(c)) {
                                 buffer_.put(c);
                         } else {
-                                error(kHttpStatusBadRequest, "Unexpected char in method");
+                                error("Unexpected char in method");
                         } 
                         break;
 
@@ -111,10 +107,10 @@ namespace rcom {
 
                 case kRequestUri:
                         if (buffer_.size() > kMaxUriLength) {
-                                error(kHttpStatusURITooLong, "URI too long");
+                                error("URI too long");
                         } else if (c == ' ') {
-                                if (set_uri())
-                                        state_ = kRequestUriSpaces;
+                                set_uri();
+                                state_ = kRequestUriSpaces;
                         } else {
                                 buffer_.put(c);
                         } 
@@ -132,13 +128,12 @@ namespace rcom {
                 
                 case kRequestVersion:
                         if (c == '\r') {
-                                if (set_version())
-                                        state_ = kRequestLineLF;
+                                set_version();
+                                state_ = kRequestLineLF;
                         } else if (buffer_.size() > 8) {
-                                error(kHttpStatusBadRequest, "HTTP version too long");
+                                error("HTTP version too long");
                         } else if (!is_valid_version_char(c)) {
-                                error(kHttpStatusBadRequest,
-                                      "Invalid character in HTTP version");
+                                error("Invalid character in HTTP version");
                         } else {
                                 buffer_.put(c);
                         } 
@@ -148,17 +143,16 @@ namespace rcom {
                         if (c == '\n') {
                                 state_ = kHeaderStart;
                         } else {
-                                error(kHttpStatusBadRequest,
-                                      "Expected CRLF while reading request");
+                                error("Expected CRLF while reading request");
                         }
                         break;
 
                 case kResponseVersion:
                         if (buffer_.size() > 8) {
-                                error(kHttpStatusBadRequest, "HTTP version too long");
+                                error("HTTP version too long");
                         } else if (c == ' ') {
-                                if (set_version())
-                                        state_ = kResponseVersionSpaces;
+                                set_version();
+                                state_ = kResponseVersionSpaces;
                         } else {
                                 buffer_.put(c);
                         } 
@@ -176,15 +170,14 @@ namespace rcom {
                 
                 case kResponseCode:
                         if (buffer_.size() > 3) {
-                                error(kHttpStatusBadRequest, "HTTP code too long");
+                                error("HTTP code too long");
                         } else if (c == ' ') {
-                                if (set_code())
-                                        state_ = kResponseCodeSpaces;
+                                set_code();
+                                state_ = kResponseCodeSpaces;
                         } else if (isdigit(c)) {
                                 buffer_.put(c);
                         } else {
-                                error(kHttpStatusBadRequest,
-                                      "Unexpected char in status code");
+                                error("Unexpected char in status code");
                         } 
                         break;
                 
@@ -200,11 +193,10 @@ namespace rcom {
                 
                 case kResponseReason:
                         if (buffer_.size() > 128) {
-                                error(kHttpStatusEntityTooLarge,
-                                      "HTTP status reason too long");
+                                error("HTTP status reason too long");
                         } else if (c == '\r') {
-                                if (set_reason())
-                                        state_ = kResponseReasonLF;
+                                set_reason();
+                                state_ = kResponseReasonLF;
                         } else {
                                 buffer_.put(c);
                         } 
@@ -214,8 +206,7 @@ namespace rcom {
                         if (c == '\n') {
                                 state_ = kHeaderStart;
                         } else {
-                                error(kHttpStatusBadRequest,
-                                      "Expected CRLF while reading status");
+                                error("Expected CRLF while reading status");
                         }
                         break;
                                 
@@ -227,8 +218,7 @@ namespace rcom {
                                 buffer_.put(c);
                                 state_ = kHeaderName;
                         } else {
-                                error(kHttpStatusBadRequest,
-                                      "Unexpected char in header name");
+                                error("Unexpected char in header name");
                         }
                         break;
 
@@ -240,12 +230,10 @@ namespace rcom {
                                 if (buffer_.size() < kMaxHeaderNameLength) {
                                         buffer_.put(c);
                                 } else {
-                                        error(kHttpStatusEntityTooLarge,
-                                              "Header name too long");
+                                        error("Header name too long");
                                 }
                         } else {
-                                error(kHttpStatusBadRequest,
-                                      "Unexpected char in header name");
+                                error("Unexpected char in header name");
                         }
                         break;
 
@@ -253,8 +241,7 @@ namespace rcom {
                         if (c == ' ') {
                                 // skip
                         } else if (c == '\r') {
-                                error(kHttpStatusBadRequest,
-                                      "Unexpected CR header value");
+                                error("Unexpected CR header value");
                         } else {
                                 buffer_.clear();
                                 buffer_.put(c);
@@ -264,12 +251,12 @@ namespace rcom {
                 
                 case kHeaderValue:
                         if (c == '\r') {
-                                if (add_header())
-                                        state_ = kHeaderLF;
+                                add_header();
+                                state_ = kHeaderLF;
                         } else if (buffer_.size() < kMaxHeaderValueLength) {
                                 buffer_.put(c);
                         } else {
-                                error(kHttpStatusEntityTooLarge, "Header value too long");
+                                error("Header value too long");
                         }
                         break;
 
@@ -277,8 +264,7 @@ namespace rcom {
                         if (c == '\n') {
                                 state_ = kHeaderStart;
                         } else {
-                                error(kHttpStatusBadRequest,
-                                      "Expected CRLF at end of header");
+                                error("Expected CRLF at end of header");
                         }
                         break;
                 
@@ -286,19 +272,16 @@ namespace rcom {
                         if (c == '\n') {
                                 state_ = kBody;
                         } else {
-                                error(kHttpStatusBadRequest,
-                                      "Expected CRLF at end of headers");
+                                error("Expected CRLF at end of headers");
                         }
                         break;
 
                 case kBody:
                 case kErrorState:
                 default:
-                        log_warning("http_parser_handle_char: reached invalid state");
+                        error("http_parser_handle_char: reached invalid state");
                         break;
                 }
-        
-                return state_ == kErrorState? false : true;
         }
 
         bool HttpParser::is_separator(uint8_t c)
@@ -314,12 +297,12 @@ namespace rcom {
                 return (!a && !b);
         }
 
-        void HttpParser::error(int code, const char *what)
+        void HttpParser::error(const char *what)
         {
-                log_warning("HttpParser: %s", what);
-                status_code_ = code;
-                status_message_ = what;
                 state_ = kErrorState;
+                std::string message = "HttpParser: ";
+                message += what;
+                throw std::runtime_error(message);
         }
 
         void HttpParser::store_header_name()

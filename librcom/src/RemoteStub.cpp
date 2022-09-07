@@ -21,10 +21,18 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/RemoteStub.h"
 
 namespace rcom {
+
+        RemoteStub::RemoteStub(std::unique_ptr<IRPCClient>& client,
+                               const std::shared_ptr<ILog>& log)
+                : client_(),
+                  log_(log)
+        {
+                client_ = std::move(client);
+        }
 
         bool RemoteStub::execute(const std::string& method,
                                  nlohmann::json& params,
@@ -36,13 +44,13 @@ namespace rcom {
                         client_->execute(method, params, result, error);
 
                         if (error.code != 0) {
-                                log_error("RemoteStub::execute: %s",
-                                          error.message.c_str());
+                                log_err(log_, "RemoteStub::execute: %s",
+                                        error.message.c_str());
                         }
                         
                 } catch (std::exception& e) {
                         
-                        log_error("RemoteStub::execute: '%s'", e.what());
+                        log_err(log_, "RemoteStub::execute: '%s'", e.what());
                         error.code = 1;
                         error.message = e.what();
                 }

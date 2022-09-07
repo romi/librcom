@@ -45,8 +45,9 @@ namespace rcom
         
                 void put(uint8_t c);
                 void append(const uint8_t *data, size_t len);
+                void append(const std::string& s);
                 void append(const MemBuffer& buffer);
-                void append_string(const char *string);
+                void append_string_32k_max(const char *string);
                 void printf(const char* format, ...);
         
                 [[nodiscard]] const std::vector<uint8_t>& data() const;

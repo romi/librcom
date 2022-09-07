@@ -7,6 +7,7 @@
 #include "ResponseParser.mock.h"
 #include "Response.mock.h"
 #include "Linux.mock.h"
+#include "Log.mock.h"
 
 #include "rcom/Frames.h"
 #include "rcom/ServerSideWebSocket.h"
@@ -22,7 +23,7 @@ using ::testing::SetArgReferee;
 using ::testing::NiceMock;
 using ::testing::Assign;
 using ::testing::ReturnPointee;
-
+using ::testing::AtLeast;
 
 class serverside_websocket_tests : public ::testing::Test
 {
@@ -31,7 +32,8 @@ public:
         MockRequest mock_request_;
         MockResponseParser mock_response_parser_;
         MockResponse mock_response_;
-        MockLinux mock_linux_;
+        std::shared_ptr<MockLinux> mock_linux_;
+        std::shared_ptr<MockLog> mock_log_;
         MemBuffer input_data_;
         size_t input_data_offset_;
         vector<MemBuffer> output_data_;
@@ -118,19 +120,23 @@ public:
         
 protected:
         
-        serverside_websocket_tests() :
-                mock_request_parser_(),
-                mock_request_(),
-                mock_response_parser_(),
-                mock_response_(),
-                mock_linux_(),
-                input_data_(),
-                input_data_offset_(0),
-                output_data_(),
-                request_key_header_value_(),
-                response_accept_header_value_(),
-                socket_connected_(true),
-                mock_socket_() {
+        serverside_websocket_tests()
+                : mock_request_parser_(),
+                  mock_request_(),
+                  mock_response_parser_(),
+                  mock_response_(),
+                  mock_linux_(),
+                  mock_log_(),
+                  input_data_(),
+                  input_data_offset_(0),
+                  output_data_(),
+                  request_key_header_value_(),
+                  response_accept_header_value_(),
+                  socket_connected_(true),
+                  mock_socket_() {
+                
+                mock_linux_ = std::make_shared<MockLinux>();
+                mock_log_ = std::make_shared<MockLog>();
 
                 request_key_header_value_ = "AAAAAAAAAAAAAAAAAAAAAA==";
                 response_accept_header_value_ = "ICX+Yqv66kxgM0FcWaLWlFLwTAI=";
@@ -181,21 +187,17 @@ protected:
 
                 // parser
                 EXPECT_CALL(mock_request_parser_, parse(_))
-                        .WillOnce(Return(true))
                         .RetiresOnSaturation();
         
                 EXPECT_CALL(mock_request_parser_, request())
                         .WillRepeatedly(ReturnRef(mock_request_));
                 
                 // clock
-                EXPECT_CALL(*mock_socket_, get_linux())
-                        .WillRepeatedly(ReturnRef(mock_linux_));
-                EXPECT_CALL(mock_linux_, clock_gettime(_,_))
-                        .WillRepeatedly(Return(0.0));
+                EXPECT_CALL(*mock_linux_, clock_gettime(_,_))
+                        .WillRepeatedly(Return(0));
                 
                 // request
-                EXPECT_CALL(mock_request_, is_websocket())
-                        .WillRepeatedly(Return(true));
+                EXPECT_CALL(mock_request_, assert_websocket());
         
                 EXPECT_CALL(mock_request_, get_header_value("Sec-WebSocket-Key",_))
                         .WillRepeatedly(DoAll(SetArgReferee<1>(request_key_header_value_),
@@ -204,9 +206,11 @@ protected:
                 
                 std::unique_ptr<ISocket> socket = std::move(mock_socket_);
 
-                websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_);
+                websocket = make_unique<ServerSideWebSocket>(socket,
+                                                             mock_request_parser_,
+                                                             mock_linux_,
+                                                             mock_log_);
         }
-
         
 public:
         void input_append(const uint8_t *buffer, size_t length) {
@@ -323,6 +327,11 @@ TEST_F(serverside_websocket_tests, successfull_creation_and_delete_of_server_sid
         ASSERT_EQ(memcmp(output_data_[1].data().data(), server_1001_close_handshake, 4), 0);
 }
 
+ACTION(ThrowRuntimeException)
+{
+        throw std::runtime_error("mocked runtime exception");
+}
+
 TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_on_failed_parse)
 {
         // Arrange
@@ -330,14 +339,22 @@ TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_on_fai
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
         
         EXPECT_CALL(mock_request_parser_, parse(_))
-                .WillOnce(Return(false))
+                .WillOnce(ThrowRuntimeException())
                 .RetiresOnSaturation();
-                                                           
+
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+
+        EXPECT_CALL(*mock_log_, warn(_))
+                .Times(AtLeast(0));
+        
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
 
         // Act
         // Assert
-        ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
+        ASSERT_THROW(make_unique<ServerSideWebSocket>(socket, mock_request_parser_,
+                                                      mock_linux_, mock_log_),
+                     std::runtime_error);
 }
 
 TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_not_websocket)
@@ -347,19 +364,26 @@ TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_not
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
         
         EXPECT_CALL(mock_request_parser_, parse(_))
-                .WillOnce(Return(true))
                 .RetiresOnSaturation();
         
         EXPECT_CALL(mock_request_parser_, request())
                 .WillRepeatedly(ReturnRef(mock_request_));
         
-        EXPECT_CALL(mock_request_, is_websocket())
-                .WillRepeatedly(Return(false));
+        EXPECT_CALL(mock_request_, assert_websocket())
+                .WillOnce(ThrowRuntimeException());
+
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+
+        EXPECT_CALL(*mock_log_, warn(_))
+                .Times(AtLeast(0));
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
 
         // Act
-    ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
+        ASSERT_THROW(make_unique<ServerSideWebSocket>(socket, mock_request_parser_,
+                                                      mock_linux_, mock_log_),
+                     std::runtime_error);
 }
 
 TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_send_fails)
@@ -369,14 +393,12 @@ TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_sen
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
         
         EXPECT_CALL(mock_request_parser_, parse(_))
-                .WillOnce(Return(true))
                 .RetiresOnSaturation();
         
         EXPECT_CALL(mock_request_parser_, request())
                 .WillRepeatedly(ReturnRef(mock_request_));
         
-        EXPECT_CALL(mock_request_, is_websocket())
-                .WillRepeatedly(Return(true));
+        EXPECT_CALL(mock_request_, assert_websocket());
         
         EXPECT_CALL(mock_request_, get_header_value("Sec-WebSocket-Key",_))
                 .WillRepeatedly(DoAll(SetArgReferee<1>(request_key_header_value_),
@@ -385,12 +407,22 @@ TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_sen
         EXPECT_CALL(*mock_socket, send(_))
                 .WillOnce(Return(false));
         
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+
+        EXPECT_CALL(*mock_log_, warn(_))
+                .Times(AtLeast(0));
+
+        
         EXPECT_CALL(*mock_socket, close());
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
 
         // Act
-        ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
+        ASSERT_THROW(make_unique<ServerSideWebSocket>(socket,
+                                                      mock_request_parser_,
+                                                      mock_linux_, mock_log_),
+                     std::runtime_error);
 }
 
 TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_read_fails)
@@ -400,14 +432,12 @@ TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_rea
         std::unique_ptr<MockSocket> mock_socket = make_unique<MockSocket>();
         
         EXPECT_CALL(mock_request_parser_, parse(_))
-                .WillOnce(Return(true))
                 .RetiresOnSaturation();
         
         EXPECT_CALL(mock_request_parser_, request())
                 .WillRepeatedly(ReturnRef(mock_request_));
         
-        EXPECT_CALL(mock_request_, is_websocket())
-                .WillRepeatedly(Return(true));
+        EXPECT_CALL(mock_request_, assert_websocket());
         
         EXPECT_CALL(mock_request_, get_header_value("Sec-WebSocket-Key",_))
                 .WillRepeatedly(DoAll(SetArgReferee<1>(request_key_header_value_),
@@ -423,12 +453,21 @@ TEST_F(serverside_websocket_tests, new_server_side_websocket_throws_error_if_rea
                 .WillRepeatedly(DoAll(Invoke(this, &serverside_websocket_tests::copy_input),
                                       Return(true)));
         
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+
+        EXPECT_CALL(*mock_log_, warn(_))
+                .Times(AtLeast(0));
+        
         EXPECT_CALL(*mock_socket, close());
                                                            
         std::unique_ptr<ISocket> socket = std::move(mock_socket);
 
         // Act
-        ASSERT_THROW(std::unique_ptr<ServerSideWebSocket> websocket = make_unique<ServerSideWebSocket>(socket, mock_request_parser_), std::runtime_error);
+        ASSERT_THROW(make_unique<ServerSideWebSocket>(socket,
+                                                      mock_request_parser_,
+                                                      mock_linux_, mock_log_),
+                     std::runtime_error);
 }
 
 
@@ -493,11 +532,14 @@ TEST_F(serverside_websocket_tests, invalid_fragmented_message_returns_error_1)
         
         // Arrange
         input_append(fragmented_message_a, sizeof(fragmented_message_a));
-        // The second TEXT message follows a the non-terminated first
+        // The second TEXT message follows a non-terminated first
         // message.
         input_append(fragmented_message_a, sizeof(fragmented_message_a));        
         input_append(client_close_reply, sizeof(client_close_reply));
 
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+         
         // Act
         RecvStatus status = websocket->recv(message, 1.0);
 
@@ -521,6 +563,9 @@ TEST_F(serverside_websocket_tests, invalid_fragmented_message_returns_error_2)
         input_append(fragmented_message_b, sizeof(fragmented_message_b));
         input_append(fragmented_message_a, sizeof(fragmented_message_a));
         input_append(client_close_reply, sizeof(client_close_reply));
+
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
 
         // Act
         RecvStatus status = websocket->recv(message, 1.0);
@@ -596,6 +641,9 @@ TEST_F(serverside_websocket_tests, read_too_long_a_message)
 
         input_append(binary_frame_len_too_long, sizeof(binary_frame_len_too_long));
 
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
+        
         // Act
         RecvStatus status = websocket->recv(message, 1.0);
 
@@ -616,6 +664,9 @@ TEST_F(serverside_websocket_tests, unmasked_client_message_returns_error)
 
         // Arrange
         input_append(unmasked_text_message, sizeof(unmasked_text_message));
+
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
 
         // Act
         RecvStatus status = websocket->recv(message, 1.0);
@@ -642,6 +693,9 @@ TEST_F(serverside_websocket_tests, bad_message_opcode_returns_error)
                                                              0x00, 0x00, 0x00, 0x00,
                                                              'a', 'b', 'c' };
         input_append(invalid_message, sizeof(invalid_message));
+
+        EXPECT_CALL(*mock_log_, error(_))
+                .Times(AtLeast(1));
 
         // Act
         RecvStatus status = websocket->recv(message, 1.0);
@@ -685,7 +739,7 @@ TEST_F(serverside_websocket_tests, send_message_succesfully)
         make_server_side_websocket(websocket);
 
         // Arrange
-        message.append_string("abc");
+        message.append("abc");
 
         // Act
         bool success = websocket->send(message);
@@ -702,112 +756,122 @@ TEST_F(serverside_websocket_tests, send_message_succesfully)
 
 TEST_F(serverside_websocket_tests, frame_header_correct_0_126)
 {
-    MemBuffer message;
-    std::unique_ptr<ServerSideWebSocket> websocket;
-    make_server_side_websocket(websocket);
+        MemBuffer message;
+        std::unique_ptr<ServerSideWebSocket> websocket;
+        make_server_side_websocket(websocket);
 
-    // Arrange
-    message.append_string("abc");
-    auto expected_frame = make_server_frame(message.size(),rcom::kTextOpcode);
+        // Arrange
+        message.append("abc");
+        auto expected_frame = make_server_frame(message.size(),rcom::kTextOpcode);
 
-    // Act
-    bool success = websocket->send(message);
+        // Act
+        bool success = websocket->send(message);
 
-    // Assert
-    MemBuffer& actual_message = output_data_[1];
-    std::vector<uint8_t> actual_frame(actual_message.data().begin(), (actual_message.data().begin() + (int)expected_frame.size()));
-    ASSERT_TRUE(success);
-    ASSERT_EQ(output_data_.size(), 2);
-    ASSERT_EQ(actual_frame, expected_frame);
-    ASSERT_EQ(actual_message.size(), (message.size() + expected_frame.size()));
+        // Assert
+        MemBuffer& actual_message = output_data_[1];
+        std::vector<uint8_t> actual_frame(actual_message.data().begin(),
+                                          (actual_message.data().begin()
+                                           + (int) expected_frame.size()));
+        ASSERT_TRUE(success);
+        ASSERT_EQ(output_data_.size(), 2);
+        ASSERT_EQ(actual_frame, expected_frame);
+        ASSERT_EQ(actual_message.size(), (message.size() + expected_frame.size()));
 }
 
 TEST_F(serverside_websocket_tests, frame_header_correct_126_65536)
 {
-    MemBuffer message;
-    std::unique_ptr<ServerSideWebSocket> websocket;
-    make_server_side_websocket(websocket);
+        MemBuffer message;
+        std::unique_ptr<ServerSideWebSocket> websocket;
+        make_server_side_websocket(websocket);
 
-    // Arrange
-    std::string long_message("abc");
-    for (; long_message.size() < 300;)
-        long_message += 'a';
-    message.append_string(long_message.c_str());
+        // Arrange
+        std::string long_message("abc");
+        for (; long_message.size() < 300;)
+                long_message += 'a';
+        message.append(long_message);
 
-    auto expected_frame = make_server_frame(message.size(),rcom::kTextOpcode);
+        auto expected_frame = make_server_frame(message.size(),rcom::kTextOpcode);
 
-    // Act
-    bool success = websocket->send(message);
+        // Act
+        bool success = websocket->send(message);
 
-    // Assert
-    MemBuffer& actual_message = output_data_[1];
-    std::vector<uint8_t> actual_frame(actual_message.data().begin(), (actual_message.data().begin() + (int)expected_frame.size()));
-    ASSERT_TRUE(success);
-    ASSERT_EQ(output_data_.size(), 2);
-    ASSERT_EQ(actual_frame, expected_frame);
-    ASSERT_EQ(actual_message.size(), (long_message.size() + expected_frame.size()));
+        // Assert
+        MemBuffer& actual_message = output_data_[1];
+        std::vector<uint8_t> actual_frame(actual_message.data().begin(),
+                                          (actual_message.data().begin()
+                                           + (int) expected_frame.size()));
+        ASSERT_TRUE(success);
+        ASSERT_EQ(output_data_.size(), 2);
+        ASSERT_EQ(actual_frame, expected_frame);
+        ASSERT_EQ(actual_message.size(), (long_message.size() + expected_frame.size()));
 }
 
 
 TEST_F(serverside_websocket_tests, frame_header_correct_over_65539)
 {
-    MemBuffer message;
-    std::unique_ptr<ServerSideWebSocket> websocket;
-    make_server_side_websocket(websocket);
+        MemBuffer message;
+        std::unique_ptr<ServerSideWebSocket> websocket;
+        make_server_side_websocket(websocket);
 
-    // Arrange
-    std::string long_message("abc");
-    std::string long_message_padding;
-    for (; long_message_padding.size() < 32768;)
-        long_message_padding += 'a';
-    message.append_string(long_message.c_str());
-    // 32k add limit to Membuffer.
-    message.append_string(long_message_padding.c_str());
-    message.append_string(long_message_padding.c_str());
-    auto expected_frame = make_server_frame(message.size(),rcom::kTextOpcode);
+        // Arrange
+        std::string long_message("abc");
+        
+        std::string long_message_padding;
+        while (long_message_padding.size() < 32768)
+                long_message_padding += 'a';
 
-    // Act
-    bool success = websocket->send(message);
+        message.append(long_message);
+        message.append(long_message_padding);
+        message.append(long_message_padding);
+        
+        auto expected_frame = make_server_frame(message.size(),
+                                                rcom::kTextOpcode);
 
-    // Assert
-    MemBuffer& actual_message = output_data_[1];
-    std::vector<uint8_t> actual_frame(actual_message.data().begin(), (actual_message.data().begin() + (int)expected_frame.size()));
-    ASSERT_TRUE(success);
-    ASSERT_EQ(output_data_.size(), 2);
-    ASSERT_EQ(actual_frame, expected_frame);
-    ASSERT_EQ(actual_message.size(), (message.size() + expected_frame.size()));
+        // Act
+        bool success = websocket->send(message);
+
+        // Assert
+        MemBuffer& actual_message = output_data_[1];
+        std::vector<uint8_t> actual_frame(actual_message.data().begin(),
+                                          (actual_message.data().begin()
+                                           + (int) expected_frame.size()));
+        ASSERT_TRUE(success);
+        ASSERT_EQ(output_data_.size(), 2);
+        ASSERT_EQ(actual_frame, expected_frame);
+        ASSERT_EQ(actual_message.size(), (message.size() + expected_frame.size()));
 }
 
 TEST_F(serverside_websocket_tests, long_message_sent_with_correct_header)
 {
-    MemBuffer message;
-    std::unique_ptr<ServerSideWebSocket> websocket;
-    make_server_side_websocket(websocket, true);
+        MemBuffer message;
+        std::unique_ptr<ServerSideWebSocket> websocket;
+        make_server_side_websocket(websocket, true);
 
-    // Arrange
+        // Arrange
+        std::string long_message("abc");
+        
+        std::string long_message_padding;
+        while (long_message_padding.size() < 32768)
+                long_message_padding += 'a';
+        
+        message.append(long_message);
+        message.append(long_message_padding);
+        message.append(long_message_padding);
+        message.append(long_message_padding);
+        message.append(long_message_padding);
 
-    std::string long_message("abc");
-    std::string long_message_padding;
-    for (; long_message_padding.size() < 32768;)
-        long_message_padding += 'a';
-    message.append_string(long_message.c_str());
-    // 32k add limit to Membuffer.
-    message.append_string(long_message_padding.c_str());
-    message.append_string(long_message_padding.c_str());
-    message.append_string(long_message_padding.c_str());
-    message.append_string(long_message_padding.c_str());
+        auto expected_frame = make_server_frame(message.size(),rcom::kTextOpcode);
 
+        // Act
+        bool success = websocket->send(message);
 
-    auto expected_frame = make_server_frame(message.size(),rcom::kTextOpcode);
-
-    // Act
-    bool success = websocket->send(message);
-
-    // Assert
-    MemBuffer& actual_message = output_data_[1];
-    std::vector<uint8_t> actual_frame(actual_message.data().begin(), (actual_message.data().begin() + (int)expected_frame.size()));
-    ASSERT_TRUE(success);
-    ASSERT_EQ(output_data_.size(), 2);
-    ASSERT_EQ(actual_frame, expected_frame);
-    ASSERT_EQ(actual_message.size(), (message.size() + expected_frame.size()));
+        // Assert
+        MemBuffer& actual_message = output_data_[1];
+        std::vector<uint8_t> actual_frame(actual_message.data().begin(),
+                                          (actual_message.data().begin()
+                                           + (int) expected_frame.size()));
+        ASSERT_TRUE(success);
+        ASSERT_EQ(output_data_.size(), 2);
+        ASSERT_EQ(actual_frame, expected_frame);
+        ASSERT_EQ(actual_message.size(), (message.size() + expected_frame.size()));
 }

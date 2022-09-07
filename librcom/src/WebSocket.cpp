@@ -23,16 +23,21 @@
  */
 #include <exception>
 #include <string.h>
-#include "rcom/ConsoleLogger.h"
+#include "rcom/ConsoleLog.h"
+#include "rcom/Log.h"
 #include "rcom/WebSocket.h"
 #include "rcom/util.h"
 
 namespace rcom {        
 
-        static uint16_t convert_to_uint16(rcom::MemBuffer buffer);
-        
-        WebSocket::WebSocket(std::unique_ptr<ISocket>& socket)
+        static uint16_t convert_to_uint16(MemBuffer buffer);
+                
+        WebSocket::WebSocket(std::unique_ptr<ISocket>& socket,
+                             const std::shared_ptr<ILinux>& linux,
+                             const std::shared_ptr<ILog>& log)
                 : socket_(),
+                  linux_(linux),
+                  log_(log),
                   output_message_buffer_(),
                   input_payload_buffer_(),
                   frame_header_{false,0,false,0},
@@ -48,11 +53,6 @@ namespace rcom {
         {
         }
 
-        ILinux& WebSocket::get_linux()
-        {
-                return socket_->get_linux();
-        }
-
         void WebSocket::close(CloseCode code)
         {
                 close_with_handshake(code);
@@ -63,7 +63,7 @@ namespace rcom {
                 return socket_->is_connected();
         }
 
-        RecvStatus WebSocket::recv(rcom::MemBuffer& message, double timeout)
+        RecvStatus WebSocket::recv(MemBuffer& message, double timeout)
         {
                 RecvStatus status = kRecvError;
                 
@@ -72,16 +72,16 @@ namespace rcom {
                         status = try_recv(message, timeout);
                         
                 } catch (RecvError& re) {
-                        log_error("WebSocket::recv: %s", re.what());
+                        log_err(log_, "WebSocket::recv: %s", re.what());
                         close_with_handshake(re.code());
                 }
 
                 return status;
         }
 
-        RecvStatus WebSocket::try_recv(rcom::MemBuffer& message, double timeout)
+        RecvStatus WebSocket::try_recv(MemBuffer& message, double timeout)
         {
-                double start_time = rcom_time(get_linux());
+                double start_time = rcom_time(*linux_);
                 double remaining_time = timeout;
                 RecvStatus status = kRecvTimeOut;
                 
@@ -108,11 +108,11 @@ namespace rcom {
         
         double WebSocket::compute_remaning_time(double start_time, double timeout)
         {
-                double now = rcom_time(get_linux());
+                double now = rcom_time(*linux_);
                 return timeout - (now - start_time);
         }
         
-        bool WebSocket::wait_and_handle_one_message(rcom::MemBuffer& message, double timeout)
+        bool WebSocket::wait_and_handle_one_message(MemBuffer& message, double timeout)
         {
                 bool received_data = wait_for_data(timeout);
                 if (received_data) 
@@ -149,7 +149,7 @@ namespace rcom {
                 }
         }
         
-        void WebSocket::handle_one_message(rcom::MemBuffer& message)
+        void WebSocket::handle_one_message(MemBuffer& message)
         {
                 read_message();
                 process_message(message);
@@ -209,7 +209,7 @@ namespace rcom {
                 return ntohll(netlong);
         }
         
-        static uint16_t convert_to_uint16(rcom::MemBuffer buffer)
+        static uint16_t convert_to_uint16(MemBuffer buffer)
         {
                 uint16_t value = 0;
                 if (buffer.size() == 2) {
@@ -236,7 +236,7 @@ namespace rcom {
                               || frame_header_.opcode == kPingOpcode
                               || frame_header_.opcode == kPongOpcode);
                 if (!valid) {
-                        log_error("WebSocket: Invalid opcode.");
+                        log_err(log_, "WebSocket: Invalid opcode.");
                         throw RecvError("Invalid opcode", kCloseProtocolError);
                 }
         }
@@ -244,9 +244,9 @@ namespace rcom {
         void WebSocket::input_assert_payload_length()
         {
                 if (input_message_length_ > kMaximumPayloadLength) {
-                        log_error("websocket_assert_payload_length: message too large "
-                              "(%lu > %d MB)", input_message_length_,
-                              (int) (kMaximumPayloadLength / (1024 * 1024)));
+                        log_err(log_, "websocket_assert_payload_length: message too large "
+                                "(%lu > %d MB)", input_message_length_,
+                                (int) (kMaximumPayloadLength / (1024 * 1024)));
                         throw RecvError("Message too large", kCloseTooBig);
                 }
         }
@@ -276,12 +276,12 @@ namespace rcom {
         {
                 bool success = socket_->read(buffer, length);
                 if (!success) {
-                        log_error("WebSocket::socket_read: read failed");
+                        log_err(log_, "WebSocket::socket_read: read failed");
                         throw RecvError("Read failed", kCloseInternalError);
                 }
         }
         
-        void WebSocket::process_message(rcom::MemBuffer& message)
+        void WebSocket::process_message(MemBuffer& message)
         {
                 if (has_control_message()) {
                         handle_control_message();
@@ -290,7 +290,7 @@ namespace rcom {
                         handle_data_payload(message);
                 
                 } else {
-                        log_info("WebSocket: Invalid message opcode");
+                        log_info(log_, "WebSocket: Invalid message opcode");
                         throw RecvError("Invalid opcode", kCloseProtocolError);
                 }
         }
@@ -352,7 +352,7 @@ namespace rcom {
                         handle_pong_response();
                         break;
                 default:
-                        log_error("WebSocket::handle_control_message: Invalid opcode ");
+                        log_err(log_, "WebSocket::handle_control_message: Invalid opcode ");
                         break;
                 }
         }
@@ -382,14 +382,14 @@ namespace rcom {
         {
                 uint8_t data[2];
                 uint16_t netshort;
-                rcom::MemBuffer payload;
+                MemBuffer payload;
                 
                 netshort = htons((uint16_t)code);
                 data[0] = (uint8_t) (netshort & 0x00ff);
                 data[1] = (uint8_t) ((netshort & 0xff00) >> 8);
                 payload.append(data, 2);
                 
-                rcom::MemBuffer message;
+                MemBuffer message;
                 make_message(message, kCloseOpcode, payload);
                 
                 return socket_send(message);
@@ -405,7 +405,7 @@ namespace rcom {
                 try {
                         try_close_with_handshake(code);
                 } catch (...) {
-                        log_error("close_with_handshake failed");
+                        log_err(log_, "close_with_handshake failed");
                         close_without_handshake();
                 }
         }
@@ -415,8 +415,8 @@ namespace rcom {
                 if (send_close_message(code)) {
                         closing_wait_reply(5.0);
                 } else {
-                        log_warning("WebSocket::close_with_handshake: failed to send close. "
-                               "Not waiting for a reply");
+                        log_warn(log_, "WebSocket::close_with_handshake: "
+                                 "failed to send close. Not waiting for a reply");
                 }
                 
                 close_connection();
@@ -424,7 +424,7 @@ namespace rcom {
         
         void WebSocket::closing_wait_reply(double timeout)
         {
-                double start_time = rcom_time(get_linux());
+                double start_time = rcom_time(*linux_);
                 double remaining_time = timeout;
 
                 while (remaining_time >= 0.0) {
@@ -444,17 +444,17 @@ namespace rcom {
         
         void WebSocket::send_pong()
         {
-                rcom::MemBuffer message;
+                MemBuffer message;
                 make_message(message, kPongOpcode, input_payload_buffer_);                
                 socket_send(message); // FIXME: what if send fails? RecvError?...
         }
 
         void WebSocket::handle_pong_response()
         {
-                log_info("WebSocket: Got pong response"); // TODO
+                log_info(log_, "WebSocket: Got pong response"); // TODO
         }
 
-        void WebSocket::handle_data_payload(rcom::MemBuffer& message)
+        void WebSocket::handle_data_payload(MemBuffer& message)
         {
                 assert_continuation();
                 assert_message_length(message);
@@ -470,12 +470,12 @@ namespace rcom {
                               || (frame_header_.opcode != kContinutationOpcode
                                   && !is_continuation_));
                 if (!valid) {
-                        log_error("WebSocket: Unexpected continuation");
+                        log_err(log_, "WebSocket: Unexpected continuation");
                         throw RecvError("Unexpected continuation", kCloseProtocolError);
                 }
         }
 
-        void WebSocket::assert_message_length(rcom::MemBuffer& message)
+        void WebSocket::assert_message_length(MemBuffer& message)
         {
                 size_t length = input_payload_buffer_.size();
         
@@ -483,7 +483,7 @@ namespace rcom {
                         length += message.size();
         
                 if (length > kMaximumMessageLength) {
-                        log_error("WebSocket: Message too big (%lu B)", length);
+                        log_err(log_, "WebSocket: Message too big (%lu B)", length);
                         throw RecvError("Message too big", kCloseTooBig);
                 }
         }
@@ -497,7 +497,7 @@ namespace rcom {
                 }
         }
 
-        void WebSocket::copy_payload(rcom::MemBuffer& message)
+        void WebSocket::copy_payload(MemBuffer& message)
         {
                 if (frame_header_.opcode == kTextOpcode
                     || frame_header_.opcode == kBinaryOpcode) {
@@ -512,14 +512,14 @@ namespace rcom {
         }
 
         
-        bool WebSocket::send(rcom::MemBuffer& message, MessageType type)
+        bool WebSocket::send(MemBuffer& message, MessageType type)
         {
                 bool success = false;
                 size_t length = message.size();
                 
                 if (length >= kMaximumMessageLength) {
-                        log_error("WebSocket::send: Message too long (max. %d MB)",
-                              (int) (kMaximumMessageLength / (1024 * 1024)));
+                        log_err(log_, "WebSocket::send: Message too long (max. %d MB)",
+                                    (int) (kMaximumMessageLength / (1024 * 1024)));
                 } else if (length < kShortMessageLength) {
                         success = send_short_data_message(message, type);
                 } else {
@@ -529,7 +529,7 @@ namespace rcom {
                 return success;
         }
         
-        bool WebSocket::send_short_data_message(rcom::MemBuffer& message, MessageType type)
+        bool WebSocket::send_short_data_message(MemBuffer& message, MessageType type)
         {
                 Opcode opcode = (type == kTextMessage)? kTextOpcode : kBinaryOpcode;
                 make_message(opcode, message);
@@ -537,7 +537,7 @@ namespace rcom {
                 return send_output_buffer();
         }
         
-        bool WebSocket::send_long_data_message(rcom::MemBuffer& message, MessageType type)
+        bool WebSocket::send_long_data_message(MemBuffer& message, MessageType type)
         {
                 Opcode opcode = (type == kTextMessage)? kTextOpcode : kBinaryOpcode;
 
@@ -547,7 +547,7 @@ namespace rcom {
                         && send_long_message_payload(message);
         }
 
-        bool WebSocket::send_long_message_header(Opcode opcode, rcom::MemBuffer& message)
+        bool WebSocket::send_long_message_header(Opcode opcode, MemBuffer& message)
         {
                 output_message_buffer_.clear();
                 output_append_header(output_message_buffer_, opcode, message);
@@ -555,7 +555,7 @@ namespace rcom {
         }
 
         // Send the payload in blocks of 1k
-        bool WebSocket::send_long_message_payload(rcom::MemBuffer& message)
+        bool WebSocket::send_long_message_payload(MemBuffer& message)
         {
                 bool success = true;
                 const std::vector<uint8_t>& data = message.data();
@@ -576,14 +576,14 @@ namespace rcom {
                 return success;
         }        
         
-        void WebSocket::make_message(Opcode opcode, rcom::MemBuffer& message)
+        void WebSocket::make_message(Opcode opcode, MemBuffer& message)
         {
                 make_message(output_message_buffer_, opcode, message);
         }
         
-        void WebSocket::make_message(rcom::MemBuffer& output,
+        void WebSocket::make_message(MemBuffer& output,
                                      Opcode opcode,
-                                     rcom::MemBuffer& message)
+                                     MemBuffer& message)
         {
                 output.clear();
                 output_append_header(output, opcode, message);
@@ -614,12 +614,12 @@ namespace rcom {
                 return socket_send(output_message_buffer_);
         }
         
-        bool WebSocket::socket_send(rcom::MemBuffer& buffer)
+        bool WebSocket::socket_send(MemBuffer& buffer)
         {
                 bool success = true;
                 
                 if (!socket_->send(buffer)) {
-                        log_error("WebSocket::socket_send: write failed. closing");
+                        log_err(log_, "WebSocket::socket_send: write failed. closing");
  
                         /* If writing the TCP socket fails, don't bother going
                          * through the closing handshake (the code may
@@ -635,7 +635,7 @@ namespace rcom {
                 bool success = true;
                 
                 if (!socket_->send(buffer, length)) {
-                        log_error("WebSocket::socket_send: write failed. closing");
+                        log_err(log_, "WebSocket::socket_send: write failed. closing");
  
                         /* If writing the TCP socket fails, don't bother going
                          * through the closing handshake (the code may

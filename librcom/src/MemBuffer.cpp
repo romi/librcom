@@ -24,10 +24,11 @@
  */
 
 #include <cstring>
+#include <stdexcept>
 #include <stdarg.h>
 
 #include "rcom/MemBuffer.h"
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 
 namespace rcom
 {
@@ -61,24 +62,29 @@ namespace rcom
                 data_.insert(data_.end(), buffer.data().begin(), buffer.data().end());
         }
 
-        void MemBuffer::append_string(const char *string)
+        void MemBuffer::append(const std::string& s)
+        {
+                data_.insert(data_.end(), s.data(), s.data() + s.length());
+        }
+
+        void MemBuffer::append_string_32k_max(const char *string)
         {
                 const int KB_32 = (32 * 1024);
-                size_t lens = strnlen(string, KB_32);
-                if (lens == KB_32)
-                        log_warning("MemBuffer::append_str() string truncated to 32kb");
+                size_t lens = strnlen(string, KB_32 + 1);
+                if (lens == KB_32 + 1)
+                        throw std::runtime_error("MemBuffer::append_string_32k_max() "
+                                                 "string too long");
                 data_.insert(data_.end(), (uint8_t *) string, (uint8_t *) string+lens);
         }
 
         void MemBuffer::printf(const char *format, ...)
         {
                 va_list ap;
-                va_start(ap, format);
                 std::string formatted_string;
+                va_start(ap, format);
                 vprintf(formatted_string, format, ap);
                 va_end(ap);
-                data_.insert(data_.end(), formatted_string.data(),
-                             formatted_string.data()+formatted_string.length());
+                append(formatted_string);
         }
         
         void MemBuffer::vprintf(std::string& instring, const char* format, va_list ap)

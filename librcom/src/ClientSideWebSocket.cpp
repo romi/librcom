@@ -23,27 +23,30 @@
  */
 #include <stdexcept>
 #include <cstring>
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/Frames.h"
 #include "rcom/ClientSideWebSocket.h"
 #include "rcom/util.h"
 
 namespace rcom {
 
-        ClientSideWebSocket::ClientSideWebSocket(std::shared_ptr<rcom::ILinux>& linux,
-                                                 std::unique_ptr<ISocket>& socket,
+        ClientSideWebSocket::ClientSideWebSocket(std::unique_ptr<ISocket>& socket,
                                                  IResponseParser& parser,
-                                                 IAddress& remote_address)
-                : WebSocket(socket), linux_(linux)
+                                                 IAddress& remote_address,
+                                                 const std::shared_ptr<ILinux>& linux,
+                                                 const std::shared_ptr<ILog>& log)
+                : WebSocket(socket, linux, log)
         {
-                if (!handshake(parser, remote_address)) {
-                        log_error("ClientSideWebSocket::handhake failed");
-                        throw std::runtime_error("ClientSideWebSocket: Handshake failed");
+                try {
+                        handshake(parser, remote_address);
+                        
+                } catch (std::exception& e) {
+                        log_err(log_, "ClientSideWebSocket::handhake failed");
+                        throw;
                 }
         }
         
-        ClientSideWebSocket::~ClientSideWebSocket()
-        = default;
+        ClientSideWebSocket::~ClientSideWebSocket() = default;
 
         void ClientSideWebSocket::input_assert_mask_flag()
         {
@@ -55,14 +58,14 @@ namespace rcom {
                 // the status code 1002 (protocol error)"
 
                 if (frame_header_.mask) {
-                        log_error("ClientSideWebSocket: The server sent a masked frame.");
+                        log_err(log_, "ClientSideWebSocket: "
+                                "The server sent a masked frame.");
                         throw RecvError("Server sent masked frame", kCloseProtocolError);
                 }
         }
         
-        bool ClientSideWebSocket::handshake(IResponseParser& parser, IAddress& address)
+        void ClientSideWebSocket::handshake(IResponseParser& parser, IAddress& address)
         {
-                bool success = false;
                 std::string key;
                 std::string accept;
                 std::string host;
@@ -71,24 +74,9 @@ namespace rcom {
                 make_accept_string(accept, key);
                 address.tostring(host);
         
-                if (send_http_request(host, key)) {
-                        if (parser.parse(*socket_)) {
-                                if (parser.response().is_websocket(accept)) {
-                                        success = true;
-                                } else {
-                                        log_error("ClientSideWebSocket::handshake: "
-                                              "invalid response");
-                                }
-                        } else {
-                                log_error("ClientSideWebSocket::handshake: "
-                                      "failed to parse the response");
-                        }
-                } else {
-                        log_error("ClientSideWebSocket::handshake: "
-                              "failed to send the request");
-                }
-        
-                return success;
+                send_http_request(host, key);
+                parser.parse(*socket_);
+                parser.response().assert_websocket(accept);
         }
         
         void ClientSideWebSocket::make_key(std::string& key)
@@ -106,16 +94,17 @@ namespace rcom {
                 encode_base64(bytes, 16, key);
         }
 
-        bool ClientSideWebSocket::send_http_request(std::string& host, std::string& key)
+        void ClientSideWebSocket::send_http_request(std::string& host, std::string& key)
         {
-                rcom::MemBuffer request;
+                MemBuffer request;
                 make_http_request(request, host, key);
-                // log_debug("ClientSideWebSocket::send_http_request: %s",
-                //         request.tostring().c_str());
-                return socket_send(request);
+                if (!socket_send(request)) {
+                        throw std::runtime_error("ClientSideWebSocket::send_http_request"
+                                                 " send failed");
+                }
         }
         
-        void ClientSideWebSocket::make_http_request(rcom::MemBuffer& request, std::string& host,
+        void ClientSideWebSocket::make_http_request(MemBuffer& request, std::string& host,
                                                     std::string& key)
         {
                 request.printf("GET / HTTP/1.1\r\n"
@@ -138,14 +127,14 @@ namespace rcom {
                 bool timed_out = false;
                 double start_time = rcom_time(*linux_);
                 while (socket_->is_endpoint_connected() && !timed_out) {
-                    double now = rcom_time(*linux_);
-                    double time_passed = now - start_time;
-                    timed_out = (time_passed >= timeout);
+                        double now = rcom_time(*linux_);
+                        double time_passed = now - start_time;
+                        timed_out = (time_passed >= timeout);
 
-                    if (!timed_out) {
-                        double duration = std::min(0.1, timeout - time_passed);
-                        rcom_sleep(*linux_, duration);
-                    }
+                        if (!timed_out) {
+                                double duration = std::min(0.1, timeout - time_passed);
+                                rcom_sleep(*linux_, duration);
+                        }
                 }
                 socket_->close();
         }
@@ -171,9 +160,9 @@ namespace rcom {
                 apply_mask(out, in, length, output_mask_);
         }
 
-        void ClientSideWebSocket::output_append_header(rcom::MemBuffer& output,
+        void ClientSideWebSocket::output_append_header(MemBuffer& output,
                                                        Opcode opcode,
-                                                       rcom::MemBuffer& message)
+                                                       MemBuffer& message)
         {
                 uint64_t length = message.size();
                 uint8_t frame[14];
@@ -199,7 +188,7 @@ namespace rcom {
                         frame[n++] = (uint8_t) ((netlong & 0x00000000ff000000) >> 24);
                         frame[n++] = (uint8_t) ((netlong & 0x000000ff00000000) >> 32);
                         frame[n++] = (uint8_t) ((netlong & 0x0000ff0000000000) >> 40);
-                        frame[n++] = (uint8_t) ((netlong & 0x00ff000000000000) >> 48);                
+                        frame[n++] = (uint8_t) ((netlong & 0x00ff000000000000) >> 48);
                         frame[n++] = (uint8_t) ((netlong & 0xff00000000000000) >> 56);
                 }
 
@@ -212,8 +201,8 @@ namespace rcom {
                 output.append(frame, n);
         }
 
-        void ClientSideWebSocket::output_append_payload(rcom::MemBuffer& output,
-                                                        rcom::MemBuffer& message)
+        void ClientSideWebSocket::output_append_payload(MemBuffer& output,
+                                                        MemBuffer& message)
         {
                 uint8_t buffer[1024];
                 size_t sent = 0;

@@ -31,68 +31,53 @@ namespace rcom {
         {
         }
 
-        bool RequestParser::parse(ISocket& socket)
+        void RequestParser::parse(ISocket& socket)
         {
-                return parse_request(socket);
+                parse_request(socket);
         }
 
-        bool RequestParser::set_method()
+        void RequestParser::set_method()
         {
-                bool success = false;
                 std::string value = buffer_.tostring();
                 if (value == "GET") {
                         request_.set_method(IRequest::kGetMethod);
-                        success = true;
                 } else {
-                        error(kHttpStatusMethodNotAllowed,
-                                      "Method not allowed");
+                        error("Method not allowed");
                 }
-                return success;
         }
         
-        bool RequestParser::set_uri()
+        void RequestParser::set_uri()
         {
                 std::string value = buffer_.tostring();
                 request_.set_uri(value);
-                return true;
         }
         
-        bool RequestParser::set_version()
+        void RequestParser::set_version()
         {
-                bool success = false;
                 std::string value = buffer_.tostring();
                 // This function only checks whether the HTTP version is
                 // 1.1. The code is currently not designed for HTTP/2 (and
                 // websockets are not designed for HTTP/2 and vice versa). Nor
                 // should HTTP/1.0 be used anymore.
-                if (value.compare("HTTP/1.1") == 0) {
-                        success = true;
-                } else {
-                        error(kHttpStatusHTTPVersionNotSupported,
-                                      "Unsupported HTTP version");
+                if (value.compare("HTTP/1.1") != 0) {
+                        error("Unsupported HTTP version");
                 }
-                return success;
         }
         
-        bool RequestParser::set_code()
+        void RequestParser::set_code()
         {
-                error(kHttpStatusBadRequest,
-                      "Didn't expect a response code");
-                return false;
+                error("Didn't expect a response code");
         }
         
-        bool RequestParser::set_reason()
+        void RequestParser::set_reason()
         {
-                error(kHttpStatusBadRequest,
-                      "Didn't expect a response reason");
-                return false;
+                error("Didn't expect a response reason");
         }
         
-        bool RequestParser::add_header()
+        void RequestParser::add_header()
         {
                 std::string value = buffer_.tostring();
                 request_.add_header(name_, value);
-                return true;
         }
 
         IRequest& RequestParser::request()

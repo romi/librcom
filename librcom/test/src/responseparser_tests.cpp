@@ -41,7 +41,7 @@ protected:
 
         void set_read_data(const char *data) {
                 read_data_.clear();
-                read_data_.append_string(data);
+                read_data_.append_string_32k_max(data);
         }
 
         void set_no_timeout_data() {
@@ -50,7 +50,7 @@ protected:
         }
 
         void append_read_data(const char *data) {
-                read_data_.append_string(data);
+                read_data_.append_string_32k_max(data);
         }
         
         bool socket_read(uint8_t *buffer, size_t len) {
@@ -78,11 +78,10 @@ TEST_F(responseparser_tests, successfully_parse_response)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
+        parser.parse(socket_);
         IResponse& actual_response = parser.response();
 
         // Assert
-        ASSERT_TRUE(success);
         ASSERT_EQ(actual_response.get_code(), 101);
 
         std::string value;
@@ -108,10 +107,8 @@ TEST_F(responseparser_tests, response_with_invalid_http_version_fails)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(parser.parse(socket_), std::runtime_error);
 }
 
 TEST_F(responseparser_tests, response_with_missing_http_version_fails)
@@ -128,10 +125,8 @@ TEST_F(responseparser_tests, response_with_missing_http_version_fails)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(parser.parse(socket_), std::runtime_error);
 }
 
 TEST_F(responseparser_tests, response_with_missing_status_code_fails)
@@ -148,10 +143,8 @@ TEST_F(responseparser_tests, response_with_missing_status_code_fails)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(parser.parse(socket_), std::runtime_error);
 }
 
 TEST_F(responseparser_tests, response_with_missing_reason_fails)
@@ -168,10 +161,8 @@ TEST_F(responseparser_tests, response_with_missing_reason_fails)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(parser.parse(socket_), std::runtime_error);
 }
 
 TEST_F(responseparser_tests, response_with_invalid_header_fails_1)
@@ -186,10 +177,8 @@ TEST_F(responseparser_tests, response_with_invalid_header_fails_1)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(parser.parse(socket_), std::runtime_error);
 }
 
 TEST_F(responseparser_tests, response_with_invalid_header_fails_2)
@@ -208,10 +197,8 @@ TEST_F(responseparser_tests, response_with_invalid_header_fails_2)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(parser.parse(socket_), std::runtime_error);
 }
 
 TEST_F(responseparser_tests, response_with_invalid_header_fails_3)
@@ -230,10 +217,8 @@ TEST_F(responseparser_tests, response_with_invalid_header_fails_3)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(parser.parse(socket_), std::runtime_error);
 }
 
 TEST_F(responseparser_tests, response_with_bad_newlines_fails)
@@ -248,10 +233,8 @@ TEST_F(responseparser_tests, response_with_bad_newlines_fails)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(parser.parse(socket_), std::runtime_error);
 }
 
 TEST_F(responseparser_tests, parsing_response_fails)
@@ -270,8 +253,6 @@ TEST_F(responseparser_tests, parsing_response_fails)
         ResponseParser parser(response);
         
         // Act
-        bool success = parser.parse(socket_);
-
         // Assert
-        ASSERT_FALSE(success);
+        ASSERT_THROW(parser.parse(socket_), std::runtime_error);
 }

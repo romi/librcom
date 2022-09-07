@@ -23,17 +23,19 @@
  */
 #include <stdexcept>
 #include <algorithm>
-#include "rcom/ConsoleLogger.h"
+#include "rcom/Log.h"
 #include "rcom/WebSocketServer.h"
 
 namespace rcom {
         
         WebSocketServer::WebSocketServer(std::unique_ptr<IServerSocket>& server_socket,
-                                         std::shared_ptr<ISocketFactory> factory,
-                                         std::shared_ptr<IMessageListener> listener)
+                                         const std::shared_ptr<ISocketFactory>& factory,
+                                         const std::shared_ptr<IMessageListener>& listener,
+                                         const std::shared_ptr<ILog>& log)
                 : server_socket_(),
                   factory_(factory),
                   listener_(listener),
+                  log_(log),
                   links_(),
                   message_(),
                   to_close_(),
@@ -81,7 +83,8 @@ namespace rcom {
                         handle_new_connection(sockfd);
 
                 } catch (std::runtime_error& rerr) {
-                        log_error("WebSocketServer::try_new_connection: %s", rerr.what());
+                        log_err(log_, "WebSocketServer::try_new_connection: %s",
+                                  rerr.what());
                 }
         }
 
@@ -106,7 +109,7 @@ namespace rcom {
                                             links_.end(),
                                             [](std::unique_ptr<IWebSocket> const& ws) {
 //                                                    if (!ws->is_connected())
-//                                                        log_info("remove_closed_links::removing ws");
+//                                                        log_info(log_, "remove_closed_links::removing ws");
                                                     return !ws->is_connected();
                                             }), 
                              links_.end()); 
@@ -123,34 +126,34 @@ namespace rcom {
                     || status == kRecvBinary) {
                         MessageType type;
                         type = (status == kRecvText)? kTextMessage : kBinaryMessage;
-                        listener_->onmessage(*links_[index], message_, type);
-                                                
+                        listener_->onmessage(*this, *links_[index], message_, type);
+                        
                 } else if (status == kRecvError) {
-                        log_error("WebSocketServer::handle_new_messages: recv failed. "
-                              "Removing link.");
+                        log_err(log_, "WebSocketServer::handle_new_messages: "
+                                "recv failed. Removing link.");
                         close(index, kCloseInternalError);
                         
                 } else if (status == kRecvClosed) {
-                        //log_error("WebSocketServer::handle_new_messages: "
+                        //log_err(log_, "WebSocketServer::handle_new_messages: "
                         // "kRecvClose. Socket will be removed.");
                 }
         }
 
-        void WebSocketServer::broadcast(rcom::MemBuffer& message, MessageType type,
+        void WebSocketServer::broadcast(MemBuffer& message, MessageType type,
                                         IWebSocket *exclude)
         {
                 for (size_t i = 0; i < links_.size(); i++) {
                         if (exclude != links_[i].get()) {
                                 if (!send(i, message, type)) {
-                                        log_warning("WebSocketServer::broadcast_text: "
-                                               "send failed. Closing connection.");
+                                        log_warn(log_, "WebSocketServer::broadcast_text: "
+                                                 "send failed. Closing connection.");
                                         close(i, kCloseInternalError);
                                 }
                         }
                 }
         }
 
-        bool WebSocketServer::send(size_t index, rcom::MemBuffer& message,
+        bool WebSocketServer::send(size_t index, MemBuffer& message,
                                    MessageType type)
         {
                 bool success = true;

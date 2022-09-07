@@ -24,16 +24,19 @@
 #ifndef _LIBRCOM_ILOG_H
 #define _LIBRCOM_ILOG_H
 
+#include <string>
+
 namespace rcom {
 
         class ILog
         {
         public:
                 virtual ~ILog() = default;
-                virtual void error(const char *format, ...) = 0;
-                virtual void warn(const char *format, ...) = 0;
-                virtual void info(const char *format, ...) = 0;
-                virtual void debug(const char *format, ...) = 0;
+
+                virtual void error(const std::string& message) = 0;
+                virtual void warn(const std::string& message) = 0;
+                virtual void info(const std::string& message) = 0;
+                virtual void debug(const std::string& message) = 0;
         };
 }
 

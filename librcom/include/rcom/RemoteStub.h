@@ -27,6 +27,7 @@
 #include <memory>
 #include <utility>
 #include "rcom/IRPCClient.h"
+#include "rcom/ILog.h"
 
 namespace rcom {
         
@@ -34,6 +35,7 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IRPCClient> client_;
+                std::shared_ptr<ILog> log_;
 
                 bool execute(const std::string& method, nlohmann::json& params,
                              nlohmann::json& result);
@@ -44,10 +46,8 @@ namespace rcom {
                 bool execute_simple_request(const std::string& method);
 
         public:
-                explicit RemoteStub(std::unique_ptr<IRPCClient>& client)
-                        : client_() {
-                        client_ = std::move(client);
-                }
+                explicit RemoteStub(std::unique_ptr<IRPCClient>& client,
+                                    const std::shared_ptr<ILog>& log);
                 virtual ~RemoteStub() = default;
         };
 }

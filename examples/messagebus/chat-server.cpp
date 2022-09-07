@@ -20,10 +20,10 @@
 #include <iostream>
 #include <syslog.h>
 #include <atomic>
+#include <unistd.h>
 
 #include <rcom/MessageHub.h>
 #include <rcom/IMessageListener.h>
-#include <rcom/WebSocketServerFactory.h>
 #include <rcom/Linux.h>
 #include <rcom/util.h>
 
@@ -46,22 +46,19 @@ void SignalHandler(int signal)
 class ChatBus : public rcom::IMessageListener
 {
 public:
-        rcom::MessageHub *hub_;
         
-        ChatBus() : hub_(nullptr) {} 
+        ChatBus() {} 
         ~ChatBus() override = default;
 
-        ChatBus(ChatBus& b) = delete;
-        ChatBus& operator=(const ChatBus& other) = delete;
-
-        void onmessage(rcom::IWebSocket& websocket,
+        void onmessage(rcom::IWebSocketServer& server,
+                       rcom::IWebSocket& websocket,
                        rcom::MemBuffer& message,
                        rcom::MessageType type) override {
                 (void) type; // Tell the compiler it's not used
                 std::cout << "> " << message.tostring() << std::endl;
                 /* Broadcast the incoming message to all connected
                  * clients but exclude the sender. */
-            hub_->broadcast(message, rcom::kTextMessage, &websocket);
+                server.broadcast(message, rcom::kTextMessage, &websocket);
         }
 };
 
@@ -74,21 +71,15 @@ int main(int argc, char **argv)
                 topic = argv[1];
         
         try {
-                auto webserver_socket_factory = rcom::WebSocketServerFactory::create();
-                std::shared_ptr<rcom::ISocketFactory> socket_factory
-                        = std::make_shared<rcom::SocketFactory>();
-                std::shared_ptr<ChatBus> chat = std::make_shared<ChatBus>();
-                std::shared_ptr<rcom::IMessageListener> listener = chat;
-                rcom::MessageHub chat_hub(topic, listener, socket_factory,
-                                          webserver_socket_factory);
-                chat->hub_ = &chat_hub;
-                rcom::Linux linux;
+                std::shared_ptr<rcom::IMessageListener> listener
+                        = std::make_shared<ChatBus>();
+                auto chat_hub = rcom::MessageHub::create(topic, listener);
 
                 std::signal(SIGINT, SignalHandler);
         
                 while (!quit) {
-                        chat_hub.handle_events();
-                        rcom_sleep(linux, 0.050);
+                        chat_hub->handle_events();
+                        usleep(1000);
                 }
                 
         } catch (std::runtime_error& re) {

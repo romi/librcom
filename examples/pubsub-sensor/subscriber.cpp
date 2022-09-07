@@ -40,7 +40,7 @@ void SignalHandler(int signal)
         }
 }
 
-static void print_sensor_value(rcom::MessageLink& link)
+static void print_sensor_value(rcom::IMessageLink& link)
 {
         rcom::MemBuffer message;
         if (link.recv(message, 2.0)) {
@@ -55,10 +55,10 @@ int main()
         std::signal(SIGINT, SignalHandler);
 
         try {
-                rcom::MessageLink link("sensor");
+                auto link = rcom::MessageLink::create("sensor", 10.0);
                 
                 while (!quit) {
-                        print_sensor_value(link);
+                        print_sensor_value(*link);
                 }                
                 
         } catch (std::runtime_error& re) {
