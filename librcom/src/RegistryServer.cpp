@@ -61,7 +61,7 @@ namespace rcom {
                         
         bool RegistryServer::get(const std::string& topic, IAddress& address)
         {
-                return registry_.get(topic, address);
+                return registry_.get(topic, address, 12.0);
         }
         
         void RegistryServer::remove(const std::string& topic)
@@ -164,7 +164,7 @@ namespace rcom {
                         std::string topic = message["topic"];
                         
                         if (get(topic, address)) {
-                                send_address(websocket, address);
+                                send_address(websocket, topic, address);
                                 log_info(log_, "RegistryServer: Get topic '%s'",
                                          topic.c_str());
                         } else {
@@ -178,14 +178,15 @@ namespace rcom {
                 }
         }
 
-        void RegistryServer::send_address(IWebSocket& websocket, IAddress& address)
+        void RegistryServer::send_address(IWebSocket& websocket, const std::string& topic,
+                                          IAddress& address)
         {
                 std::string address_string;
                 address.tostring(address_string);
                         
                 response_.clear();
-                response_.printf(R"({"success":true, "address": "%s"})",
-                                 address_string.c_str());
+                response_.printf(R"({"success":true, "topic": "%s", "address": "%s"})",
+                                 topic.c_str(), address_string.c_str());
                 send_response(websocket);
         }
 

@@ -54,7 +54,7 @@ namespace rcom {
                 void handle_register(IWebSocket& websocket, nlohmann::json& message);
                 void handle_unregister(IWebSocket& websocket, nlohmann::json& message);
                 void handle_get(IWebSocket& websocket, nlohmann::json& message);
-                void send_address(IWebSocket& websocket, IAddress& address);
+                void send_address(IWebSocket& websocket, const std::string& topic, IAddress& address);
                 void send_empty_address(IWebSocket& websocket);
                 void send_fail(IWebSocket& websocket, const std::string& message);
                 void send_success(IWebSocket& websocket);

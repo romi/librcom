@@ -74,7 +74,7 @@ namespace rcom {
                 while (!found && !timed_out) {
                         
                         send_request(request);
-                        found = read_address(address);
+                        found = read_address(address, timeout);
                         
                         double now = rcom_time(*linux_);
                         double time_passed = now - start_time;
@@ -84,6 +84,10 @@ namespace rcom {
                                 double duration = std::min(0.5, timeout - time_passed);
                                 rcom_sleep(*linux_, duration);
                         }
+                }
+                if (!found) {
+                        log_warn(log_, "rcom::RegistryProxy: topic '%s' not found",
+                                 topic.c_str());
                 }
                 return found;
         }
@@ -114,6 +118,7 @@ namespace rcom {
         {
                 bool success = websocket_->send(request, kTextMessage);
                 if (!success) {
+                        log_err(log_, "rcom::RegistryProxy: send_request failed");
                         throw std::runtime_error("RegistryProxy::send_request failed");
                 }
         }
@@ -121,18 +126,21 @@ namespace rcom {
         void RegistryProxy::response_assert_success()
         {
                 MemBuffer response;
-                read_response(response);
+                read_response(response, 10.0);
                 nlohmann::json json = parse_response(response);
                 assert_success(json);
         }
 
-        void RegistryProxy::read_response(MemBuffer& response)
+        void RegistryProxy::read_response(MemBuffer& response, double timeout)
         {
-                RecvStatus status = websocket_->recv(response, 2.0);
-                if (status == kRecvTimeOut)
+                RecvStatus status = websocket_->recv(response, timeout);
+                if (status == kRecvTimeOut) {
+                        log_err(log_, "rcom::RegistryProxy: recv timed out");
                         throw std::runtime_error("RegistryProxy::read_response: Time-out");
-                else if (status == kRecvError)
+                } else if (status == kRecvError) {
+                        log_err(log_, "rcom::RegistryProxy: recv failed");
                         throw std::runtime_error("RegistryProxy::read_response: Error");
+                }
         }
         
         nlohmann::json RegistryProxy::parse_response(MemBuffer& response)
@@ -142,7 +150,7 @@ namespace rcom {
                 try {
                         json = nlohmann::json::parse(text.c_str());
                 } catch (nlohmann::json::exception& jerr) {
-                        log_err(log_, "RegistryProxy: %s", jerr.what());
+                        log_err(log_, "rcom::RegistryProxy: %s", jerr.what());
                         throw std::runtime_error("RegistryProxy::parse_response failed");
                 }
                 return json;
@@ -154,7 +162,8 @@ namespace rcom {
                 try {
                         retval = jsonobj["success"];
                 } catch (nlohmann::json::exception& jerr) {
-                        log_err(log_, "RegistryProxy: %s", jerr.what());
+                        log_err(log_, "rcom::RegistryProxy::is_success %s", jerr.what());
+                        throw std::runtime_error("RegistryProxy: invalid response");
                 }
                 return retval;
         }
@@ -165,41 +174,30 @@ namespace rcom {
                 try {
                         success = jsonobj["success"];
                         if (!success) {
-                                log_warn(log_, "RegistryProxy: request returned "
-                                         "success=false");
+                                log_err(log_, "rcom::RegistryProxy: request returned "
+                                        "success=false");
                         }
                 } catch (nlohmann::json::exception& jerr) {
-                        log_err(log_, "RegistryProxy: %s", jerr.what());
+                        log_err(log_, "rcom::RegistryProxy: %s", jerr.what());
                 }
                 if (!success) {
                         throw std::runtime_error("RegistryProxy::assert_success failed");
                 }
         }
-        
-        void RegistryProxy::print_error(nlohmann::json& jsonobj, const std::string& method)
-        {
-                log_err(log_, "RegistryProxy: %s: Request failed", method.c_str());
-                try {
-                        log_err(log_, "RegistryProxy: Reason: %s",
-                                  jsonobj["message"].dump().c_str());
-                } catch (nlohmann::json::exception& jerr) {
-                        log_err(log_, "RegistryProxy: %s", jerr.what());
-                }
-        }
-                                
-        bool RegistryProxy::read_address(IAddress& address)
+                                        
+        bool RegistryProxy::read_address(IAddress& address, double timeout)
         {
                 bool found = false;
                 MemBuffer response;
-                read_response(response);
+                read_response(response, timeout);
                 
                 nlohmann::json jsonobj = parse_response(response);
-                assert_success(jsonobj);
-                
-                std::string address_string;
-                found = get_address(jsonobj, address_string);
-                if (found) {
-                        address.set(address_string);
+                if (is_success(jsonobj)) {
+                        std::string address_string;
+                        found = get_address(jsonobj, address_string);
+                        if (found) {
+                                address.set(address_string);
+                        }
                 }
                 return found;
         }
@@ -212,6 +210,8 @@ namespace rcom {
                         address_string = jsonobj["address"];
                         found = true;
                 } catch (nlohmann::json::exception& jerr) {
+                        log_err(log_, "rcom::RegistryProxy::get_address %s", jerr.what());
+                        throw std::runtime_error("RegistryProxy: invalid response");
                 }
                 return found;
         }

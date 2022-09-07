@@ -49,12 +49,11 @@ namespace rcom {
                 
                 void send_request(MemBuffer& request);
                 void response_assert_success(); 
-                void read_response(MemBuffer& response);
+                void read_response(MemBuffer& response, double timeout);
                 nlohmann::json parse_response(MemBuffer& response);
                 bool is_success(nlohmann::json& jsonobj);
                 void assert_success(nlohmann::json& jsonobj);
-                void print_error(nlohmann::json& jsonobj, const std::string& method);
-                bool read_address(IAddress& address); 
+                bool read_address(IAddress& address, double timeout); 
                 bool get_address(nlohmann::json& jsonobj, std::string& address_string);
 
         public:
@@ -65,7 +64,7 @@ namespace rcom {
 
                 void set(const std::string& topic, IAddress& address) override; 
                 bool get(const std::string& topic, IAddress& address,
-                         double timeout_in_seconds = 12.0) override;
+                         double timeout_in_seconds) override;
                 void remove(const std::string& topic) override; 
         };
 }

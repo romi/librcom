@@ -28,7 +28,7 @@ TEST_F(registry_tests, constructor_returns_empty_register_duh)
         Registry registry;
 
         // Assert
-        ASSERT_FALSE(registry.get("bugs", address)); // and we're done
+        ASSERT_FALSE(registry.get("bugs", address, 10.0)); // and we're done
 }
 
 TEST_F(registry_tests, get_returns_expected_values)
@@ -41,7 +41,7 @@ TEST_F(registry_tests, get_returns_expected_values)
         
         // Actc
         registry.set(topic, expected_address);
-        bool get_succeeded  = registry.get(topic, actual_address);
+        bool get_succeeded  = registry.get(topic, actual_address, 10.0);
         
         // Assert
         std::string s;
@@ -62,7 +62,7 @@ TEST_F(registry_tests, remove_removes_entry)
         // Actc
         registry.set(topic, address);
         registry.remove(topic);
-        bool has = registry.get(topic, actual_address);
+        bool has = registry.get(topic, actual_address, 10.0);
         
         // Assert
         ASSERT_FALSE(has);
@@ -80,7 +80,7 @@ TEST_F(registry_tests, set_removes_old_value)
         // Act
         registry.set(topic, first_address);
         registry.set(topic, second_address);
-        bool get_succeeded  = registry.get(topic, actual_address);
+        bool get_succeeded  = registry.get(topic, actual_address, 10.0);
         
         // Assert
         std::string s;

@@ -16,6 +16,7 @@ set(SRCS
         src/serversocket_tests.cpp
         src/serverside_websocket_tests.cpp
         src/clientside_websocket_tests.cpp
+        src/rcommessagehandler_tests.cpp
         
         mocks/ServerSocket.mock.h
         mocks/SocketFactory.mock.h

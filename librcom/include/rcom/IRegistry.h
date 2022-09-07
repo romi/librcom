@@ -40,7 +40,7 @@ namespace rcom {
                 // it wasn't found. Throws a runtime_error is
                 // something goes wrong.
                 virtual bool get(const std::string& topic, IAddress& address,
-                                 double timeout_in_seconds = 12.0) = 0;
+                                 double timeout_in_seconds) = 0;
                 
                 virtual void remove(const std::string& topic) = 0; 
         };

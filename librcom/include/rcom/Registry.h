@@ -47,7 +47,7 @@ namespace rcom {
                 void set(const std::string& topic, IAddress& address) override;
                 
                 bool get(const std::string& topic, IAddress& address,
-                         double timeout_in_seconds = 12.0) override;
+                         double timeout_in_seconds) override;
                 
                 void remove(const std::string& topic) override; 
         };
