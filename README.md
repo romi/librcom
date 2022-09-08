@@ -19,6 +19,34 @@ rcom also offers a higher-level API that provides the remote procedure
 call pattern (RPC). We will discuss this API in more detail
 first. After that we will present the generic API.
 
+# Installation
+
+The installation process follows the classical clone/cmake/make
+pattern:
+
+```bash
+$ git clone -b ci_dev https://github.com/romi/librcom.git
+$ cd librcom/
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+```
+
+Then run the tests to make sure all is well:
+
+```bash
+$ ctest -V
+```
+
+
+To check the code coverage run:
+
+```bash
+$ make librcom_unit_tests_coverage
+$ firefox librcom/librcom_unit_tests_coverage/index.html 
+```
+
 # Using rcom for remote procedure calls
 
 We will document how to use rcom through C++ API. However, it is
@@ -487,22 +515,43 @@ under the hood, rcom is agnostic about the content of the messages.
 
 # The logger
 
-```
+By default, the rcom libray logs the internal messages, including
+error messages, to the console. If you are writing a large
+application, you probably want to redirect these messages to a file or
+a GUI window. In that case, you can subclass the rcom::ILog interface
+and inject it into the API functions discussed so far. For example, in
+the example discussed previously, we created a client connection to a
+remote object as follows:
+
+
+```c++
 int main()
 {
-        try {
-                auto client = rcom::RcomClient::create("elmo", 10.0);
-                RemoteMonster monster(client);        
-                monster.gently_scare_someone("you");
-        } catch (std::exception& e) {
-                std::cout << "main: caught exception: " << e.what() << std::endl;
-        }
-        return 0;
+        // ...
+        auto client = rcom::RcomClient::create("elmo", 10.0);
+        // ...
 }
 ```
 
+This can be adapted as follows:
 
+```c++
+#include "MyLog.h"
+
+int main()
+{
+        // ...
+        auto log = std::make_shared<MyLog>();
+        auto client = rcom::RcomClient::create("elmo", 10.0, log);
+        // ...
+}
 ```
+
+The class `MyLog` implements the `rcom::Ilog` interface. It must
+handle the four types of messages that may be sent by the library as
+follows:
+
+```c++
 #include <iostream.h>
 #include <rcom/ILog.h>
         
@@ -530,20 +579,20 @@ public:
 };
 ```
 
-```
+Similarly, for the server-side, you can pass your own the `ILog` object:
+
+
+```c++
+#include "MyLog.h"
+
 int main()
 {
-        try {
-                auto log = std::make_shared<MyLog>();
-                auto client = rcom::RcomClient::create("elmo", 10.0, log);
-                RemoteMonster monster(client);        
-                monster.gently_scare_someone("you");
-        } catch (std::exception& e) {
-                std::cout << "main: caught exception: " << e.what() << std::endl;
-        }
-        return 0;
+        // ...
+        auto monster_server = rcom::RcomServer::create(name, adaptor, log);
+        // ...
 }
 ```
+
 
 # Fixed port
 
@@ -555,6 +604,10 @@ int main()
 # Specifying the address of the registry
 
 # Behind a web server 
+
+## http
+
+## https
 
 # Connecting from Javascript
 
@@ -569,9 +622,20 @@ requested object.
 
 # Connecting from Python
 
-## http
+The `rcom` library provides some helper code to exchange data between
+python code and rcom objects written in C++. At the current
+development stage, this Python code has only been used for prototyping
+during development. The code is not production ready but it may help
+to get started in your own projects.
 
-## https
+## A Python client connecting to an C++ rcom server
+
+The Python client-side code uses the `websocket` module. You can
+install it as follows:
+
+```bash
+$ ...
+```
 
 
 # Classes
@@ -616,11 +680,29 @@ additional functionality:
 * It has a topic name.
 * It registers the topic and its address to the remote registry.
 
-
-
 ServerSideWebSocket: The websocket created on the server-side in
 response to a new incoming connection.
 
 ClientSideWebSocket: The websocket created by the client to connect to
 a WebSocketServer.
+
+Both inherit implementation from the WebSocket class.
+
+## RPC classes
+
+IRPCHandler
+
+IRPCClient
+
+IRPCServer
+
+IMessageListener
+
+RcomClient
+
+RemoteStub
+
+RcomServer
+
+RcomMessageHandler
 
