@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <rcom/RemoteStub.h>
 #include <rcom/RcomClient.h>
-#include <rcom/ILog.h>
+#include "MyLog.h"
 #include "IMonster.h"
 
 class RemoteMonster : public IMonster, public rcom::RemoteStub
@@ -55,32 +55,12 @@ double RemoteMonster::get_energy_level()
         return energy_level;
 }
 
-class MyLog : public rcom::ILog
-{
-public:
-        MyLog() {}
-        ~MyLog() override = default;
-                
-        void error(const std::string& message) override {
-                std::cout << "MyErr: " << message << std::endl;
-        }
-                
-        void warn(const std::string& message) override {
-                std::cout << "MyWarn: " << message << std::endl;
-        }
-                        
-        void info(const std::string& message) override {
-                std::cout << "MyInfo: " << message << std::endl;
-        }
-                
-        void debug(const std::string& message) override {
-                std::cout << "MyDebug: " << message << std::endl;
-        }
-};
-
 int main()
 {
         try {
+                // Log message to the console:
+                //auto client = rcom::RcomClient::create("elmo", 10.0);
+                // Redirect log messages:
                 auto log = std::make_shared<MyLog>();
                 auto client = rcom::RcomClient::create("elmo", 10.0, log);
                 RemoteMonster monster(client);        

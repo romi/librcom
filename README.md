@@ -611,13 +611,82 @@ int main()
 
 # Connecting from Javascript
 
+TODO: This section is work in progress (as is most of this documentation BTW).
+
 Connecting to a remote object from Javascript is a two-step process:
 
 1. Create a websocket to rcom-registry to obtain the address of the
 requested object.
 
+```javascript
+function createRemoteMonster(name, registry)
+{
+    var registrySocket = new WebSocket('ws://' + registry + ':10101');
+
+    registrySocket.onopen = function (event) {
+        var request = { 'request': 'get', 'topic': name };
+        registrySocket.send(JSON.stringify(request));
+    };
+
+    registrySocket.onmessage = function (event) {
+        console.log(event.data);
+        var reply = JSON.parse(event.data);
+        if (reply.success) {
+            registrySocket.close();
+            monster = new RemoteMonster(reply.address);
+        }
+    }
+}
+```
+
 2. Create a websocket to the remote object using the obtained address.
 
+```javascript
+class RemoteMonster
+{
+    constructor(address) {
+        this.socket = new WebSocket('ws://' + address);
+        this.socket.onmessage = (event) => {
+            this.handleMessage(event.data);
+        };
+        this.socket.onopen = (event) => {
+             // ...
+        };
+    }
+
+    handleMessage(buffer) {
+        var response = JSON.parse(buffer);
+        if (response.error) {
+            this.handleErrorMessage(response.error);
+        } else if (response.method == 'get-energy-level') {
+               console.log('RemoteMonster: Energy level ' + response['energy-level']
+        }   
+    }
+    
+    handleErrorMessage(err) {
+        console.log('RemoteMonster: Method: ' + response.method
+                    + ', Error: ' + response.error.message);
+    }  
+
+    execute(method, params) {
+        var request = { 'method': method, 'params': params };
+        var s = JSON.stringify(request);
+        this.socket.send(s);
+    }  
+
+    jumpAround() {
+        this.execute('jump-around');
+    }  
+
+    gentlyScareSomeone(id) {
+        this.execute('gently-scare-someone', {'person-id': id}};
+    }  
+
+    getEnergyLevel() {
+        this.execute('get-energy-level');
+    }  
+}
+```
 
 
 # Connecting from Python
@@ -631,11 +700,80 @@ to get started in your own projects.
 ## A Python client connecting to an C++ rcom server
 
 The Python client-side code uses the `websocket` module. You can
-install it as follows:
+install the rcom Python code (and websocket dependency) as follows:
 
 ```bash
-$ ...
+$ cd python
+$ python3 setup.py install --user
 ```
+
+To run the example, start the rcom-registry server in a new shell:
+
+```bash
+$ bin/rcom-registry
+```
+
+In another shell, start the remote monster server:
+
+```bash
+$ bin/monster_server
+```
+
+Finally, run the Python client:
+
+```bash
+$ python3 examples/monster_client.py
+```
+
+The Python code looks as follows. First, we define a new class
+`RemoteMonster` that subclasses the `RcomClient` from the
+`rcom.rcom_client` module.
+
+
+```python
+from rcom.rcom_client import RcomClient
+    
+class RemoteMonster(RcomClient):
+    
+        def __init__(self, name, registry):
+            super().__init__(name, registry)
+
+        def jump_around(self):
+            self.execute('jump-around')
+        
+        def gently_scare_someone(self, person_id):
+            self.execute('gently-scare-someone', {'person-id': person_id})
+        
+        def get_energy_level(self):
+            answer = self.execute('get-energy-level')
+            return answer['energy-level']
+```
+
+TODO: The implementation still requires that you pass the IP address
+to the registry to the `RcomClient` instance. You can find the local
+IP address using this code snippet:
+
+```python
+import socket
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip = s.getsockname()[0]
+    s.close()
+    return ip
+```
+
+Calling the remote C++ object is now very straightforward:
+
+```python
+monster = RemoteMonster('elmo', get_local_ip())
+monster.jump_around()
+monster.gently_scare_someone('you')
+energy = monster.get_energy_level()
+print(f'energy level is {energy}')
+```
+
 
 
 # Classes
