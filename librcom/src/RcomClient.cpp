@@ -42,15 +42,22 @@ namespace rcom {
                                                        const std::shared_ptr<ILog>& log)
         {
                 auto link = MessageLink::create(topic, timeout_seconds, log);
-                return std::make_unique<RcomClient>(link, timeout_seconds);
+                return std::make_unique<RcomClient>(link, timeout_seconds, log);
         }
         
         RcomClient::RcomClient(std::unique_ptr<IMessageLink>& link,
-                               double timeout_seconds)
+                               double timeout_seconds,
+                               const std::shared_ptr<ILog>& log)
                 : link_(std::move(link)),
+                  log_(log),
                   buffer_(),
                   timeout_(timeout_seconds)
         {
+        }
+
+        RcomClient::~RcomClient()
+        {
+                // r_debug("RcomClient::destruct");
         }
 
         void RcomClient::execute(const std::string& method, nlohmann::json &params,
@@ -194,7 +201,8 @@ namespace rcom {
                 return link_->is_connected();
         }
 
-        RcomClient::~RcomClient() {
-                //       r_debug("RcomClient::destruct");
+        const std::shared_ptr<ILog>& RcomClient::log()
+        {
+                return log_;
         }
 }

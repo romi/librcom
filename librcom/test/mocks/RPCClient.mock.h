@@ -15,5 +15,6 @@ public:
                                     rcom::MemBuffer& result,
                                     rcom::RPCError& error), (override));
         MOCK_METHOD(bool, is_connected, (), (override));
+        MOCK_METHOD(const std::shared_ptr<rcom::ILog>&, log, (), (override));
 };
 #pragma GCC diagnostic pop

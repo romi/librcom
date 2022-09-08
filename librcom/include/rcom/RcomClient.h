@@ -35,6 +35,7 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IMessageLink> link_;
+                std::shared_ptr<ILog> log_;
                 MemBuffer buffer_;
                 double timeout_;
                 
@@ -57,7 +58,8 @@ namespace rcom {
                                                           const std::shared_ptr<ILog>& log);
                 
                 RcomClient(std::unique_ptr<IMessageLink>& link,
-                           double timeout_seconds);
+                           double timeout_seconds,
+                           const std::shared_ptr<ILog>& log);
                 ~RcomClient() override;
 
                 /** execute() does not throw exceptions. All errors
@@ -73,6 +75,7 @@ namespace rcom {
                              RPCError &status) override;
                 
                 bool is_connected() override;
+                const std::shared_ptr<ILog>& log() override;
         };
 }
 

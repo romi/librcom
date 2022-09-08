@@ -24,7 +24,9 @@
 #ifndef _LIBRCOM_I_RPCCLIENT_H
 #define _LIBRCOM_I_RPCCLIENT_H
 
+#include <memory>
 #include "rcom/IRPCHandler.h"
+#include "rcom/ILog.h"
 
 namespace rcom {
         
@@ -34,6 +36,7 @@ namespace rcom {
                 virtual ~IRPCClient() override = default;
 
                 virtual bool is_connected() = 0;
+                virtual const std::shared_ptr<ILog>& log() = 0;
         };
 }
 

@@ -487,6 +487,64 @@ under the hood, rcom is agnostic about the content of the messages.
 
 # The logger
 
+```
+int main()
+{
+        try {
+                auto client = rcom::RcomClient::create("elmo", 10.0);
+                RemoteMonster monster(client);        
+                monster.gently_scare_someone("you");
+        } catch (std::exception& e) {
+                std::cout << "main: caught exception: " << e.what() << std::endl;
+        }
+        return 0;
+}
+```
+
+
+```
+#include <iostream.h>
+#include <rcom/ILog.h>
+        
+class MyLog : public rcom::ILog
+{
+public:
+        MyLog() {}
+        ~MyLog() override = default;
+                
+        void error(const std::string& message) override {
+                std::cout << "MyErr: " << message << std::endl;
+        }
+                
+        void warn(const std::string& message) override {
+                std::cout << "MyWarn: " << message << std::endl;
+        }
+                        
+        void info(const std::string& message) override {
+                std::cout << "MyInfo: " << message << std::endl;
+        }
+                
+        void debug(const std::string& message) override {
+                std::cout << "MyDebug: " << message << std::endl;
+        }
+};
+```
+
+```
+int main()
+{
+        try {
+                auto log = std::make_shared<MyLog>();
+                auto client = rcom::RcomClient::create("elmo", 10.0, log);
+                RemoteMonster monster(client);        
+                monster.gently_scare_someone("you");
+        } catch (std::exception& e) {
+                std::cout << "main: caught exception: " << e.what() << std::endl;
+        }
+        return 0;
+}
+```
+
 # Fixed port
 
 # No registration

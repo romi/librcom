@@ -26,10 +26,9 @@
 
 namespace rcom {
 
-        RemoteStub::RemoteStub(std::unique_ptr<IRPCClient>& client,
-                               const std::shared_ptr<ILog>& log)
+        RemoteStub::RemoteStub(std::unique_ptr<IRPCClient>& client)
                 : client_(),
-                  log_(log)
+                  log_(client->log())
         {
                 client_ = std::move(client);
         }
