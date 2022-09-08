@@ -115,7 +115,7 @@ double HappyMonster::get_energy_level()
 }
 ```
 
-You can now write a small application, create monster, and have them
+You can now write a small application, create a monster, and have it
 do things.
 
 ```c++
@@ -171,26 +171,7 @@ RemoteMonster::RemoteMonster(std::unique_ptr<rcom::IRPCClient>& client)
 ```
 
 We still have to implement the methods of our example class. They are
-shown below. They mostly call upon the methods provided by
-`RemoteStub`.
-
-* Use `execute_simple_request` for methods that don't take any
-  arguments and return no values.
-* Use `execute_with_params` when the caller has to send arguments, but no
-  return value is expected.
-* Use `execute_with_result` when there are no arguments but a
-  value os returned.  
-* Finally, the generic method `execute` takes arguments for the remote
-  method and returns a value.
-
-Both the parameters and the return value are sent using the
-[JSON](https://www.json.org/json-en.html) format. The RemoteStub takes
-care of the encoding the date to a JSON string representation and
-parsing the incoming string to a C++ JSON data structure. For this
-rcom uses the [JSON library](https://github.com/nlohmann/json) by
-Niels Lohmann. Check out its documentation to get to know all its
-features.
-
+shown below. 
 
 ```c++
 void RemoteMonster::jump_around()
@@ -228,24 +209,38 @@ double RemoteMonster::get_energy_level()
 }
 ```
 
+The implementation mostly calls upon the methods provided by
+`RemoteStub`:
+
+* Use `execute_simple_request` for methods that don't take any
+  arguments and return no values.
+* Use `execute_with_params` when the caller has to send arguments, but no
+  return value is expected.
+* Use `execute_with_result` when there are no arguments but a
+  value is returned.  
+* Finally, the generic method `execute` takes arguments for the remote
+  method and returns a value.
+
+Both the parameters and the return value are sent using the
+[JSON](https://www.json.org/json-en.html) format. The RemoteStub takes
+care of the encoding the data to a JSON string representation and
+parsing the incoming string to a C++ JSON data structure. For this
+rcom uses the [JSON library](https://github.com/nlohmann/json) by
+Niels Lohmann. Check out its documentation to get to know all its
+features.
+
 The various execute methods return `true` when the remote method was
 executed successfully and `false` when an error occured. They do not
 throw an exception. This leaves the choice up to you whether to throw
 an exception in response to a failed invokation or not. When an error
-occured, the RemoteStub will write a message with to the rcom logger.
+occured, the `RemoteStub` will write a message with to the rcom
+logger. See more on the log system below.
 
 NOTE: The other functions, such as `RcomClient::create` below do throw
 exceptions.
 
-The main function for calling the remote monster is as follows. The
-function `rcom::RcomClient::create` establishes the connection to a
-remote object on the local network (or local machine) identified by
-"elmo". The second argument is a timeout for the connection. If "elmo"
-doesn't show up within 10 seconds, the application calls it quits.
-
-If the connection is established, it is passed to the RemoteMonster
-object. The application can then call the `IMonster` methods as if the
-remote monster was a normal, local object.
+Here is the main function, again, rewriten for the use of the remote
+monster:
 
 ```c++
 int main()
@@ -261,6 +256,15 @@ int main()
 }
 ```
 
+The function `rcom::RcomClient::create` establishes the connection to
+a remote object on the local network (or local machine) identified by
+"elmo". The second argument is a timeout for the connection. If "elmo"
+doesn't show up within 10 seconds, the application calls it quits.
+
+If the connection is established, it is passed to the `RemoteMonster`
+object. The application can then call the `IMonster` methods as if the
+remote monster was a normal, local object.
+
 The full code of the new version can be found in
 [monster_client.cpp](examples/tutorial/monster_client.cpp).
 
@@ -275,10 +279,10 @@ ERROR: Socket::Socket: Failed to connect to address 192.168.1.100:10101
 ERROR: main: 'Socket: Failed to connect'
 ```
 
-In order for the example above to find the "elmo" object, rcom uses
-another service called the rcom-registry. It is basically a directory
-service the maps identifiers to IP addresses. You will have to start
-the service separately:
+In order for the example above to find the "elmo" object, `rcom` uses
+another service called the `rcom-registry`. It is basically a
+directory service the maps identifiers to IP addresses. You will have
+to start the service separately:
 
 ```bash
 $ ./bin/rcom-registry 
@@ -286,7 +290,7 @@ INFO: Registry server running at 192.168.1.100:10101.
 ```
 
 If you run the example application again, it will still quit. This
-time, after 10 seconds it will show the error message below:
+time, after 10 seconds, it will show the error message below:
 
 ```bash
 WARNING: MessageLink::connect: Failed to obtain address for topic 'elmo'
@@ -294,7 +298,8 @@ ERROR: MessageLink: Failed to connect: elmo
 ERROR: main: 'MessageLink: Failed to connect'
 ```
 
-This is normal: we didn't implement and start the remote process, yet.
+This is normal: we didn't implement and start the remote process,
+yet. We will look into that in the next session.
 
 ## The server-side application
 
@@ -338,10 +343,6 @@ class MonsterAdaptor : public rcom::IRPCHandler
 {
 protected:
         IMonster& monster_;
-
-        void execute_jump_around();
-        void execute_gently_scare_someone(nlohmann::json& params);
-        void execute_get_energy_level(nlohmann::json& result);
                 
 public:
         MonsterAdaptor(IMonster& monster);
@@ -356,10 +357,12 @@ public:
 
 The two `execute` methods will be called by the server instance. The
 first one is for JSON text messages. The second one is for methods
-returning large binary data. They will be discussed later.
+returning large binary data. The use of binary data will be discussed
+later.
 
 In our example, the `execute` method checks the value of the `method`
-argument and then dispatches the call to the appropriate handler: 
+argument and then dispatches the call to the appropriate methods on
+the "real" C++ object:
 
 ```c++
 void MonsterAdaptor::execute(const std::string& method, nlohmann::json& params,
@@ -367,13 +370,14 @@ void MonsterAdaptor::execute(const std::string& method, nlohmann::json& params,
 {
         error.code = 0;
         if (method == "jump-around") {
-                execute_jump_around();
+                monster_.jump_around();
                 
         } else if (method == "gently-scare-someone") {
-                execute_gently_scare_someone(params);
+                std::string id = params["person-id"];
+                monster_.gently_scare_someone(id);
                 
         } else if (method == "get-energy-level") {
-                execute_get_energy_level(result);
+                result["energy-level"] = monster_.get_energy_level();
                 
         } else {
                 error.code = rcom::RPCError::kMethodNotFound;
@@ -382,33 +386,12 @@ void MonsterAdaptor::execute(const std::string& method, nlohmann::json& params,
 }
 ```
 
-The handlers are quite straightforward. They basically call the
-corresponding methods on the "real" C++ object:
-
-```c++
-void MonsterAdaptor::execute_jump_around()
-{
-        monster_.jump_around();
-}
-
-void MonsterAdaptor::execute_gently_scare_someone(nlohmann::json& params)
-{
-        std::string id = params["person-id"];
-        monster_.gently_scare_someone(id);
-}
-
-void MonsterAdaptor::execute_get_energy_level(nlohmann::json& result)
-{
-        result["energy-level"] = monster_.get_energy_level();
-}
-```
-
 That's it! The full code of this section can be found here:
 [monster_server.cpp](examples/tutorial/monster_server.cpp).
 
 ## Run the example
 
-To run the example, you must first start the rcom-registry:
+To run the example, you must first start the `rcom-registry`:
 
 ```bash
 $ build/bin/rcom-registry
@@ -452,7 +435,7 @@ Hey you, don't watch that. Watch this. This is the happy happy monster show.
 To send binary data in the textual JSON format, it has to be encoded,
 for example, using the [Base64](https://en.wikipedia.org/wiki/Base64)
 encoding. This can be quite a performance hit. For example, when the
-Raspberry Pi Zero has to transmit images, the encoding becomes a
+Raspberry Pi Zero has to transmit images, this encoding becomes a
 showstopper.
 
 So, it is therfore possible to return the data as a binary
@@ -483,7 +466,7 @@ In the example above, we don't use the `execute` methods of the stub
 but directly the `execute` method of the client connection maintained
 the stub.
 
-Currently, it is only possible to obtain binary data from the server.
+Currently, it is only possible to retrive binary data from the server.
 There is no method, yet, for sending a buffer of binary data to the
 server. If you have to send binary data, you will have to encode it
 and sending it as part of the JSON request.
@@ -491,7 +474,7 @@ and sending it as part of the JSON request.
 
 # The generic API
 
-rcom provides both server-side and client-side websockets. We'll call
+`rcom` provides both server-side and client-side websockets. We'll call
 them client end-point and server end-points. A separate application,
 called 'rcom-registry' is a directory server that maintains the list
 of all server end-points. The rcom-registry application should be
@@ -518,7 +501,7 @@ under the hood, rcom is agnostic about the content of the messages.
 By default, the rcom libray logs the internal messages, including
 error messages, to the console. If you are writing a large
 application, you probably want to redirect these messages to a file or
-a GUI window. In that case, you can subclass the rcom::ILog interface
+a GUI window. In that case, you can subclass the `rcom::ILog` interface
 and inject it into the API functions discussed so far. For example, in
 the example discussed previously, we created a client connection to a
 remote object as follows:
@@ -692,20 +675,22 @@ class RemoteMonster
 # Connecting from Python
 
 The `rcom` library provides some helper code to exchange data between
-python code and rcom objects written in C++. At the current
+Python code and rcom objects written in C++. At the current
 development stage, this Python code has only been used for prototyping
 during development. The code is not production ready but it may help
 to get started in your own projects.
 
-## A Python client connecting to an C++ rcom server
-
-The Python client-side code uses the `websocket` module. You can
-install the rcom Python code (and websocket dependency) as follows:
+In the root directory of the rcom repository, you will find a
+directory called `python` that contains the Python `rcom` modules and
+some examples. You can install the rcom Python code and dependencies
+as follows:
 
 ```bash
 $ cd python
 $ python3 setup.py install --user
 ```
+
+## A Python client connecting to an C++ rcom server
 
 To run the example, start the rcom-registry server in a new shell:
 
@@ -713,7 +698,8 @@ To run the example, start the rcom-registry server in a new shell:
 $ bin/rcom-registry
 ```
 
-In another shell, start the remote monster server:
+In another shell, start the remote monster server that we discussed
+above:
 
 ```bash
 $ bin/monster_server
@@ -776,15 +762,15 @@ print(f'energy level is {energy}')
 
 
 
-# Classes
+# Overview of the classes and code
 
-ILinux, Linux, MockLinux: To facilitate unit testing, the system
-functions are abstracted in the ILinux interface. The Linux class
-provides the default implementation, and MockLinux the implementation
-used for testing.
+`ILinux`, `Linux`, `MockLinux`: To facilitate unit testing, the system
+functions are abstracted in the `ILinux` interface. The `Linux` class
+provides the default implementation, and `MockLinux` the
+implementation used for testing.
 
 The interface `ISocket` defines a standard TCP/IP socket API. The
-class Socket is the default implementation of the API. Similarly,
+class `Socket` is the default implementation of the API. Similarly,
 `IServerSocket` defines the API for a socket that accepts incoming
 connection. It's default implementation can be found in the
 `ServerSocket` class. Both `Socket` and `ServerSocket` actually share
@@ -805,26 +791,26 @@ instance of `ISocketFactory` to create them. Again, this facilitates
 the testing of the code by passing in a `MockSocketFactory`.
 
 The `WebSocketServer` implements a server that waits for incoming
-websocket connections and creates a new `WebSocket` after a successful
-handshake. It also maintains the list of all open connections. This
-allows to send broadcast messages to all client connected to this
-server. The `handle_events` method should be called regularly to deal
-with the incoming connection requests.
+websocket connections and creates a new `ServerSideWebSocket` after a
+successful handshake. It also maintains the list of all open
+connections. This allows to send broadcast messages to all client
+connected to this server. The `handle_events` method should be called
+regularly to deal with the incoming connection requests.
 
+We distinguish between server-side and client-side websockets:
+
+* `ServerSideWebSocket`: The websocket created on the server-side in
+response to a new incoming connection.
+* `ClientSideWebSocket`: The websocket created by the client to connect
+to a `WebSocketServer`.
+
+Both inherit implementation from the `WebSocket` class.
 
 A `MessageHub` is like a `WebSocketServer` with the following
 additional functionality:
 
 * It has a topic name.
 * It registers the topic and its address to the remote registry.
-
-ServerSideWebSocket: The websocket created on the server-side in
-response to a new incoming connection.
-
-ClientSideWebSocket: The websocket created by the client to connect to
-a WebSocketServer.
-
-Both inherit implementation from the WebSocket class.
 
 ## RPC classes
 
