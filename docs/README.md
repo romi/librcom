@@ -1,10 +1,3 @@
-master  
-![Build Status](https://github.com/romi/librcom/workflows/CI/badge.svg?branch=master)
-[![codecov](https://codecov.io/gh/romi/librcom/branch/master/graph/badge.svg)](https://codecov.io/gh/romi/librcom)    
-ci_dev  
-![Build Status](https://github.com/romi/librcom/workflows/CI/badge.svg?branch=ci_dev)
-[![codecov](https://codecov.io/gh/romi/librcom/branch/ci_dev/graph/badge.svg)](https://codecov.io/gh/romi/librcom)
-
 # rcom
 
 rcom is light-weight C++ libary for inter-node communication. All data
