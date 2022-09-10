@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 }
 ```
 
-The full code of this example is split over the following files: [monster_simple.cpp](examples/tutorial/monster_simple.cpp), [IMonster.h](examples/tutorial/IMonster.h), and [HappyMonster.h](examples/tutorial/HappyMonster.h)
+The full code of this example is split over the following files: [monster_simple.cpp](https://github.com/romi/librcom/blob/ci_dev/examples/tutorial/monster_simple.cpp), [IMonster.h](https://github.com/romi/librcom/blob/ci_dev/examples/tutorial/IMonster.h), and [HappyMonster.h](https://github.com/romi/librcom/blob/ci_dev/examples/tutorial/HappyMonster.h)
 
 ## The client-side application
 
@@ -259,7 +259,7 @@ object. The application can then call the `IMonster` methods as if the
 remote monster was a normal, local object.
 
 The full code of the new version can be found in
-[monster_client.cpp](examples/tutorial/monster_client.cpp).
+[monster_client.cpp](https://github.com/romi/librcom/blob/ci_dev/examples/tutorial/monster_client.cpp).
 
 ## The registry
 
@@ -380,7 +380,7 @@ void MonsterAdaptor::execute(const std::string& method, nlohmann::json& params,
 ```
 
 That's it! The full code of this section can be found here:
-[monster_server.cpp](examples/tutorial/monster_server.cpp).
+[monster_server.cpp](https://github.com/romi/librcom/blob/ci_dev/examples/tutorial/monster_server.cpp).
 
 ## Run the example
 
@@ -823,3 +823,13 @@ RcomServer
 
 RcomMessageHandler
 
+### TODO
+
+Remote access
+4G router, set-up at the farm
+Managing an fleet of rovers
+4G router with a solar panel
+queue management
+doc format messages
+describe format message for different actions: move, path, grab, ...
+c++ -> Python
