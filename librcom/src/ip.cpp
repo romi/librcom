@@ -8,10 +8,11 @@
 #include <string.h>
 #include <stdexcept>
 #include "rcom/ip.h"
+#include "rcom/Log.h"
 
 namespace rcom {
 
-        std::string ip_;
+        static std::string ip_;
         
         void set_local_ip(const std::string& ip)
         {
@@ -55,7 +56,7 @@ namespace rcom {
                 struct ifaddrs *ifaddr;
 
                 if (!ip_.empty()) {
-                        return ip_;
+                        ip = ip_;
                         
                 } else  if (getifaddrs(&ifaddr) == 0) {
                         scan_interfaces(ip, ifaddr);
