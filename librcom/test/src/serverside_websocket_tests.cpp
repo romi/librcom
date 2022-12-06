@@ -24,6 +24,7 @@ using ::testing::NiceMock;
 using ::testing::Assign;
 using ::testing::ReturnPointee;
 using ::testing::AtLeast;
+using ::testing::DoAll;
 
 class serverside_websocket_tests : public ::testing::Test
 {

@@ -57,7 +57,7 @@ if(BUILD_TESTS)
         include(${CMAKE_MODULES_DIRECTORY}/DownloadProject.cmake)
         download_project(   PROJ                googletest
                 GIT_REPOSITORY      https://github.com/google/googletest.git
-                GIT_TAG             v1.10.x
+                GIT_TAG             v1.12.x
                 PREFIX              ${CMAKE_THIRDPARTY_DIRECTORY}/googletest
                 ${UPDATE_DISCONNECTED_IF_AVAILABLE}
                 )

@@ -204,7 +204,7 @@ TEST_F(rawmessagehub_tests, register_topic_registers)
 
         std::string address_str("100.100.100.100");
         uint16_t address_port(100);
-        Address server_address(address_str.c_str(), address_port);
+        rcom::Address server_address(address_str.c_str(), address_port);
 
         rcom::MemBuffer response;
         response.printf("{\"success\":true}");
