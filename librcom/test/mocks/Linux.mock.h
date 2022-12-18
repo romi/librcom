@@ -52,6 +52,12 @@ public:
         MOCK_METHOD(int, clock_nanosleep, (clockid_t clock_id, int flags,
                                            const struct timespec *request,
                                            struct timespec *remain), (override));
+        MOCK_METHOD(int32_t, i2c_smbus_read_block_data,
+                    (int file, uint8_t command, uint8_t length, uint8_t *values),
+                    (override));
+        MOCK_METHOD(int32_t, i2c_smbus_write_block_data,
+                    (int file, uint8_t command, uint8_t length, const uint8_t *values),
+                    (override));
 };
 
 #pragma GCC diagnostic pop
