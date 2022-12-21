@@ -54,19 +54,20 @@ namespace rcom {
                 nlohmann::json request = parse_request(message, error);
                 if (error.code == 0) {
                         
+                        std::string id = get_id(request, error);
                         std::string method = get_method(request, error);
                         if (!method.empty()) {
                                 nlohmann::json params;
                                 if (request.contains("params"))
                                         params = request["params"];
 
-                                handler_.execute(method, params, result, error);
+                                handler_.execute(id, method, params, result, error);
                                 
                         } else {
-                                response = construct_response("unknown", error);
+                                response = construct_response(id, "unknown", error);
                         }
                 } else {
-                        response = construct_response("unknown", error);
+                        response = construct_response("unknown", "unknown", error);
                 }
  
                 if (error.code == 0) {
@@ -90,6 +91,7 @@ namespace rcom {
                 nlohmann::json request = parse_request(message, error);
                 if (error.code == 0) {
                         
+                        std::string id = get_id(request, error);
                         std::string method = get_method(request, error);
                         if (!method.empty()) {
                                 nlohmann::json params;
@@ -97,14 +99,14 @@ namespace rcom {
                                 if (request.contains("params"))
                                         params = request["params"];
 
-                                handler_.execute(method, params, result, error);
-                                response = construct_response(method, error, result);
+                                handler_.execute(id, method, params, result, error);
+                                response = construct_response(id, method, error, result);
                                 
                         } else {
-                                response = construct_response("unknown", error);
+                                response = construct_response(id, "unknown", error);
                         }
                 } else {
-                        response = construct_response("unknown", error);
+                        response = construct_response("unknown", "unknown", error);
                 }
                 
                 MemBuffer serialised;
@@ -138,13 +140,28 @@ namespace rcom {
                 return value;
         }
 
+        std::string RcomMessageHandler::get_id(nlohmann::json& request, RPCError& error)
+        {
+                std::string value;
+                if (request.contains("id")) {
+                        try {
+                                value = request["id"];
+                        } catch (std::exception& e) {
+                                error.code = RPCError::kInvalidRequest;
+                                error.message = "Invalid ID";
+                        }
+                }
+                return value;
+        }
+
         /* Construct the envelope for a reponse with results, to be
          * sent back to the client.  */
-        nlohmann::json RcomMessageHandler::construct_response(const std::string& method,
+        nlohmann::json RcomMessageHandler::construct_response(const std::string& id,
+                                                              const std::string& method,
                                                               RPCError& error,
                                                               nlohmann::json& result)
         {
-                nlohmann::json response = construct_response(method, error);
+                nlohmann::json response = construct_response(id, method, error);
                 if (!result.is_null()) {
                         response["result"] = result;
                 } 
@@ -153,18 +170,26 @@ namespace rcom {
         
         /* Construct the envelope for a reponse with results, to be
          * sent back to the client.  */
-        nlohmann::json RcomMessageHandler::construct_response(const std::string& method,
+        nlohmann::json RcomMessageHandler::construct_response(const std::string& id,
+                                                              const std::string& method,
                                                               RPCError& error)
         {
-                return construct_response(method, error.code, error.message.c_str());
+                return construct_response(id, method, error.code, error.message.c_str());
         }
 
         /* Construct the envelope for an error reponse to be sent back
          * to the client.  */
-        nlohmann::json RcomMessageHandler::construct_response(const std::string& method,
+        nlohmann::json RcomMessageHandler::construct_response(const std::string& id,
+                                                              const std::string& method,
                                                               int code, const char *message)
         {
                 nlohmann::json response;
+                
+                if (!id.empty()) {
+                        response["id"] = id;
+                } else {
+                        response["id"] = "unknown";
+                }
 
                 if (!method.empty()) {
                         response["method"] = method;

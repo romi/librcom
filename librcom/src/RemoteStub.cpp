@@ -33,14 +33,15 @@ namespace rcom {
                 client_ = std::move(client);
         }
 
-        bool RemoteStub::execute(const std::string& method,
+        bool RemoteStub::execute(const std::string& id,
+                                 const std::string& method,
                                  nlohmann::json& params,
                                  nlohmann::json& result)
         {
                 RPCError error;
                 
                 try {
-                        client_->execute(method, params, result, error);
+                        client_->execute(id, method, params, result, error);
 
                         if (error.code != 0) {
                                 log_err(log_, "RemoteStub::execute: %s",
@@ -57,24 +58,51 @@ namespace rcom {
                 return (error.code == 0);
         }
 
-        bool RemoteStub::execute_with_result(const std::string& method,
+        bool RemoteStub::execute(const std::string& method,
+                                 nlohmann::json& params,
+                                 nlohmann::json& result)
+        {
+                return execute(kNoID, method, params, result);
+        }
+        
+        bool RemoteStub::execute_with_result(const std::string& id,
+                                             const std::string& method,
                                              nlohmann::json& result)
         {
                 nlohmann::json params;
-                return execute(method, params, result);
+                return execute(id, method, params, result);
+        }
+        
+        bool RemoteStub::execute_with_result(const std::string& method,
+                                             nlohmann::json& result)
+        {
+                return execute_with_result(kNoID, method, result);
+        }
+
+        bool RemoteStub::execute_with_params(const std::string& id,
+                                             const std::string& method,
+                                             nlohmann::json& params)
+        {
+                nlohmann::json result;
+                return execute(id, method, params, result);
         }
 
         bool RemoteStub::execute_with_params(const std::string& method,
                                              nlohmann::json& params)
         {
+                return execute_with_params(kNoID, method, params);
+        }
+
+        bool RemoteStub::execute_simple_request(const std::string& id,
+                                                const std::string& method)
+        {
+                nlohmann::json params;
                 nlohmann::json result;
-                return execute(method, params, result);
+                return execute(id, method, params, result);
         }
 
         bool RemoteStub::execute_simple_request(const std::string& method)
         {
-                nlohmann::json params;
-                nlohmann::json result;
-                return execute(method, params, result);
+                return execute_simple_request(kNoID, method);
         }
 }

@@ -41,13 +41,17 @@ namespace rcom {
 
                 nlohmann::json parse_request(MemBuffer& message, RPCError& error);
                 std::string get_method(nlohmann::json& request, RPCError& error);
+                std::string get_id(nlohmann::json& request, RPCError& error);
 
-                nlohmann::json construct_response(const std::string& method,
+                nlohmann::json construct_response(const std::string& id,
+                                                  const std::string& method,
                                                   RPCError& error,
                                                   nlohmann::json& result);
-                nlohmann::json construct_response(const std::string& method,
+                nlohmann::json construct_response(const std::string& id,
+                                                  const std::string& method,
                                                   RPCError& error);
-                nlohmann::json construct_response(const std::string& method,
+                nlohmann::json construct_response(const std::string& id,
+                                                  const std::string& method,
                                                   int code, const char *message);
                 
         public:

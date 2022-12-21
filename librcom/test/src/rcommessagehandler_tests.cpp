@@ -71,10 +71,12 @@ public:
                 return_error_.message = message;
         }
 
-        void set_error(const std::string& method,
+        void set_error(const std::string& id,
+                       const std::string& method,
                        nlohmann::json& params,
                        nlohmann::json& result,
                        RPCError& error) {
+                (void) id;
                 (void) result;
 //                r_debug("method=%s", method.c_str());
                 sent_method_ = method;
@@ -83,11 +85,13 @@ public:
                 error.message = return_error_.message;
         }
         
-        void set_result(const std::string& method,
+        void set_result(const std::string& id,
+                       const std::string& method,
                         nlohmann::json& params,
                         nlohmann::json& result,
                         RPCError& error) {
 //                r_debug("method=%s", method.c_str());
+                (void) id;
                 sent_method_ = method;
                 sent_params_ = params;
                 error.code = 0;
@@ -139,7 +143,7 @@ TEST_F(rcommessagehandler_tests, request_with_unknown_method_returns_appropriate
         message.printf("{\"method\": \"toto\"}");
         arrange_error(RPCError::kMethodNotFound, "MESSAGE");
 
-        EXPECT_CALL(handler_, execute(_,_,An<nlohmann::json&>(),_))
+        EXPECT_CALL(handler_, execute(_,_,_,An<nlohmann::json&>(),_))
                 .WillOnce(Invoke(this, &rcommessagehandler_tests::set_error));
         
         EXPECT_CALL(websocket_, send(_,_))
@@ -161,7 +165,7 @@ TEST_F(rcommessagehandler_tests, response_contains_expected_result)
         message.printf("{\"method\": \"toto\"}");
         result_ = nlohmann::json::parse("{\"key\": \"test value\"}");
 
-        EXPECT_CALL(handler_, execute(_,_,An<nlohmann::json&>(),_))
+        EXPECT_CALL(handler_, execute(_,_,_,An<nlohmann::json&>(),_))
                 .WillOnce(Invoke(this, &rcommessagehandler_tests::set_result));
         
         EXPECT_CALL(websocket_, send(_,_))

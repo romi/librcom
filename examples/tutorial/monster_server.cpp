@@ -19,10 +19,16 @@ public:
         MonsterAdaptor(IMonster& monster);
         ~MonsterAdaptor() override = default;
         
-        void execute(const std::string& method, nlohmann::json& params,
-                     nlohmann::json& result, rcom::RPCError& status) override;
-        void execute(const std::string& method, nlohmann::json& params,
-                     rcom::MemBuffer& result, rcom::RPCError &status) override;
+        void execute(const std::string& id,
+                     const std::string& method,
+                     nlohmann::json& params,
+                     nlohmann::json& result,
+                     rcom::RPCError& status) override;
+        void execute(const std::string& id,
+                     const std::string& method,
+                     nlohmann::json& params,
+                     rcom::MemBuffer& result,
+                     rcom::RPCError &status) override;
 };
 
 MonsterAdaptor::MonsterAdaptor(IMonster& monster)
@@ -30,9 +36,13 @@ MonsterAdaptor::MonsterAdaptor(IMonster& monster)
 {
 }
 
-void MonsterAdaptor::execute(const std::string& method, nlohmann::json& params,
-                             nlohmann::json& result, rcom::RPCError& error)
+void MonsterAdaptor::execute(const std::string& id,
+                             const std::string& method,
+                             nlohmann::json& params,
+                             nlohmann::json& result,
+                             rcom::RPCError& error)
 {
+        (void) id;
         error.code = 0;
         if (method == "jump-around") {
                 execute_jump_around();
@@ -49,9 +59,13 @@ void MonsterAdaptor::execute(const std::string& method, nlohmann::json& params,
         }
 }
 
-void MonsterAdaptor::execute(const std::string& method, nlohmann::json& params,
-                             rcom::MemBuffer& result, rcom::RPCError &error)
+void MonsterAdaptor::execute(const std::string& id,
+                             const std::string& method,
+                             nlohmann::json& params,
+                             rcom::MemBuffer& result,
+                             rcom::RPCError &error)
 {
+        (void) id;
         (void) method;
         (void) params;
         (void) result;

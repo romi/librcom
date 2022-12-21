@@ -36,12 +36,14 @@ namespace rcom {
         public:
                 virtual ~IRPCHandler() = default;
                 
-                virtual void execute(const std::string& method,
+                virtual void execute(const std::string& id,
+                                     const std::string& method,
                                      nlohmann::json &params,
                                      nlohmann::json &result,
                                      RPCError &status) = 0;
                 
-                virtual void execute(const std::string& method,
+                virtual void execute(const std::string& id,
+                                     const std::string& method,
                                      nlohmann::json &params,
                                      MemBuffer& result,
                                      RPCError &status) = 0;

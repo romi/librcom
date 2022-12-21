@@ -6,11 +6,13 @@
 class MockRPCHandler : public rcom::IRPCHandler
 {
 public:
-        MOCK_METHOD(void, execute, (const std::string& method,
+        MOCK_METHOD(void, execute, (const std::string& id,
+                                    const std::string& method,
                                     nlohmann::json& params,
                                     nlohmann::json& result,
                                     rcom::RPCError& error), (override));
-        MOCK_METHOD(void, execute, (const std::string& method,
+        MOCK_METHOD(void, execute, (const std::string& id,
+                                    const std::string& method,
                                     nlohmann::json& params,
                                     rcom::MemBuffer& result,
                                     rcom::RPCError& error), (override));

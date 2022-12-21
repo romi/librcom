@@ -39,11 +39,14 @@ namespace rcom {
                 MemBuffer buffer_;
                 double timeout_;
                 
-                void try_execute(const std::string& method, nlohmann::json &params,
-                                 nlohmann::json &result, RPCError &error);
-                void try_execute(const std::string& method, nlohmann::json &params,
-                                 MemBuffer& result, RPCError &error);
-                void make_request(const std::string& method, nlohmann::json &params);
+                void try_execute(const std::string& id, const std::string& method,
+                                 nlohmann::json &params, nlohmann::json &result,
+                                 RPCError &error);
+                void try_execute(const std::string& id, const std::string& method,
+                                 nlohmann::json &params, MemBuffer& result,
+                                 RPCError &error);
+                void make_request(const std::string& id, const std::string& method,
+                                  nlohmann::json &params);
                 bool send_request(MessageType type, RPCError &error);
                 bool receive_response(MemBuffer& buffer, RPCError &error);
                 void parse_response(nlohmann::json &result, RPCError &error);
@@ -64,12 +67,14 @@ namespace rcom {
 
                 /** execute() does not throw exceptions. All errors
                  * are returned through the RPCError structure. */
-                void execute(const std::string& method,
+                void execute(const std::string& id,
+                             const std::string& method,
                              nlohmann::json &params,
                              nlohmann::json &result,
                              RPCError &error) override;
                 
-                void execute(const std::string& method,
+                void execute(const std::string& id,
+                             const std::string& method,
                              nlohmann::json &params,
                              MemBuffer& result,
                              RPCError &status) override;

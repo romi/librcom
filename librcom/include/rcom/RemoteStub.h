@@ -34,16 +34,31 @@ namespace rcom {
         class RemoteStub
         {
         protected:
+                static constexpr const char *kNoID = "none";
+                
                 std::unique_ptr<IRPCClient> client_;
                 std::shared_ptr<ILog> log_;
 
-                bool execute(const std::string& method, nlohmann::json& params,
+                bool execute(const std::string& method,
+                             nlohmann::json& params,
+                             nlohmann::json& result);
+                bool execute(const std::string& id,
+                             const std::string& method,
+                             nlohmann::json& params,
                              nlohmann::json& result);
                 bool execute_with_params(const std::string& method,
                                          nlohmann::json& params);
+                bool execute_with_params(const std::string& id,
+                                         const std::string& method,
+                                         nlohmann::json& params);
                 bool execute_with_result(const std::string& method,
                                          nlohmann::json& result);
+                bool execute_with_result(const std::string& id,
+                                         const std::string& method,
+                                         nlohmann::json& result);
                 bool execute_simple_request(const std::string& method);
+                bool execute_simple_request(const std::string& id,
+                                            const std::string& method);
 
         public:
                 explicit RemoteStub(std::unique_ptr<IRPCClient>& client);

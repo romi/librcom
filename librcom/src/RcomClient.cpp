@@ -60,14 +60,17 @@ namespace rcom {
                 // r_debug("RcomClient::destruct");
         }
 
-        void RcomClient::execute(const std::string& method, nlohmann::json &params,
-                                nlohmann::json &result, RPCError &error)
+        void RcomClient::execute(const std::string& id,
+                                 const std::string& method,
+                                 nlohmann::json &params,
+                                 nlohmann::json &result,
+                                 RPCError &error)
         {
                 //r_debug("RcomClient::execute");
 
                 try {
 
-                        try_execute(method, params, result, error);
+                        try_execute(id, method, params, result, error);
                         
                 } catch (std::exception& e) {
                         error.code = RPCError::kInternalError;
@@ -75,21 +78,27 @@ namespace rcom {
                 }
         }
         
-        void RcomClient::try_execute(const std::string& method, nlohmann::json &params,
-                                    nlohmann::json &result, RPCError &error)
+        void RcomClient::try_execute(const std::string& id,
+                                     const std::string& method,
+                                     nlohmann::json &params,
+                                     nlohmann::json &result,
+                                     RPCError &error)
         { 
                 //r_debug("RcomClient::try_execute");
-                make_request(method, params);
+                make_request(id, method, params);
                 if (send_request(kTextMessage, error)
                     && receive_response(buffer_, error)) {
                         parse_response(result, error);
                 }
         }
 
-        void RcomClient::make_request(const std::string& method, nlohmann::json &params)
+        void RcomClient::make_request(const std::string& id,
+                                      const std::string& method,
+                                      nlohmann::json &params)
         {
                 //r_debug("RcomClient::make_request");
                 nlohmann::json request;
+                request["id"] = id;
                 request["method"] = method;
                 request["params"] = params;
 
@@ -168,7 +177,8 @@ namespace rcom {
                 }
         }
 
-        void RcomClient::execute(const std::string& method,
+        void RcomClient::execute(const std::string& id,
+                                 const std::string& method,
                                  nlohmann::json &params,
                                  MemBuffer& result,
                                  RPCError &error)
@@ -177,7 +187,7 @@ namespace rcom {
 
                 try {
 
-                        try_execute(method, params, result, error);
+                        try_execute(id, method, params, result, error);
                         
                 } catch (std::exception& e) {
                         error.code = RPCError::kInternalError;
@@ -185,12 +195,13 @@ namespace rcom {
                 }
         }
         
-        void RcomClient::try_execute(const std::string& method,
+        void RcomClient::try_execute(const std::string& id,
+                                     const std::string& method,
                                      nlohmann::json &params,
                                      MemBuffer& result,
                                      RPCError &error)
         { 
-                make_request(method, params);
+                make_request(id, method, params);
                 if (send_request(kBinaryMessage, error)) {
                         receive_response(result, error);
                 }
