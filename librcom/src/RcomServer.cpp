@@ -30,7 +30,6 @@
 #include "rcom/MessageHub.h"
 #include "rcom/ConsoleLog.h"
 #include "rcom/Log.h"
-#include "rcom/Address.h"
 #include "rcom/ServerSocket.h"
 #include "rcom/WebSocketServer.h"
 
@@ -38,15 +37,23 @@ namespace rcom {
 
         std::unique_ptr<IRPCServer> RcomServer::create(const std::string& topic,
                                                        IRPCHandler &handler,
-                                                       const std::shared_ptr<ILog>& log)
+                                                       const std::shared_ptr<ILog>& log,
+                                                       uint16_t port,
+                                                       bool standalone)
         {
-                Address address(0);
                 std::shared_ptr<ILinux> linux = std::make_shared<Linux>();
                 std::shared_ptr<IMessageListener> listener
                         = std::make_shared<RcomMessageHandler>(handler);
                 std::unique_ptr<IMessageHub> hub
-                        = rcom::MessageHub::create(topic, listener, log, 0, false);
+                        = rcom::MessageHub::create(topic, listener, log, port, standalone);
                 return std::make_unique<RcomServer>(hub);
+        }
+
+        std::unique_ptr<IRPCServer> RcomServer::create(const std::string& topic,
+                                                       IRPCHandler &handler,
+                                                       const std::shared_ptr<ILog>& log)
+        {
+                return create(topic, handler, log, 0, false);
         }
 
         std::unique_ptr<IRPCServer> RcomServer::create(const std::string& topic,
@@ -64,5 +71,11 @@ namespace rcom {
         void RcomServer::handle_events()
         {
                 hub_->handle_events();
+        }
+
+        void RcomServer::broadcast(MemBuffer &message, MessageType type,
+                                   IWebSocket *exclude) 
+        {
+                hub_->broadcast(message, type, exclude);
         }
 }
