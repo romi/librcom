@@ -23,6 +23,7 @@
  */
 #include <iostream>
 #include "rcom/RemoteObjectsAdaptor.h"
+#include "rcom/Log.h"
 
 namespace rcom {
 
@@ -37,14 +38,12 @@ namespace rcom {
                                            nlohmann::json& result,
                                            RPCError& error)
         {
-                IRPCHandler *adaptor = get_adaptor(id);
-
-                if (adaptor != nullptr) {
-                        adaptor->execute(id, method, params, result, error);
-                                
-                } else {
+                try {
+                        IRPCHandler& adaptor = get_adaptor(id);
+                        adaptor.execute(id, method, params, result, error);
+                } catch (std::exception& e) {
                         error.code = 2;
-                        error.message = "Unknown object id";
+                        error.message = e.what();
                 }
         }
         
@@ -54,34 +53,28 @@ namespace rcom {
                                            MemBuffer& result,
                                            RPCError &error)
         {
-                IRPCHandler *adaptor = get_adaptor(id);
-
-                if (adaptor != nullptr) {
-                        adaptor->execute(id, method, params, result, error);
-                                
-                } else {
+                try {
+                        IRPCHandler& adaptor = get_adaptor(id);
+                        adaptor.execute(id, method, params, result, error);
+                } catch (std::exception& e) {
                         error.code = 2;
-                        error.message = "Unknown object id";
+                        error.message = e.what();
                 }
         }
 
-        IRPCHandler *RemoteObjectsAdaptor::get_adaptor(const std::string& id)
+        IRPCHandler& RemoteObjectsAdaptor::get_adaptor(const std::string& id)
         {
-                IRPCHandler *result = nullptr;
-                ObjectMap::iterator it;
-                
-                it = map_.find(id);
+                ObjectMap::iterator it = map_.find(id);
                 if (it != map_.end()) {
-                        result = it->second.get();
+                        return it->second;
+                } else {
+                        throw std::runtime_error("Can't find object with given id");
                 }
-                
-                return result;
         }
 
-        void RemoteObjectsAdaptor::add(const std::string& id,
-                                       std::shared_ptr<IRPCHandler>& ptr)
+        void RemoteObjectsAdaptor::add(const std::string& id, IRPCHandler& ptr)
         {
-                map_.insert(std::pair<std::string, std::shared_ptr<IRPCHandler>>(id, ptr));
+                map_.insert(std::pair<std::string, IRPCHandler&>(id, ptr));
         }
 }
 

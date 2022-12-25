@@ -28,7 +28,7 @@
 
 namespace rcom {
 
-        using ObjectMap = std::map<std::string, std::shared_ptr<rcom::IRPCHandler>>;
+        using ObjectMap = std::map<std::string, IRPCHandler&>;
         
         class RemoteObjectsAdaptor : public rcom::IRPCHandler
         {
@@ -38,14 +38,14 @@ namespace rcom {
                 
                 ObjectMap map_;
 
-                rcom::IRPCHandler *get_adaptor(const std::string& id);
+                rcom::IRPCHandler& get_adaptor(const std::string& id);
                 
         public:
                 RemoteObjectsAdaptor();
                 ~RemoteObjectsAdaptor() override = default;
 
                 void add(const std::string& id,
-                         std::shared_ptr<rcom::IRPCHandler>& adaptor);
+                         IRPCHandler& adaptor);
                 
                 void execute(const std::string& id,
                              const std::string& method,
