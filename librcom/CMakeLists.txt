@@ -49,6 +49,7 @@ set(SOURCES
     include/rcom/RegistryProxy.h
     include/rcom/RegistryServer.h
     include/rcom/RemoteStub.h
+    include/rcom/RemoteObjectsAdaptor.h
     include/rcom/RequestParser.h
     include/rcom/Response.h
     include/rcom/ResponseParser.h
@@ -82,6 +83,7 @@ set(SOURCES
     src/RegistryServer.cpp
     src/Request.cpp
     src/RemoteStub.cpp
+    src/RemoteObjectsAdaptor.cpp
     src/RequestParser.cpp
     src/Response.cpp
     src/ResponseParser.cpp
