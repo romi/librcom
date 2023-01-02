@@ -68,7 +68,9 @@ namespace rcom {
                 if (it != map_.end()) {
                         return it->second;
                 } else {
-                        throw std::runtime_error("Can't find object with given id");
+                        std::string message = "Can't find object with given id: ";
+                        message += id;
+                        throw std::runtime_error(message.c_str());
                 }
         }
 
