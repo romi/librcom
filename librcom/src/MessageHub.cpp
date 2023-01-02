@@ -144,8 +144,8 @@ namespace rcom {
         }
 
         void MessageHub::broadcast(MemBuffer &message,
-                                      MessageType type,
-                                      IWebSocket *exclude)
+                                   MessageType type,
+                                   IWebSocket *exclude)
         {
                 server_->broadcast(message, type, exclude);
         }
