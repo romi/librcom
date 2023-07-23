@@ -30,6 +30,8 @@
 
 namespace rcom {        
 
+        using SynchronizedCodeBlock = std::lock_guard<std::mutex>;
+
         static uint16_t convert_to_uint16(MemBuffer buffer);
                 
         WebSocket::WebSocket(std::unique_ptr<ISocket>& socket,
@@ -44,7 +46,8 @@ namespace rcom {
                   is_text_(false),
                   is_continuation_(false),
                   remote_close_reason_(kCloseNormal),
-                  input_message_length_(0)
+                  input_message_length_(0),
+                  mutex_()
         {
                 socket_ = std::move(socket);
         }
@@ -55,16 +58,25 @@ namespace rcom {
 
         void WebSocket::close(CloseCode code)
         {
+                SynchronizedCodeBlock sync(mutex_);
                 close_with_handshake(code);
         }
 
         bool WebSocket::is_connected()
+        {
+                SynchronizedCodeBlock sync(mutex_);
+                return is_connected_nolock();
+        }
+
+        bool WebSocket::is_connected_nolock()
         {
                 return socket_->is_connected();
         }
 
         RecvStatus WebSocket::recv(MemBuffer& message, double timeout)
         {
+                SynchronizedCodeBlock sync(mutex_);
+                
                 RecvStatus status = kRecvError;
                 
                 try {
@@ -94,7 +106,7 @@ namespace rcom {
                                         break;
                                 }
 
-                                if (!is_connected()) {
+                                if (!is_connected_nolock()) {
                                         status = kRecvClosed;
                                         break;
                                 }
@@ -514,6 +526,8 @@ namespace rcom {
         
         bool WebSocket::send(MemBuffer& message, MessageType type)
         {
+                SynchronizedCodeBlock sync(mutex_);
+                
                 bool success = false;
                 size_t length = message.size();
                 

@@ -31,6 +31,8 @@ namespace rcom {
         public:
                 virtual ~IRPCServer() = default;
                 virtual void handle_events() = 0;
+                virtual void broadcast(MemBuffer &message, MessageType type,
+                                       IWebSocket *exclude) = 0;
         };
 }
 

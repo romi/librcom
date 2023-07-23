@@ -25,6 +25,7 @@
 #define _LIBRCOM_WEBSOCKET_H_
 
 #include <memory>
+#include <mutex>
 #include "rcom/ISocket.h"
 #include "rcom/IWebSocket.h"
 #include "rcom/ILog.h"
@@ -93,7 +94,7 @@ namespace rcom {
                 
                 // Used by send()
                 MemBuffer output_message_buffer_;
-
+                
                 // Used by recv()
                 MemBuffer input_payload_buffer_;
                 FrameHeader frame_header_;
@@ -101,6 +102,8 @@ namespace rcom {
                 bool is_continuation_;
                 CloseCode remote_close_reason_;
                 uint64_t input_message_length_;
+                
+                std::mutex mutex_;
                 
         public:
                 
@@ -173,6 +176,7 @@ namespace rcom {
                 bool socket_send(const uint8_t *buffer, size_t length);
                 void socket_read(uint8_t *buffer, size_t length);
                 double compute_remaning_time(double start_time, double timeout);
+                bool is_connected_nolock();
 
                 // Utility functions
                 static void make_accept_string(std::string& accept, std::string& key);

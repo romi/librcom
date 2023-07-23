@@ -46,10 +46,18 @@ namespace rcom {
                                                           IRPCHandler &handler,
                                                           const std::shared_ptr<ILog>& log);
                 
+                static std::unique_ptr<IRPCServer> create(const std::string& topic,
+                                                          IRPCHandler &handler,
+                                                          const std::shared_ptr<ILog>& log,
+                                                          uint16_t port,
+                                                          bool standalone);
+                
                 RcomServer(std::unique_ptr<IMessageHub>& hub);
                 virtual ~RcomServer() = default;
 
-                void handle_events();
+                void handle_events() override;
+                void broadcast(MemBuffer &message, MessageType type,
+                               IWebSocket *exclude) override;
         };
 }
 
