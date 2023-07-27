@@ -101,12 +101,17 @@ namespace rcom {
                         address_ = buffer;
                 }
         }
-        
+
         std::string RegistryLookup::lookup()
         {
                 create_socket();
-                send_message();
-                get_response();
+
+                for (int i = 0; i < 8; i++) {
+                        send_message();
+                        get_response();
+                        if (!address_.empty())
+                                break;
+                }
                 close(socket_);
                 
                 if (address_.empty()) {
