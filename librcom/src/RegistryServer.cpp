@@ -24,22 +24,31 @@
 #include "rcom/Log.h"
 #include "rcom/RegistryServer.h"
 #include "rcom/Address.h"
+#include "rcom/ip.h"
+#include "rcom/RegistryLookup.h"
 
 namespace rcom {
 
+        static bool use_registry_address_ = false;
         static Address registry_address_(10101);
         
         void RegistryServer::get_address(IAddress& address)
         {
                 // FIXME
                 std::string address_string;
-                registry_address_.tostring(address_string);
+                if (use_registry_address_) {
+                        registry_address_.tostring(address_string);
+                } else {
+                        RegistryLookup lookup(kLookupPort);
+                        address_string = lookup.lookup(); // Hmmm...                        
+                }
                 address.set(address_string);
         }
         
         void RegistryServer::set_address(const char *ip, uint16_t port)
         {
                 registry_address_.set(ip, port);
+                use_registry_address_ = true;
         }
 
         //

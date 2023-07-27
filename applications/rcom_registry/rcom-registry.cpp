@@ -39,6 +39,8 @@
 #include <rcom/Address.h>
 #include <rcom/ConsoleLog.h>
 #include <rcom/util.h>
+#include <rcom/RegistryLookupServer.h>
+#include <rcom/RegistryLookup.h>
 
 std::atomic<bool> quit(false);
 
@@ -90,6 +92,8 @@ int main(int argc, const char **argv)
                 address.tostring(s);
                 std::cout << "Registry server running at " << s.c_str() << std::endl;
 
+                rcom::RegistryLookupServer lookup_server(s, rcom::kLookupPort);
+                
                 while (!quit) {
                         server.handle_events();
                         usleep(20000);

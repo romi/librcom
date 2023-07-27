@@ -46,6 +46,8 @@ set(SOURCES
     include/rcom/RcomServer.h
     include/rcom/RegistryEntry.h
     include/rcom/Registry.h
+    include/rcom/RegistryLookup.h
+    include/rcom/RegistryLookupServer.h
     include/rcom/RegistryProxy.h
     include/rcom/RegistryServer.h
     include/rcom/RemoteStub.h
@@ -79,6 +81,8 @@ set(SOURCES
     src/RcomServer.cpp
     src/RegistryEntry.cpp
     src/Registry.cpp
+    src/RegistryLookup.cpp
+    src/RegistryLookupServer.cpp
     src/RegistryProxy.cpp
     src/RegistryServer.cpp
     src/Request.cpp
