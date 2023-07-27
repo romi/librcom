@@ -113,4 +113,4 @@ namespace rcom {
                 if (thread_ && thread_->joinable())
                         thread_->join();
         }
-};
+}
