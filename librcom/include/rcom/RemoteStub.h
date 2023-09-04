@@ -59,7 +59,7 @@ namespace rcom {
                 bool execute_simple_request(const std::string& method);
                 bool execute_simple_request(const std::string& id,
                                             const std::string& method);
-
+                
         public:
                 explicit RemoteStub(std::unique_ptr<IRPCClient>& client);
                 virtual ~RemoteStub() = default;

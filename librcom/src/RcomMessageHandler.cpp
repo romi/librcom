@@ -23,7 +23,9 @@
  */
 
 #include <stdexcept>
+#include <iostream>
 #include <string.h>
+#include "rcom/MessageFields.h"
 #include "rcom/RcomMessageHandler.h"
 
 namespace rcom {
@@ -58,16 +60,16 @@ namespace rcom {
                         std::string method = get_method(request, error);
                         if (!method.empty()) {
                                 nlohmann::json params;
-                                if (request.contains("params"))
-                                        params = request["params"];
+                                if (request.contains(kParams))
+                                        params = request[kParams];
 
                                 handler_.execute(id, method, params, result, error);
                                 
                         } else {
-                                response = construct_response(id, "unknown", error);
+                                response = construct_response(id, kUnknownMethod, error);
                         }
                 } else {
-                        response = construct_response("unknown", "unknown", error);
+                        response = construct_response(kNoID, kUnknownMethod, error);
                 }
  
                 if (error.code == 0) {
@@ -96,17 +98,20 @@ namespace rcom {
                         if (!method.empty()) {
                                 nlohmann::json params;
 
-                                if (request.contains("params"))
-                                        params = request["params"];
+                                if (request.contains(kParams))
+                                        params = request[kParams];
 
                                 handler_.execute(id, method, params, result, error);
                                 response = construct_response(id, method, error, result);
                                 
+
+                                //std::cout << "RcomMessageHandler::handle_json_request: response: " << response << std::endl;
+                                
                         } else {
-                                response = construct_response(id, "unknown", error);
+                                response = construct_response(id, kUnknownMethod, error);
                         }
                 } else {
-                        response = construct_response("unknown", "unknown", error);
+                        response = construct_response(kNoID, kUnknownMethod, error);
                 }
                 
                 MemBuffer serialised;
@@ -132,7 +137,7 @@ namespace rcom {
         {
                 std::string value;
                 try {
-                        value = request["method"];
+                        value = request[kMethod];
                 } catch (std::exception& e) {
                         error.code = RPCError::kInvalidRequest;
                         error.message = "Missing method";
@@ -143,9 +148,9 @@ namespace rcom {
         std::string RcomMessageHandler::get_id(nlohmann::json& request, RPCError& error)
         {
                 std::string value;
-                if (request.contains("id")) {
+                if (request.contains(kID)) {
                         try {
-                                value = request["id"];
+                                value = request[kID];
                         } catch (std::exception& e) {
                                 error.code = RPCError::kInvalidRequest;
                                 error.message = "Invalid ID";
@@ -163,7 +168,7 @@ namespace rcom {
         {
                 nlohmann::json response = construct_response(id, method, error);
                 if (!result.is_null()) {
-                        response["result"] = result;
+                        response[kResult] = result;
                 } 
                 return response;
         }
@@ -186,25 +191,25 @@ namespace rcom {
                 nlohmann::json response;
                 
                 if (!id.empty()) {
-                        response["id"] = id;
+                        response[kID] = id;
                 } else {
-                        response["id"] = "unknown";
+                        response[kID] = kNoID;
                 }
 
                 if (!method.empty()) {
-                        response["method"] = method;
+                        response[kMethod] = method;
                 } else {
-                        response["method"] = "unknown";
+                        response[kMethod] = kUnknownMethod;
                 }
                 
                 if (code != 0) {
                         nlohmann::json error;
-                        error["message"] = "No message was given";
+                        error[kErrorMessage] = "No message was given";
                         if (message != nullptr && strlen(message) > 0) {
-                            error["message"] = message;
+                            error[kErrorMessage] = message;
                         }
-                        error["code"] = code;
-                        response["error"] = error;
+                        error[kErrorCode] = code;
+                        response[kError] = error;
                 }
 
                 return response;

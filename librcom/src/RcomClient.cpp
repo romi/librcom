@@ -27,6 +27,7 @@
 #include "rcom/ConsoleLog.h"
 #include "rcom/Log.h"
 #include "rcom/RcomClient.h"
+#include "rcom/MessageFields.h"
 
 namespace rcom {
         
@@ -98,9 +99,9 @@ namespace rcom {
         {
                 //r_debug("RcomClient::make_request");
                 nlohmann::json request;
-                request["id"] = id;
-                request["method"] = method;
-                request["params"] = params;
+                request[kID] = id;
+                request[kMethod] = method;
+                request[kParams] = params;
 
                 buffer_.clear();
                 buffer_.append(request.dump());
@@ -145,8 +146,16 @@ namespace rcom {
         {
                 //r_debug("RcomClient::parse_response");
                 try {
-                        result = nlohmann::json::parse(buffer_.tostring());
-                                
+                        nlohmann::json response = nlohmann::json::parse(buffer_.tostring());
+                        if (response.contains(kResult)) {
+                                result = response[kResult]; 
+                        }
+                        if (response.contains(kError)) {
+                                nlohmann::json e = response[kError];
+                                error.code = e[kErrorCode]; 
+                                error.message = e[kErrorMessage]; 
+                        }
+                        
                 } catch (std::exception& e) {
                         error.code = RPCError::kParseError;
                         error.message = "RcomClient: Parsing response failed";
