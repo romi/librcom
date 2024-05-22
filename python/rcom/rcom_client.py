@@ -18,6 +18,7 @@ class RcomClient():
         data = registry.recv()
         response = json.loads(data)
         if 'address' in response:
+            print(f"Connecting to '{topic}' at ws://{response['address']}")
             self.connection = websocket.create_connection(f"ws://{response['address']}")
         else:
             raise RuntimeError(f'Failed to obtain the address for "{topic}"')
