@@ -2,3 +2,26 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "rcom"
+version = "0.1.1"
+authors = [
+  { name="Peter Hanappe, Doug Boari", email="peter.hanappe@sony.com" },
+]
+description = "The Python interface for the librcom communication library"
+readme = "Readme.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development"
+]
+license = "LGPL-2.1"
+license-files = ["LICEN[CS]E*"]
+dependencies=['websocket-client', 'websockets']
+
+
+[project.urls]
+Homepage = "https://github.com/romi/rcom"
+

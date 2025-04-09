@@ -30,4 +30,5 @@ if __name__ == '__main__':
     monster.gently_scare_someone('you')
     energy = monster.get_energy_level()
     print(f'energy level is {energy}')
+    monster.leave()
 

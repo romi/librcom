@@ -1,28 +1,25 @@
 import json
 import websocket
 import socket
+from rcom.rcom_registry import RcomRegistry
 
 class RcomClient():
 
     def __init__(self, topic, id, registry_ip = None):
+        self.topic = topic
         self.id = id
-        if registry_ip == None:
-            registry_address = self._lookup_registry()
-        else:
-            registry_address = f'{registry_ip}:10101'
-        print(f'Using registry address {registry_address}')
-        registry = websocket.create_connection(f'ws://{registry_address}')
-        cmd = {'request': 'get', 'topic': topic}
-        request = json.dumps(cmd)
-        registry.send(request)
-        data = registry.recv()
-        response = json.loads(data)
-        if 'address' in response:
-            print(f"Connecting to '{topic}' at ws://{response['address']}")
-            self.connection = websocket.create_connection(f"ws://{response['address']}")
-        else:
-            raise RuntimeError(f'Failed to obtain the address for "{topic}"')
-            
+        self.registry_ip = registry_ip
+        self._connect()
+
+    def _connect(self):
+        registry = RcomRegistry(self.registry_ip)
+        address = registry.get(self.topic)
+        print(f"Connecting to '{self.topic}' at ws://{address}")
+        self.connection = websocket.create_connection(f"ws://{address}")
+
+    def leave(self):
+        self.connection.close()
+        
     def execute(self, method, params=None):
         self._send_request(method, params)
         return self._read_response()
@@ -33,10 +30,14 @@ class RcomClient():
         else:
             cmd = { 'id': self.id, 'method': method }
         request = json.dumps(cmd)
+        print(f'request: {request}')
         self.connection.send(request)
         
     def _read_response(self):
-        response = json.loads(self.connection.recv())
+        data = self.connection.recv()
+        print(f'data=/{data}/, type={type(data)}')
+        response = json.loads(data)
+        print(response)
         self._check_error(response)
         if 'result' in response:
             result = response['result']
@@ -46,9 +47,14 @@ class RcomClient():
     def _check_error(self, response):
         if 'error' in response:
             error = response['error']
-            print(f"Request failed: {error['message']}")
-            raise RuntimeError(error['message'])
-
+            print(error)
+            if 'message' in error:
+                print(f"Request failed: {error['message']}")
+                raise RuntimeError(error['message'])
+            else:
+                print(f"Request failed: {error}")
+                raise RuntimeError('Unknown error')
+            
     def _lookup_registry(self, port = 10101):
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
