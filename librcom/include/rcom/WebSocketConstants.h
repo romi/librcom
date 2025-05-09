@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _RCOM_WEBSOCKET_CONSTANTS_H_
-#define _RCOM_WEBSOCKET_CONSTANTS_H_
+#ifndef _LIBRCOM_WEBSOCKETCONSTANTS_H_
+#define _LIBRCOM_WEBSOCKETCONSTANTS_H_
 
 namespace rcom {
                                 
@@ -110,4 +110,4 @@ namespace rcom {
         };
 }
 
-#endif // _RCOM_WEBSOCKET_CONSTANTS_H_
+#endif // _LIBRCOM_WEBSOCKETCONSTANTS_H_

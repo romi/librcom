@@ -25,10 +25,11 @@
 #define _LIBRCOM_RCOMSERVER_H
 
 #include <memory>
-#include "rcom/IMessageHub.h"
-#include "rcom/IRPCServer.h"
-#include "rcom/IRPCHandler.h"
 #include "rcom/ILog.h"
+#include "rcom/ISystem.h"
+#include "rcom/IRPCServer.h"
+#include "rcom/IMessageHub.h"
+#include "rcom/IMessageListener.h"
 
 namespace rcom {
         
@@ -39,16 +40,20 @@ namespace rcom {
 
         public:
                 
-                static std::unique_ptr<IRPCServer> create(const std::string& topic,
-                                                          IRPCHandler &handler);
+                // static std::unique_ptr<IRPCServer> create(const std::string& topic,
+                //                                           IRPCHandler &handler);
                 
                 static std::unique_ptr<IRPCServer> create(const std::string& topic,
-                                                          IRPCHandler &handler,
-                                                          const std::shared_ptr<ILog>& log);
+                                                          const std::string& type,
+                                                          IMessageListener &listener,
+                                                          ILog& log,
+                                                          ISystem& system);
                 
                 static std::unique_ptr<IRPCServer> create(const std::string& topic,
-                                                          IRPCHandler &handler,
-                                                          const std::shared_ptr<ILog>& log,
+                                                          const std::string& type,
+                                                          IMessageListener &listener,
+                                                          ILog& log,
+                                                          ISystem& system,
                                                           uint16_t port,
                                                           bool standalone);
                 

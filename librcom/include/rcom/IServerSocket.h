@@ -21,10 +21,10 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_SERVER_SOCKET_H_
-#define _LIBRCOM_I_SERVER_SOCKET_H_
+#ifndef _LIBRCOM_ISERVERSOCKET_H_
+#define _LIBRCOM_ISERVERSOCKET_H_
 
-#include "rcom/ISocket.h"
+#include "rcom/IAddress.h"
 
 namespace rcom {
         
@@ -38,4 +38,4 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_SERVER_SOCKET_H_
+#endif // _LIBRCOM_ISERVERSOCKET_H_

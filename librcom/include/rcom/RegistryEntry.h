@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_REGISTRY_ENTRY_H_
-#define _LIBRCOM_REGISTRY_ENTRY_H_
+#ifndef _LIBRCOM_REGISTRYENTRY_H_
+#define _LIBRCOM_REGISTRYENTRY_H_
 
 #include "rcom/Address.h"
 
@@ -32,10 +32,13 @@ namespace rcom {
         {
                 std::string topic;
                 Address address;
+                std::string type;
 
-                RegistryEntry(const std::string& topic_, IAddress& address_);
+                RegistryEntry(const std::string& topic_,
+                              IAddress& address_,
+                              const std::string& type_);
         };
 }
 
-#endif // _LIBRCOM_REGISTRY_ENTRY_H_
+#endif // _LIBRCOM_REGISTRYENTRY_H_
 

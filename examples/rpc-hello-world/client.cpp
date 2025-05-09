@@ -18,14 +18,17 @@
 
  */
 #include <iostream>
+#include <rcom/Linux.h>
+#include <rcom/ConsoleLog.h>
 #include <rcom/MessageLink.h>
 
 int main()
 {
         try {
-                auto link = rcom::MessageLink::create("hello-world", 10.0);
-                rcom::MemBuffer message;
-                message.append("hello");
+                rcom::ConsoleLog log;
+                rcom::Linux system(log);
+                auto link = rcom::MessageLink::create("hello-world", 10.0, log, system);
+                rcom::MemBuffer message("hello");
 
                 if (link->send(message)
                     && link->recv(message, 1.0)) {

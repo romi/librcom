@@ -26,8 +26,10 @@
 
 namespace rcom {
         
-        RegistryEntry::RegistryEntry(const std::string& topic_, IAddress& address_)
-                : topic(topic_), address(address_)
+        RegistryEntry::RegistryEntry(const std::string& topic_,
+                                     IAddress& address_,
+                                     const std::string& type_)
+                : topic(topic_), address(address_), type(type_)
         {
         }
 }

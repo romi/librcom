@@ -23,7 +23,7 @@
  */
 #include <exception>
 #include <string.h>
-#include "rcom/ConsoleLog.h"
+#include <arpa/inet.h>
 #include "rcom/Log.h"
 #include "rcom/WebSocket.h"
 #include "rcom/util.h"
@@ -34,12 +34,10 @@ namespace rcom {
 
         static uint16_t convert_to_uint16(MemBuffer buffer);
                 
-        WebSocket::WebSocket(std::unique_ptr<ISocket>& socket,
-                             const std::shared_ptr<ILinux>& linux,
-                             const std::shared_ptr<ILog>& log)
+        WebSocket::WebSocket(std::unique_ptr<ISocket>& socket, ILog& log, ISystem& system)
                 : socket_(),
-                  linux_(linux),
                   log_(log),
+                  system_(system),
                   output_message_buffer_(),
                   input_payload_buffer_(),
                   frame_header_{false,0,false,0},
@@ -93,7 +91,7 @@ namespace rcom {
 
         RecvStatus WebSocket::try_recv(MemBuffer& message, double timeout)
         {
-                double start_time = rcom_time(*linux_);
+                double start_time = system_.time();
                 double remaining_time = timeout;
                 RecvStatus status = kRecvTimeOut;
                 
@@ -120,7 +118,7 @@ namespace rcom {
         
         double WebSocket::compute_remaning_time(double start_time, double timeout)
         {
-                double now = rcom_time(*linux_);
+                double now = system_.time();
                 return timeout - (now - start_time);
         }
         
@@ -436,7 +434,7 @@ namespace rcom {
         
         void WebSocket::closing_wait_reply(double timeout)
         {
-                double start_time = rcom_time(*linux_);
+                double start_time = system_.time();
                 double remaining_time = timeout;
 
                 while (remaining_time >= 0.0) {

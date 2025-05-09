@@ -30,14 +30,15 @@
 #include <iostream>
 #include <unistd.h>
 
+#include <rcom/ConsoleLog.h>
 #include <rcom/Linux.h>
-#include <rcom/SocketFactory.h>
+#include <rcom/Log.h>
+#include <rcom/WebSocketFactory.h>
 #include <rcom/Registry.h>
 #include <rcom/RegistryServer.h>
 #include <rcom/WebSocketServer.h>
 #include <rcom/ServerSocket.h>
 #include <rcom/Address.h>
-#include <rcom/ConsoleLog.h>
 #include <rcom/util.h>
 #include <rcom/RegistryLookupServer.h>
 #include <rcom/RegistryLookup.h>
@@ -59,52 +60,57 @@ void SignalHandler(int signal)
 
 int main(int argc, const char **argv)
 {
+        int result = 0;
+        rcom::ConsoleLog log;
+        rcom::Linux system(log);
+
+        std::signal(SIGSEGV, SignalHandler);
+        std::signal(SIGINT, SignalHandler);
+        
         try {
-                std::signal(SIGSEGV, SignalHandler);
-                std::signal(SIGINT, SignalHandler);
-                
-                // FIXME
-                const char *ip = nullptr;
-                if (argc == 2)
+                std::string ip = system.local_ip();
+                if (argc == 2) {
                         ip = argv[1];
+                }
                 
                 rcom::Address address(ip, 10101);
                 rcom::Registry registry;
                 
-                std::shared_ptr<rcom::ILinux> linux
-                        = std::make_shared<rcom::Linux>();
-                
-                std::shared_ptr<rcom::ILog> log
-                        = std::make_shared<rcom::ConsoleLog>();
-
-                std::shared_ptr<rcom::ISocketFactory> factory
-                        = std::make_shared<rcom::SocketFactory>(linux, log);
+                std::shared_ptr<rcom::IWebSocketFactory> factory
+                        = std::make_shared<rcom::WebSocketFactory>(log, system);
 
                 std::unique_ptr<rcom::IServerSocket> server_socket
-                        = std::make_unique<rcom::ServerSocket>(linux, log, address);
+                        = std::make_unique<rcom::ServerSocket>(log, system, address);
                 
-                std::shared_ptr<rcom::IMessageListener> registry_server
-                        = std::make_shared<rcom::RegistryServer>(registry, log);
+                rcom::RegistryServer registry_server(registry, log);
                 
                 rcom::WebSocketServer server(server_socket, factory, registry_server, log);
 
-                std::string s;
-                address.tostring(s);
-                std::cout << "Registry server running at " << s.c_str() << std::endl;
+                std::string s = address.tostring();
+                log_info(log, "Registry server running at %s", s.c_str());
 
-                rcom::RegistryLookupServer lookup_server(s, rcom::kLookupPort);
+                rcom::RegistryLookupServer lookup_server(log, system, s, rcom::kLookupPort);
                 
                 while (!quit) {
                         server.handle_events();
-                        usleep(20000);
+                        system.sleep(0.010);
                 }
+
+                log_debug(log, "Quitting");
                 
         } catch (nlohmann::json::exception& je) {
                 std::cout << "main: caught JSON error: " << je.what() << std::endl;
+                result = 1;
         } catch (std::runtime_error& re) {
                 std::cout << "main: caught runtime_error: " << re.what() << std::endl;
+                result = 2;
         } catch (...) {
                 std::cout << "main: caught exception" << std::endl;
+                result = 3;
         }
+
+        rcom::log_debug(log, "End");
+
+        return result;
 }
 

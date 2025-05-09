@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_REQUEST_H_
-#define _LIBRCOM_I_REQUEST_H_
+#ifndef _LIBRCOM_IREQUEST_H_
+#define _LIBRCOM_IREQUEST_H_
 
 #include <string>
 
@@ -53,4 +53,4 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_REQUEST_H_
+#endif // _LIBRCOM_IREQUEST_H_

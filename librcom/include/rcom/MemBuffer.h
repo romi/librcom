@@ -22,8 +22,8 @@
   <http://www.gnu.org/licenses/>.
 
 */
-#ifndef R_MEMBUFFER_H
-#define R_MEMBUFFER_H
+#ifndef _LIBRCOM_MEMBUFFER_H
+#define _LIBRCOM_MEMBUFFER_H
 
 #include <stdint.h>
 #include <string>
@@ -39,9 +39,13 @@ namespace rcom
         public:
                 MemBuffer() : data_() {}
                 MemBuffer(const MemBuffer& buffer);
+                MemBuffer(const std::string& s);
+                MemBuffer(const uint8_t *data, size_t len);
+                
+                virtual ~MemBuffer() = default;
+                
                 MemBuffer& operator=(const MemBuffer& from);
                 bool operator==(const MemBuffer& rval);
-                virtual ~MemBuffer() = default;
         
                 void put(uint8_t c);
                 void append(const uint8_t *data, size_t len);
@@ -60,4 +64,4 @@ namespace rcom
         };
 }
 
-#endif // R_MEMBUFFER_H
+#endif // _LIBRCOM_MEMBUFFER_H

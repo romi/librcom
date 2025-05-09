@@ -24,20 +24,20 @@
 #include "rcom/Log.h"
 #include "rcom/RegistryServer.h"
 #include "rcom/Address.h"
-#include "rcom/ip.h"
 #include "rcom/RegistryLookup.h"
+#include "rcom/util.h"
 
 namespace rcom {
 
         static bool use_registry_address_ = false;
-        static Address registry_address_(10101);
-        
+        static Address registry_address_;
+
         void RegistryServer::get_address(IAddress& address)
         {
                 // FIXME
                 std::string address_string;
                 if (use_registry_address_) {
-                        registry_address_.tostring(address_string);
+                        address_string = registry_address_.tostring();
                 } else {
                         RegistryLookup lookup(kLookupPort);
                         address_string = lookup.lookup(); // Hmmm...                        
@@ -45,17 +45,18 @@ namespace rcom {
                 address.set(address_string);
         }
         
-        void RegistryServer::set_address(const char *ip, uint16_t port)
+        void RegistryServer::set_address(const char *ip)
         {
-                registry_address_.set(ip, port);
+                registry_address_.set(ip, kRegistryPort);
                 use_registry_address_ = true;
         }
 
         //
         
-        RegistryServer::RegistryServer(IRegistry& registry,
-                                       const std::shared_ptr<ILog>& log)
-                : registry_(registry), log_(log), response_()
+        RegistryServer::RegistryServer(IRegistry& registry, ILog& log)
+                : registry_(registry),
+                  log_(log),
+                  response_()
         {
         }
         
@@ -63,9 +64,10 @@ namespace rcom {
         {
         }
 
-        void RegistryServer::set(const std::string& topic, IAddress& address)
+        void RegistryServer::set(const std::string& topic, IAddress& address,
+                                 const std::string& type)
         {
-                registry_.set(topic, address);
+                registry_.set(topic, address, type);
         }
                         
         bool RegistryServer::get(const std::string& topic, IAddress& address)
@@ -105,6 +107,20 @@ namespace rcom {
                         send_fail(websocket, "Internal error");
                 }                    
         }
+
+        void RegistryServer::assert_topic(const std::string& topic)
+        {
+                if (!is_valid_topic(topic)) {
+                        throw std::runtime_error("Invalid topic string");
+                }
+        }
+        
+        void RegistryServer::assert_type(const std::string& topic)
+        {
+                if (!is_valid_name(topic)) {
+                        throw std::runtime_error("Invalid type string");
+                }
+        }
         
         void RegistryServer::handle_message(IWebSocket& websocket,
                                             MemBuffer& message)
@@ -126,6 +142,9 @@ namespace rcom {
                 } else if (request == "get") {
                         handle_get(websocket, message);                
                 
+                } else if (request == "list") {
+                        handle_list(websocket, message);                
+                
                 } else {
                         log_warn(log_, "Unknown request: %s", request.c_str());
                         send_fail(websocket, "Unknown request");
@@ -138,9 +157,13 @@ namespace rcom {
                 try {
                         std::string topic = message["topic"];
                         std::string address_string = message["address"];
+                        std::string type = message["type"];
                         Address address(address_string);
-                
-                        set(topic, address);
+
+                        assert_topic(topic);
+                        assert_type(topic);
+                        
+                        set(topic, address, type);
                         send_success(websocket);
                         log_info(log_, "RegistryServer: Register topic '%s' at %s",
                                  topic.c_str(), address_string.c_str());
@@ -187,11 +210,23 @@ namespace rcom {
                 }
         }
 
+        void RegistryServer::handle_list(IWebSocket& websocket, nlohmann::json& /*message*/)
+        {
+                try {
+                        //std::string type = message["type"];
+
+                        // TODO
+                        
+                } catch (std::runtime_error& e) {
+                        log_info(log_, "RegistryServer: Get topic failed: %s", e.what());
+                        send_fail(websocket, e.what());
+                }
+        }
+
         void RegistryServer::send_address(IWebSocket& websocket, const std::string& topic,
                                           IAddress& address)
         {
-                std::string address_string;
-                address.tostring(address_string);
+                std::string address_string = address.tostring();
                         
                 response_.clear();
                 response_.printf(R"({"success":true, "topic": "%s", "address": "%s"})",

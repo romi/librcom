@@ -23,8 +23,10 @@
  */
 #include <stdexcept>
 #include <cstring>
+#include <arpa/inet.h> // FIXME: for htons
 #include "rcom/Log.h"
 #include "rcom/Frames.h"
+#include "rcom/WebSocketConstants.h"
 #include "rcom/ClientSideWebSocket.h"
 #include "rcom/util.h"
 
@@ -33,9 +35,8 @@ namespace rcom {
         ClientSideWebSocket::ClientSideWebSocket(std::unique_ptr<ISocket>& socket,
                                                  IResponseParser& parser,
                                                  IAddress& remote_address,
-                                                 const std::shared_ptr<ILinux>& linux,
-                                                 const std::shared_ptr<ILog>& log)
-                : WebSocket(socket, linux, log)
+                                                 ILog& log, ISystem& system)
+                : WebSocket(socket, log, system)
         {
                 try {
                         handshake(parser, remote_address);
@@ -72,7 +73,7 @@ namespace rcom {
                 
                 make_key(key);
                 make_accept_string(accept, key);
-                address.tostring(host);
+                host = address.tostring();
         
                 send_http_request(host, key);
                 parser.parse(*socket_);
@@ -90,7 +91,7 @@ namespace rcom {
                 */                            
                 uint8_t bytes[17];
                 ::memset(bytes, 0, sizeof(bytes));
-                linux_->getrandom(bytes, sizeof(bytes)-1, 0);
+                system_.getrandom(bytes, sizeof(bytes)-1, 0);
                 encode_base64(bytes, 16, key);
         }
 
@@ -125,15 +126,15 @@ namespace rcom {
                    not the client" */
                 double timeout = 0.5;
                 bool timed_out = false;
-                double start_time = rcom_time(*linux_);
+                double start_time = system_.time();
                 while (socket_->is_endpoint_connected() && !timed_out) {
-                        double now = rcom_time(*linux_);
+                        double now = system_.time();
                         double time_passed = now - start_time;
                         timed_out = (time_passed >= timeout);
 
                         if (!timed_out) {
                                 double duration = std::min(0.1, timeout - time_passed);
-                                rcom_sleep(*linux_, duration);
+                                system_.sleep(duration);
                         }
                 }
                 socket_->close();
@@ -152,7 +153,7 @@ namespace rcom {
 
         void ClientSideWebSocket::make_mask()
         {
-                linux_->getrandom(output_mask_, sizeof(output_mask_), 0);
+                system_.getrandom(output_mask_, sizeof(output_mask_), 0);
         }
 
         void ClientSideWebSocket::mask_data(uint8_t *out, const uint8_t *in, size_t length)

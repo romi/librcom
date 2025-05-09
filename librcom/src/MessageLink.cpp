@@ -29,38 +29,36 @@
 #include "rcom/util.h"
 #include "rcom/ConsoleLog.h"
 #include "rcom/Linux.h"
-#include "rcom/SocketFactory.h"
+#include "rcom/WebSocketFactory.h"
 
 namespace rcom {
         
-        std::unique_ptr<IMessageLink> MessageLink::create(const std::string& topic,
-                                                          double timeout)
-        {
-                std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
-                return create(topic, timeout, log);
-        }
+        // std::unique_ptr<IMessageLink> MessageLink::create(const std::string& topic,
+        //                                                   double timeout)
+        // {
+        //         std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
+        //         return create(topic, timeout, log);
+        // }
 
         std::unique_ptr<IMessageLink> MessageLink::create(const std::string& topic,
                                                           double timeout,
-                                                          const std::shared_ptr<ILog>& log)
+                                                          ILog& log, ISystem& system)
         {
-                std::shared_ptr<ILinux> linux = std::make_shared<Linux>();                
-                std::shared_ptr<ISocketFactory> factory
-                        = std::make_shared<SocketFactory>(linux, log);
-                return std::make_unique<MessageLink>(topic, timeout, factory, linux, log);
+                std::shared_ptr<IWebSocketFactory> factory
+                        = std::make_shared<WebSocketFactory>(log, system);
+                return std::make_unique<MessageLink>(topic, timeout, factory, log, system);
         }
 
         MessageLink::MessageLink(const std::string& topic,
                                  double timeout,
-                                 const std::shared_ptr<ISocketFactory>& factory,
-                                 const std::shared_ptr<ILinux>& linux,
-                                 const std::shared_ptr<ILog>& log)
+                                 const std::shared_ptr<IWebSocketFactory>& factory,
+                                 ILog& log, ISystem& system)
                 : factory_(factory),
                   websocket_(),
                   topic_(topic),
                   recv_status_(kRecvText),
-                  linux_(linux),
-                  log_(log)
+                  log_(log),
+                  system_(system)
         {
                 if (!is_valid_topic(topic_)) {
                         log_err(log_, "MessageLink: Ill-formatted topic string: %s",
@@ -101,7 +99,7 @@ namespace rcom {
                 RegistryServer::get_address(registry_address);
                 std::unique_ptr<IWebSocket> registry_socket
                         = factory_->new_client_side_websocket(registry_address);
-                RegistryProxy registry(registry_socket, linux_, log_);
+                RegistryProxy registry(registry_socket, system_, log_);
                 return registry.get(topic_, address, timeout);
         }
 

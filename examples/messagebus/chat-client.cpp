@@ -23,7 +23,9 @@
 #include <mutex>
 #include <syslog.h>
 #include <atomic>
+#include <csignal>
 
+#include <rcom/ConsoleLog.h>
 #include <rcom/Linux.h>
 #include <rcom/MessageLink.h>
 #include <rcom/util.h>
@@ -63,10 +65,11 @@ void print_available_messages(rcom::IMessageLink& link)
 
 void handle_incoming_messages(rcom::IMessageLink& link)
 {
-        rcom::Linux linux;
+        rcom::ConsoleLog log;
+        rcom::Linux linux(log);
         while (!quit) {
                 print_available_messages(link);
-                rcom_sleep(linux, 0.100);
+                linux.sleep(0.100);
         }
 }
 
@@ -111,7 +114,10 @@ int main(int argc, char **argv)
                 topic = argv[1];
         
         try {
-                auto link = rcom::MessageLink::create(topic, 10.0);
+                rcom::ConsoleLog log;
+                rcom::Linux system(log);
+
+                auto link = rcom::MessageLink::create(topic, 10.0, log, system);
                 rcom::MemBuffer message;
 
                 std::signal(SIGINT, SignalHandler);

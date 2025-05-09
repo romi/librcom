@@ -21,11 +21,11 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_REGISTRY_H_
-#define _LIBRCOM_I_REGISTRY_H_
+#ifndef _LIBRCOM_IREGISTRY_H_
+#define _LIBRCOM_IREGISTRY_H_
 
 #include <string>
-#include "rcom/Address.h"
+#include "rcom/IAddress.h"
 
 namespace rcom {
 
@@ -34,7 +34,9 @@ namespace rcom {
         public:
                 virtual ~IRegistry() = default; 
                 
-                virtual void set(const std::string& topic, IAddress& address) = 0;
+                virtual void set(const std::string& topic,
+                                 IAddress& address,
+                                 const std::string& type) = 0;
                 
                 // Returns true if the the address was found, false if
                 // it wasn't found. Throws a runtime_error is
@@ -46,5 +48,5 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_REGISTRY_H_
+#endif // _LIBRCOM_IREGISTRY_H_
 

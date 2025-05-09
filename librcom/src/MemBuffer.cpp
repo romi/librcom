@@ -37,6 +37,16 @@ namespace rcom
                 append(buffer);
         }
 
+        MemBuffer::MemBuffer(const std::string& s) : data_()
+        {
+                append(s);
+        }
+
+        MemBuffer::MemBuffer(const uint8_t *data, size_t len) : data_()
+        {
+                append(data, len);
+        }
+
         MemBuffer &MemBuffer::operator=(const MemBuffer &from) {
                     clear();
                     append(from);

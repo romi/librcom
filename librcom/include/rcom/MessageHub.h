@@ -25,8 +25,8 @@
 #define _LIBRCOM_MESSAGEHUB_H_
 
 #include <memory>
-#include "rcom/Linux.h"
-#include "rcom/SocketFactory.h"
+#include "rcom/ISystem.h"
+#include "rcom/WebSocketFactory.h"
 #include "rcom/IMessageHub.h"
 #include "rcom/IWebSocketServer.h"
 #include "rcom/IMessageListener.h"
@@ -37,43 +37,48 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IWebSocketServer> server_;
-                std::shared_ptr<ISocketFactory> socket_factory_;
+                std::shared_ptr<IWebSocketFactory> socket_factory_;
                 std::string topic_;
-                std::shared_ptr<ILinux> linux_;
-                std::shared_ptr<ILog> log_;
+                std::string type_;
+                ILog& log_;
+                ISystem& system_;
                 
         public:
                 
-                static std::unique_ptr<IMessageHub>
-                create(const std::string& topic,
-                       const std::shared_ptr<IMessageListener>& listener,
-                       const std::shared_ptr<ILog>& log,
-                       uint16_t port,
-                       bool standalone);
+                static std::unique_ptr<IMessageHub> create(const std::string& topic,
+                                                           const std::string& type,
+                                                           IMessageListener& listener,
+                                                           ILog& log, ISystem& system,
+                                                           uint16_t port, bool standalone);
                 
-                static std::unique_ptr<IMessageHub>
-                create(const std::string& topic,
-                       const std::shared_ptr<IMessageListener>& listener,
-                       const std::shared_ptr<ILog>& log);
+                static std::unique_ptr<IMessageHub> create(const std::string& topic,
+                                                           const std::string& type,
+                                                           IMessageListener& listener,
+                                                           ILog& log, ISystem& system);
+                
+                // static std::unique_ptr<IMessageHub>
+                // create(const std::string& topic,
+                //        const std::shared_ptr<IMessageListener>& listener,
+                //        const std::shared_ptr<ILog>& log);
 
-                static std::unique_ptr<IMessageHub>
-                create(const std::string& topic,
-                       const std::shared_ptr<IMessageListener>& listener);
+                // static std::unique_ptr<IMessageHub>
+                // create(const std::string& topic,
+                //        const std::shared_ptr<IMessageListener>& listener);
                 
-                static std::unique_ptr<IMessageHub>
-                create(const std::string& topic);
+                // static std::unique_ptr<IMessageHub>
+                // create(const std::string& topic);
                 
-                static std::unique_ptr<IMessageHub>
-                create(const std::string& topic,
-                       const std::shared_ptr<ILog>& log);
+                // static std::unique_ptr<IMessageHub>
+                // create(const std::string& topic,
+                //        const std::shared_ptr<ILog>& log);
 
                 //
                 
                 MessageHub(const std::string& topic,
+                           const std::string& type,
                            std::unique_ptr<IWebSocketServer>& server_socket,
-                           const std::shared_ptr<ISocketFactory>& socket_factory,
-                           const std::shared_ptr<ILinux>& linux,
-                           const std::shared_ptr<ILog>& log);
+                           const std::shared_ptr<IWebSocketFactory>& socket_factory,
+                           ILog& log, ISystem& system);
 
                 ~MessageHub() override = default;
                 
@@ -81,7 +86,6 @@ namespace rcom {
                 void handle_events() override;
                 void broadcast(MemBuffer &message, MessageType type,
                                IWebSocket *exclude) override;
-                size_t count_links() override;
                 void register_topic();
         };
 }

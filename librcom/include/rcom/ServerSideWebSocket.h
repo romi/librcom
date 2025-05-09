@@ -56,8 +56,7 @@ namespace rcom {
                 
                 ServerSideWebSocket(std::unique_ptr<ISocket>& socket,
                                     IRequestParser& parser,
-                                    const std::shared_ptr<ILinux>& linux,
-                                    const std::shared_ptr<ILog>& log);
+                                    ILog& log, ISystem& system);
                 
                 ~ServerSideWebSocket() override = default;
         };

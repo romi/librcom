@@ -21,67 +21,66 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef RCOM_LINUX_H
-#define RCOM_LINUX_H
+#ifndef _LIBRCOM_LINUX_H
+#define _LIBRCOM_LINUX_H
 
-#include "rcom/ILinux.h"
+#include <time.h>
+#include <sys/socket.h>
+#include <poll.h>
+#include <ifaddrs.h>
+#include "rcom/ILog.h"
+#include "rcom/ISystem.h"
 
 namespace  rcom {
 
-        class Linux : public ILinux {
+        class Linux : public ISystem {
+        protected:
+                ILog& log_;
+                std::string ip_;
+ 
         public:
-                Linux();
+                
+                Linux(ILog& log);
                 virtual ~Linux() = default;
-
-                int open(const char *pathname, int flags) override;
-                int close(int fd) override;
-                void exit(int status) override;
-                sighandler_t signal(int signum, sighandler_t handler) override;
-                int stat(const char *path, struct stat *buf) override;
-                pid_t waitpid(pid_t pid, int *status, int options) override;
-                int execve(const char *filename, char *const argv[],
-                           char *const envp[]) override;
-                pid_t fork(void) override;
-                int kill(pid_t pid, int sig) override;
-                int system(const char *command) override;
-                char* secure_getenv(const char* name) override;
-                uid_t getuid () override;
-                passwd *getpwuid (uid_t uid) override;
-                ssize_t getrandom(void *buf, size_t buflen, unsigned int flags) override;
-                FILE *fopen(const char *filename, const char *mode) override;
-                int fclose(FILE *fp) override;
-                DIR *opendir(const char *directory) override;
-                int closedir(DIR *dir) override;
-                struct dirent *readdir(DIR *directory) override;
-                int remove(const char *filename) override;
-                unsigned int sleep(unsigned int seconds) override;
-                int ioctl(int fd, unsigned long request, void *argp) override;
-                int poll(struct pollfd *fds, nfds_t nfds, int timeout) override;
-                ssize_t read(int fd, void *buf, size_t count) override;
-                int socket(int domain, int type, int protocol) override;
-                int connect(int sockfd, const struct sockaddr *addr,
-                            socklen_t addrlen) override;
-                int shutdown(int sockfd, int how) override;
+                
+                int tcp_server_socket(const IAddress& address) override;
+                int tcp_client_socket(const IAddress& address) override;
+                int accept(int sockfd) override;
+                int socket_close(int fd) override;                
                 ssize_t recv(int sockfd, void *buf, size_t len, int flags) override;
-                ssize_t send(int sockfd, const void *buf, size_t len, int flags) override;
-                int bind(int sockfd, const struct sockaddr *addr,
-                         socklen_t addrlen) override;
-                int listen(int sockfd, int backlog) override;
-                int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) override;
+                ssize_t send(int sockfd, const void *buf, size_t len) override;
+                int getaddress(int sockfd, IAddress& address) override;
                 int setsockopt(int sockfd, int level, int optname,
-                               const void *optval, socklen_t optlen) override;
-                int getsockname(int sockfd, struct sockaddr *addr,
-                                socklen_t *addrlen) override;
-                int clock_gettime(clockid_t clock_id, struct timespec *tp) override;
+                               const void *optval, int optlen) override;
+                double time() override;
+                void sleep(double seconds) override;
+                ssize_t getrandom(void *buf, size_t buflen, unsigned int flags) override;
+                WaitStatus wait(int sockfd, int timeout) override;
+                std::string local_ip() override;
+                void set_local_ip(const std::string& ip) override;
+                
+        protected:
+                void address_to_sockaddr(const IAddress& address, struct sockaddr_in& addr);
+                void sockaddr_to_address(IAddress& address, const struct sockaddr_in& addr);
+                int bind(int sockfd, const IAddress& address);
+
+                // POSIX
+                int socket();
+                int connect(int sockfd, const IAddress& address);
+                int shutdown(int sockfd);
+                int listen(int sockfd, int backlog);
+                int close(int fd);                
+                int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+                int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+                int clock_gettime(clockid_t clockid, struct timespec *tp);
                 int clock_nanosleep(clockid_t clock_id, int flags,
                                     const struct timespec *request,
-                                    struct timespec *remain) override;
-                int32_t i2c_smbus_read_block_data(int file, uint8_t command,
-                                                  uint8_t length, uint8_t *values) override;
-                int32_t i2c_smbus_write_block_data(int file, uint8_t command,
-                                                   uint8_t length,
-                                                   const uint8_t *values) override;
+                                    struct timespec *remain);
+                int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+                void scan_interfaces(std::string& ip, struct ifaddrs *ifaddr);
+                bool match_interface(struct ifaddrs *ifa);
+                void get_interface_ip(std::string& ip, struct ifaddrs *ifa);
         };
 }
 
-#endif // RCOM_LINUX_H
+#endif // _LIBRCOM_LINUX_H

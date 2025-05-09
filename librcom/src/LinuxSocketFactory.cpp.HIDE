@@ -21,29 +21,21 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include <memory>
-#include "rcom/Linux.h"
-#include "rcom/SocketFactory.h"
 #include "rcom/Socket.h"
-#include "rcom/Address.h"
-#include "rcom/Response.h"
-#include "rcom/ResponseParser.h"
-#include "rcom/Request.h"
-#include "rcom/RequestParser.h"
-#include "rcom/ServerSideWebSocket.h"
-#include "rcom/ClientSideWebSocket.h"
+#include "rcom/ServerSocket.h"
+#include "rcom/LinuxSocketFactory.h"
 
 namespace rcom {
         
-        SocketFactory::SocketFactory(const std::shared_ptr<ILinux>& linux,
-                                     const std::shared_ptr<ILog>& log)
+        WebSocketFactory::WebSocketFactory(const std::shared_ptr<ISystem>& linux,
+                                           const std::shared_ptr<ILog>& log)
                 : linux_(linux),
                   log_(log)
         {
         }
 
         std::unique_ptr<IWebSocket>
-        SocketFactory::new_server_side_websocket(int sockfd)
+        WebSocketFactory::new_server_side_websocket(int sockfd)
         {
                 Request request;
                 RequestParser parser(request);
@@ -54,7 +46,7 @@ namespace rcom {
         }
         
         std::unique_ptr<IWebSocket>
-        SocketFactory::new_client_side_websocket(IAddress& remote_address)
+        WebSocketFactory::new_client_side_websocket(IAddress& remote_address)
         {
                 Response response;
                 ResponseParser parser(response);

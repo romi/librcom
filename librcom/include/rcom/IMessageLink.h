@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_MESSAGE_LINK_H_
-#define _LIBRCOM_I_MESSAGE_LINK_H_
+#ifndef _LIBRCOM_IMESSAGELINK_H_
+#define _LIBRCOM_IMESSAGELINK_H_
 
 #include <string>
 #include "rcom/MemBuffer.h"
@@ -46,4 +46,4 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_MESSAGE_LINK_H_
+#endif // _LIBRCOM_IMESSAGELINK_H_

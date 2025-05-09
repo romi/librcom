@@ -24,44 +24,44 @@
 
 #include <stdexcept>
 #include <string.h>
-#include "rcom/RcomServer.h"
 #include "rcom/MessageHub.h"
 #include "rcom/RcomMessageHandler.h"
 #include "rcom/MessageHub.h"
-#include "rcom/ConsoleLog.h"
 #include "rcom/Log.h"
 #include "rcom/ServerSocket.h"
 #include "rcom/WebSocketServer.h"
+#include "rcom/RcomServer.h"
 
 namespace rcom {
 
         std::unique_ptr<IRPCServer> RcomServer::create(const std::string& topic,
-                                                       IRPCHandler &handler,
-                                                       const std::shared_ptr<ILog>& log,
+                                                       const std::string& type,
+                                                       IMessageListener &listener,
+                                                       ILog& log,
+                                                       ISystem& system,
                                                        uint16_t port,
                                                        bool standalone)
         {
-                std::shared_ptr<ILinux> linux = std::make_shared<Linux>();
-                std::shared_ptr<IMessageListener> listener
-                        = std::make_shared<RcomMessageHandler>(handler);
                 std::unique_ptr<IMessageHub> hub
-                        = rcom::MessageHub::create(topic, listener, log, port, standalone);
+                        = rcom::MessageHub::create(topic, type, listener, log, system,
+                                                   port, standalone);
                 return std::make_unique<RcomServer>(hub);
         }
 
         std::unique_ptr<IRPCServer> RcomServer::create(const std::string& topic,
-                                                       IRPCHandler &handler,
-                                                       const std::shared_ptr<ILog>& log)
+                                                       const std::string& type,
+                                                       IMessageListener& listener,
+                                                       ILog& log, ISystem& system)
         {
-                return create(topic, handler, log, 0, false);
+                return create(topic, type, listener, log, system, 0, false);
         }
 
-        std::unique_ptr<IRPCServer> RcomServer::create(const std::string& topic,
-                                                       IRPCHandler &handler)
-        {
-                std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
-                return create(topic, handler, log);
-        }
+        // std::unique_ptr<IRPCServer> RcomServer::create(const std::string& topic,
+        //                                                IRPCHandler &handler)
+        // {
+        //         std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
+        //         return create(topic, handler, log);
+        // }
         
         RcomServer::RcomServer(std::unique_ptr<IMessageHub>& hub)
                 : hub_(std::move(hub))

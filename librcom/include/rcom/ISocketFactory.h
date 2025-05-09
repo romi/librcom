@@ -21,18 +21,15 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_SOCKET_FACTORY_H_
-#define _LIBRCOM_I_SOCKET_FACTORY_H_
+#ifndef _LIBRCOM_ISOCKETFACTORY_H_
+#define _LIBRCOM_ISOCKETFACTORY_H_
 
 #include <memory>
 #include "rcom/IAddress.h"
 #include "rcom/ISocket.h"
 #include "rcom/IServerSocket.h"
-#include "rcom/IWebSocket.h"
-#include "rcom/IMessageListener.h"
-#include "rcom/IWebSocketServer.h"
 #include "rcom/ILog.h"
-#include "rcom/ILinux.h"
+#include "rcom/ISystem.h"
 
 namespace rcom {
         
@@ -41,12 +38,12 @@ namespace rcom {
         public:
                 virtual ~ISocketFactory() = default;
                 
-                virtual std::unique_ptr<IWebSocket>
-                        new_server_side_websocket(int sockfd) = 0;
+                virtual std::unique_ptr<IServerSocket>
+                        new_server_socket(int sockfd) = 0;
 
-                virtual std::unique_ptr<IWebSocket>
-                        new_client_side_websocket(IAddress& remote_address) = 0;
+                virtual std::unique_ptr<ISocket>
+                        new_client_socket(IAddress& remote_address) = 0;
         };
 }
 
-#endif // _LIBRCOM_I_SOCKET_FACTORY_H_
+#endif // _LIBRCOM_ISOCKETFACTORY_H_

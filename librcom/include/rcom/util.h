@@ -25,7 +25,7 @@
 #define _LIBRCOM_UTIL_H_
 
 #include <string>
-#include "rcom/ILinux.h"
+#include "rcom/ISystem.h"
 
 namespace rcom {
 
@@ -35,11 +35,6 @@ namespace rcom {
         bool is_valid_name(const std::string& name);
         bool is_valid_topic(const std::string& topic);
         bool is_base64_string(const std::string& string);
-
-        // Wraps the 'time' system call and returns the value in
-        // seconds as a double.
-        double rcom_time(ILinux& linux); 
-        void rcom_sleep(ILinux& linux, double seconds);
 }
 
 #endif // _LIBRCOM_UTIL_H_

@@ -29,10 +29,10 @@
 namespace rcom {
 
         RegistryProxy::RegistryProxy(std::unique_ptr<IWebSocket>& websocket,
-                                     const std::shared_ptr<ILinux>& linux,
-                                     const std::shared_ptr<ILog>& log)
+                                     ISystem& system,
+                                     ILog& log)
                 : websocket_(),
-                  linux_(linux),
+                  system_(system),
                   log_(log)
         {
                 websocket_ = std::move(websocket);
@@ -43,23 +43,28 @@ namespace rcom {
                 websocket_->close(kCloseNormal);
         }
         
-        void RegistryProxy::set(const std::string& topic, IAddress& address)
+        void RegistryProxy::set(const std::string& topic, IAddress& address,
+                                const std::string& type)
         {
                 MemBuffer request;
-                make_register_request(request, topic, address);
+                make_register_request(request, topic, address, type);
                 send_request(request);
                 response_assert_success();
         }
 
         void RegistryProxy::make_register_request(MemBuffer& request,
                                                   const std::string& topic,
-                                                  IAddress& address)
+                                                  IAddress& address,
+                                                  const std::string& type)
         {
-                std::string address_string;
-                address.tostring(address_string);
+                std::string address_string = address.tostring();
                 request.printf("{\"request\": \"register\", "
-                               "\"topic\": \"%s\", \"address\": \"%s\"}",
-                               topic.c_str(), address_string.c_str());
+                               "\"topic\": \"%s\", "
+                               "\"address\": \"%s\", "
+                               "\"type\": \"%s\"}",
+                               topic.c_str(),
+                               address_string.c_str(),
+                               type.c_str());
         }
         
         bool RegistryProxy::get(const std::string& topic, IAddress& address, double timeout)
@@ -67,7 +72,7 @@ namespace rcom {
                 bool found = false;
                 bool timed_out = false;
                 MemBuffer request;
-                double start_time = rcom_time(*linux_);
+                double start_time = system_.time();
 
                 make_get_request(request, topic);
                 
@@ -76,13 +81,13 @@ namespace rcom {
                         send_request(request);
                         found = read_address(address, timeout);
                         
-                        double now = rcom_time(*linux_);
+                        double now = system_.time();
                         double time_passed = now - start_time;
                         timed_out = (time_passed >= timeout);
                         
                         if (!found && !timed_out) {
                                 double duration = std::min(0.5, timeout - time_passed);
-                                rcom_sleep(*linux_, duration);
+                                system_.sleep(duration);
                         }
                 }
                 if (!found) {

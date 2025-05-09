@@ -2,8 +2,10 @@
 #include <string>
 #include <iostream>
 #include <stdexcept>
-#include "rcom/IRPCHandler.h"
-#include "rcom/RcomServer.h"
+#include <rcom/Linux.h>
+#include <rcom/RcomServer.h>
+#include <rcom/RcomMessageHandler.h>
+#include "MyLog.h"
 #include "HappyMonster.h"
 
 class MonsterAdaptor : public rcom::IRPCHandler
@@ -92,10 +94,16 @@ void MonsterAdaptor::execute_get_energy_level(nlohmann::json& result)
 int main()
 {
         try {
+                MyLog log;
+                rcom::Linux system(log);
                 std::string name = "elmo";
+                std::string type = "monster";
                 HappyMonster monster(name);
                 MonsterAdaptor adaptor(monster);
-                auto monster_server = rcom::RcomServer::create(name, adaptor);
+                rcom::RcomMessageHandler listener(adaptor);
+
+                auto monster_server = rcom::RcomServer::create(name, type, listener,
+                                                               log, system);
 
                 while (true) {
                         monster_server->handle_events();

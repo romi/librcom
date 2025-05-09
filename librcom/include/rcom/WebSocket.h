@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <mutex>
+#include "rcom/ISystem.h"
 #include "rcom/ISocket.h"
 #include "rcom/IWebSocket.h"
 #include "rcom/ILog.h"
@@ -89,8 +90,8 @@ namespace rcom {
         protected:
                 
                 std::unique_ptr<ISocket> socket_;
-                std::shared_ptr<ILinux> linux_;
-                std::shared_ptr<ILog> log_;
+                ILog& log_;
+                ISystem& system_;
                 
                 // Used by send()
                 MemBuffer output_message_buffer_;
@@ -107,9 +108,7 @@ namespace rcom {
                 
         public:
                 
-                WebSocket(std::unique_ptr<ISocket>& socket,
-                          const std::shared_ptr<ILinux>& linux,
-                          const std::shared_ptr<ILog>& log);
+                WebSocket(std::unique_ptr<ISocket>& socket, ILog& log, ISystem& system);
                 virtual ~WebSocket() override;
 
                 RecvStatus recv(MemBuffer& message, double timeout = 0.0);

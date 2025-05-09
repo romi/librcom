@@ -21,7 +21,10 @@
 #include <signal.h>
 #include <syslog.h>
 #include <atomic>
+#include <csignal>
 
+#include "rcom/ConsoleLog.h"
+#include "rcom/Linux.h"
 #include <rcom/MessageLink.h>
 
 std::atomic<bool> quit(false);
@@ -55,7 +58,10 @@ int main()
         std::signal(SIGINT, SignalHandler);
 
         try {
-                auto link = rcom::MessageLink::create("sensor", 10.0);
+                rcom::ConsoleLog log;
+                rcom::Linux system(log);
+                
+                auto link = rcom::MessageLink::create("sensor", 10.0, log, system);
                 
                 while (!quit) {
                         print_sensor_value(*link);

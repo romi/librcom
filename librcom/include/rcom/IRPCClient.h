@@ -21,10 +21,9 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_RPCCLIENT_H
-#define _LIBRCOM_I_RPCCLIENT_H
+#ifndef _LIBRCOM_IRPCCLIENT_H
+#define _LIBRCOM_IRPCCLIENT_H
 
-#include <memory>
 #include "rcom/IRPCHandler.h"
 #include "rcom/ILog.h"
 
@@ -36,8 +35,8 @@ namespace rcom {
                 virtual ~IRPCClient() override = default;
 
                 virtual bool is_connected() = 0;
-                virtual const std::shared_ptr<ILog>& log() = 0;
+                virtual ILog& log() = 0;
         };
 }
 
-#endif // _LIBRCOM_I_RPCCLIENT_H
+#endif // _LIBRCOM_IRPCCLIENT_H

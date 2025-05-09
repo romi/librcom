@@ -25,7 +25,6 @@
 #define _LIBRCOM_REMOTESTUB_H
 
 #include <memory>
-#include <utility>
 #include "rcom/IRPCClient.h"
 #include "rcom/ILog.h"
 
@@ -37,7 +36,7 @@ namespace rcom {
                 static constexpr const char *kNoID = "none";
                 
                 std::unique_ptr<IRPCClient> client_;
-                std::shared_ptr<ILog> log_;
+                ILog& log_;
 
                 bool execute(const std::string& method,
                              nlohmann::json& params,

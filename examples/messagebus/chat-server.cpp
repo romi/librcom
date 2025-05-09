@@ -21,7 +21,10 @@
 #include <syslog.h>
 #include <atomic>
 #include <unistd.h>
+#include <csignal>
 
+#include "rcom/ConsoleLog.h"
+#include "rcom/Linux.h"
 #include <rcom/MessageHub.h>
 #include <rcom/IMessageListener.h>
 #include <rcom/Linux.h>
@@ -66,14 +69,18 @@ public:
 int main(int argc, char **argv)
 {
         const char *topic = "chat";
+        const char *type = "chat";
 
         if (argc >= 2)
                 topic = argv[1];
         
         try {
-                std::shared_ptr<rcom::IMessageListener> listener
-                        = std::make_shared<ChatBus>();
-                auto chat_hub = rcom::MessageHub::create(topic, listener);
+                rcom::ConsoleLog log;
+                rcom::Linux system(log);
+                ChatBus listener;
+                
+                auto chat_hub = rcom::MessageHub::create(topic, type, listener,
+                                                         log, system);
 
                 std::signal(SIGINT, SignalHandler);
         

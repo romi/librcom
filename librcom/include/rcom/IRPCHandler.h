@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_RPCHANDLER_H
-#define _LIBRCOM_I_RPCHANDLER_H
+#ifndef _LIBRCOM_IRPCHANDLER_H
+#define _LIBRCOM_IRPCHANDLER_H
 
 #include <string>
 #include "rcom/json.hpp"
@@ -50,4 +50,4 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_RPCHANDLER_H
+#endif // _LIBRCOM_IRPCHANDLER_H

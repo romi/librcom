@@ -55,18 +55,20 @@ namespace rcom {
                         erase(index);
         }
 
-        void Registry::insert(const std::string& topic, IAddress& address)
+        void Registry::insert(const std::string& topic, IAddress& address,
+                              const std::string& type)
         {
-                entries_.emplace_back(topic, address);
+                entries_.emplace_back(topic, address, type);
         }
         
         //
         
-        void Registry::set(const std::string& topic, IAddress& address)
+        void Registry::set(const std::string& topic, IAddress& address,
+                           const std::string& type)
         {
                 if (address.is_set()) {
                         erase(topic);
-                        insert(topic, address);
+                        insert(topic, address, type);
                 } else {
                         throw std::runtime_error("Registry::add: address not set");
                 }

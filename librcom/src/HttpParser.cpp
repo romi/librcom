@@ -23,6 +23,8 @@
  */
 #include <string.h>
 #include <ctype.h>
+#include <stdexcept>
+
 #include "rcom/Log.h"
 #include "rcom/HttpParser.h"
 

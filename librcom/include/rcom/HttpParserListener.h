@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_HTTP_PARSER_H_
-#define _LIBRCOM_HTTP_PARSER_H_
+#ifndef _LIBRCOM_HTTPPARSER_H_
+#define _LIBRCOM_HTTPPARSER_H_
 
 #include "rcom/MemBuffer.h"
 #include "rcom/IHttpParser.h"
@@ -43,5 +43,5 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_HTTP_PARSER_H_
+#endif // _LIBRCOM_HTTPPARSER_H_
 

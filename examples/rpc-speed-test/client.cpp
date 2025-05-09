@@ -21,9 +21,11 @@
 #include <signal.h>
 #include <syslog.h>
 #include <atomic>
+#include <csignal>
 
-#include <rcom/MessageLink.h>
 #include <rcom/Linux.h>
+#include <rcom/ConsoleLog.h>
+#include <rcom/MessageLink.h>
 #include <rcom/util.h>
 
 std::atomic<bool> quit(false);
@@ -45,15 +47,15 @@ void SignalHandler(int signal)
 int main()
 {
         try {
-
-                auto link = rcom::MessageLink::create("speed", 10.0);
+                rcom::ConsoleLog log;
+                rcom::Linux system(log);
+                auto link = rcom::MessageLink::create("speed", 10.0, log, system);
                 uint8_t data[1024];
-                rcom::Linux linux;
                 rcom::MemBuffer message;
                 message.append(data, 1024);
 
                 uint64_t total_bytes = 0;
-                double start_time = rcom_time(linux);
+                double start_time = system.time();
                 double next_time = start_time + 1.0;
 
                 std::signal(SIGINT, SignalHandler);
@@ -65,7 +67,7 @@ int main()
 
                                 total_bytes += message.size();
 
-                                double now = rcom_time(linux);
+                                double now = system.time();
                                 if (now > next_time) {
                                         next_time += 1.0;
                                         printf("Bandwidth: %.3f MB/s\n",

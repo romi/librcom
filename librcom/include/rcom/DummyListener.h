@@ -21,27 +21,25 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_IRESPONSE_H_
-#define _LIBRCOM_IRESPONSE_H_
+#ifndef _LIBRCOM_DUMMYLISTENER_H
+#define _LIBRCOM_DUMMYLISTENER_H
 
-#include <string>
+#include "rcom/IWebSocket.h"
 
 namespace rcom {
-
-        class IResponse
+        
+        class DummyListener : public IMessageListener
         {
         public:
-                virtual ~IResponse() = default; 
-
-                virtual int get_code() = 0;
-                virtual void set_code(int code) = 0;
-                virtual void add_header(const std::string& name,
-                                        const std::string& value) = 0;
-                virtual bool get_header_value(const std::string& name,
-                                              std::string& value) = 0;
-                virtual void assert_websocket(const std::string& accept) = 0;
+                virtual ~DummyListener() = default;
+                
+                void onmessage(IWebSocketServer&,
+                               IWebSocket&,
+                               MemBuffer&,
+                               MessageType) override
+                {
+                }
         };
 }
 
-#endif // _LIBRCOM_IRESPONSE_H_
-
+#endif // _LIBRCOM_DUMMYLISTENER_H

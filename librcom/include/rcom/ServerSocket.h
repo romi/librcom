@@ -21,12 +21,12 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_SERVER_SOCKET_H_
-#define _LIBRCOM_SERVER_SOCKET_H_
+#ifndef _LIBRCOM_SERVERSOCKET_H_
+#define _LIBRCOM_SERVERSOCKET_H_
 
-#include "rcom/ILinux.h"
+#include "rcom/ISystem.h"
 #include "rcom/IServerSocket.h"
-#include "rcom/ISocketFactory.h"
+#include "rcom/IWebSocketFactory.h"
 #include "rcom/BaseSocket.h"
 
 namespace rcom {
@@ -38,9 +38,7 @@ namespace rcom {
 
         public:
                 
-                ServerSocket(const std::shared_ptr<ILinux>& linux,
-                             const std::shared_ptr<ILog>& log,
-                             IAddress& address);
+                ServerSocket(ILog& log, ISystem& system, IAddress& address);
                 ~ServerSocket() override = default;
                 
                 int accept(double timeout_in_seconds) override;
@@ -49,4 +47,4 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_SERVER_SOCKET_H_
+#endif // _LIBRCOM_SERVERSOCKET_H_

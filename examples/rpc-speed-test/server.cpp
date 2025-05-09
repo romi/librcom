@@ -22,7 +22,10 @@
 #include <syslog.h>
 #include <atomic>
 #include <unistd.h>
+#include <csignal>
 
+#include <rcom/ConsoleLog.h>
+#include <rcom/Linux.h>
 #include <rcom/MessageHub.h>
 #include <rcom/IMessageListener.h>
 #include <rcom/util.h>
@@ -61,9 +64,11 @@ public:
 int main()
 {
         try {
-                std::shared_ptr<rcom::IMessageListener> listener
-                        = std::make_shared<MessageListener>();
-                auto message_hub = rcom::MessageHub::create("speed", listener);
+                rcom::ConsoleLog log;
+                rcom::Linux system(log);
+                MessageListener listener;
+                auto message_hub = rcom::MessageHub::create("speed", "test", listener,
+                                                            log, system);
 
                 std::signal(SIGINT, SignalHandler);
         

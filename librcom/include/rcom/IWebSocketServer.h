@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_WEBSOCKETSERVER_H_
-#define _LIBRCOM_I_WEBSOCKETSERVER_H_
+#ifndef _LIBRCOM_IWEBSOCKETSERVER_H_
+#define _LIBRCOM_IWEBSOCKETSERVER_H_
 
 #include "rcom/MemBuffer.h"
 #include "rcom/IAddress.h"
@@ -36,12 +36,11 @@ namespace rcom {
                 virtual ~IWebSocketServer() = default; 
                 
                 virtual void handle_events() = 0;
-                virtual void broadcast(MemBuffer &message, MessageType type, IWebSocket *exclude) = 0;
+                virtual void broadcast(MemBuffer &message, MessageType type,
+                                       IWebSocket *exclude) = 0;
                 virtual void get_address(IAddress& address) = 0;
-                virtual size_t count_links() = 0;
-                virtual IWebSocket& get_link(size_t index) = 0;
         };
 }
 
-#endif // _LIBRCOM_I_WEBSOCKETSERVER_H_
+#endif // _LIBRCOM_IWEBSOCKETSERVER_H_
 

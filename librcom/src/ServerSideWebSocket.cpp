@@ -22,6 +22,7 @@
 
  */
 #include <stdexcept>
+#include <arpa/inet.h> // FIXME: for htons
 #include "rcom/Frames.h"
 #include "rcom/Log.h"
 #include "rcom/ServerSideWebSocket.h"
@@ -30,9 +31,9 @@ namespace rcom {
         
         ServerSideWebSocket::ServerSideWebSocket(std::unique_ptr<ISocket>& socket,
                                                  IRequestParser& parser,
-                                                 const std::shared_ptr<ILinux>& linux,
-                                                 const std::shared_ptr<ILog>& log)
-                : WebSocket(socket, linux, log)
+                                                 ILog& log,
+                                                 ISystem& system)
+                : WebSocket(socket, log, system)
         {
                 try {
                         handshake(parser);

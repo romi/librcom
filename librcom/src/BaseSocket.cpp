@@ -22,25 +22,22 @@
 
  */
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
+#include <string.h>
+#include <sys/socket.h> // FIXME: for MSG_PEEK and MSG_DONTWAIT
+#include <netinet/in.h> // FIXME: for IPPROTO_TCP
+#include <netinet/tcp.h> // FIXME: for TCP_NODELAY
 #include "rcom/Log.h"
 #include "rcom/BaseSocket.h"
 
 namespace rcom {
 
-        BaseSocket::BaseSocket(const std::shared_ptr<ILinux>& linux,
-                               const std::shared_ptr<ILog>& log)
-                : BaseSocket(linux, log, kInvalidSocket)
+        BaseSocket::BaseSocket(ILog& log, ISystem& system)
+                : BaseSocket(log, system, kInvalidSocket)
         {
         }
 
-        BaseSocket::BaseSocket(const std::shared_ptr<ILinux>& linux,
-                               const std::shared_ptr<ILog>& log,
-                               int sockfd)
-                : linux_(linux), log_(log), sockfd_(sockfd)
+        BaseSocket::BaseSocket(ILog& log, ISystem& system, int sockfd)
+                : log_(log), system_(system), sockfd_(sockfd)
         {
         }
 
@@ -58,8 +55,7 @@ namespace rcom {
                         // Using MSG_NOSIGNAL to prevent SIGPIPE signals in
                         // case the client closes the connection before all
                         // the data is sent.
-                        ssize_t n = linux_->send(sockfd_, buffer + sent,
-                                                length - sent, MSG_NOSIGNAL);
+                        ssize_t n = system_.send(sockfd_, buffer + sent, length - sent);
                         
                         if (n < 0) {
                                 log_err(log_, "socket_send: send failed: %s",
@@ -87,9 +83,9 @@ namespace rcom {
 
                         size_t requested = length - received;
                         
-                        ssize_t n = linux_->recv(sockfd_, buffer + received, requested, 0);
+                        ssize_t n = system_.recv(sockfd_, buffer + received, requested, 0);
                         
-                        if (n < -1) {
+                        if (n < 0) {
                                 // Error
                                 if (errno != EAGAIN) {
                                         success = false;
@@ -109,69 +105,29 @@ namespace rcom {
 
         bool BaseSocket::connect(IAddress& address)
         {
-                bool success = false;
-                socklen_t addrlen = sizeof(struct sockaddr_in);
-                struct sockaddr_in addr = address.get_sockaddr();
-                int sockfd = linux_->socket(AF_INET, SOCK_STREAM, 0);
-                
-                if (sockfd != kInvalidSocket) {
-                        
-                        int ret = linux_->connect(sockfd, (struct sockaddr *) &addr, addrlen);
-                        
-                        if (ret == 0) {
-                                sockfd_ = sockfd;
-                                success = true;
-
-                        } else {
-                                log_err(log_, "Socket::connect: failed to bind the socket");
-                                linux_->close(sockfd);
-                        }
-                } else {
+                bool success = true;
+                sockfd_ = system_.tcp_client_socket(address);
+                if (sockfd_ == kInvalidSocket) {
                         log_err(log_, "Socket::connect: failed to create the socket");
+                        success = false;
                 }
-        
                 return success;
         }
         
         bool BaseSocket::listen(IAddress& address)
         {
-                bool success = false;
-                int ret;
-                struct sockaddr_in addr = address.get_sockaddr();
-                uint32_t socklen = sizeof(struct sockaddr_in);
-
-                sockfd_ = linux_->socket(AF_INET, SOCK_STREAM, 0);
-                if (sockfd_ != kInvalidSocket) {
-                        
-                        ret = linux_->bind(sockfd_, (struct sockaddr *) &addr, socklen);
-                        if (ret == 0) {
-        
-                                ret = linux_->listen(sockfd_, 10);
-                                if (ret == 0) {
-                                        success = true;
-                                        
-                                } else {
-                                        log_err(log_, "ServerSocket::open: listen failed: "
-                                                "%s", strerror(errno));
-                                }
-                                
-                        } else {
-                                log_err(log_, "ServerSocket::open: bind failed: %s",
-                                        strerror(errno));
-                        }
-
-                } else {
+                bool success = true;
+                sockfd_ = system_.tcp_server_socket(address);
+                if (sockfd_ == kInvalidSocket) {
                         log_err(log_, "ServerSocket::open: socket failed: %s",
                                 strerror(errno));
+                        success = false;
                 }
-        
                 return success;
         }
 
         int BaseSocket::accept(double timeout_in_seconds)
         {
-                uint32_t addrlen = sizeof(struct sockaddr_in);
-                struct sockaddr_in addr{};
                 int clientfd = kInvalidSocket;
                 
                 // The code waits for incoming connections for one
@@ -179,8 +135,7 @@ namespace rcom {
                 WaitStatus wait_status = wait(timeout_in_seconds);
                 
                 if (wait_status == kWaitOK) {
-                        clientfd = linux_->accept(sockfd_, (struct sockaddr*) &addr,
-                                                  &addrlen);
+                        clientfd = system_.accept(sockfd_);
                         if (clientfd < 0) {
                                 // Server socket is probably being closed
                                 // FIXME: is this true?
@@ -203,78 +158,41 @@ namespace rcom {
                 bool connected = true;
                 // if recv returns zero, that means the connection has
                 // been closed:
-                if (recv(sockfd_, buffer, sizeof(buffer), MSG_PEEK | MSG_DONTWAIT) == 0)
+                if (system_.recv(sockfd_, buffer, sizeof(buffer),
+                                 MSG_PEEK | MSG_DONTWAIT) == 0)
                         connected = false;
                 return connected;
         }
 
         void BaseSocket::get_address(IAddress& address)
         {
-                struct sockaddr_in local_addr{};
-                uint32_t socklen = sizeof(local_addr);
-                memset((char *) &local_addr, 0, socklen);
-                
-                linux_->getsockname(sockfd_, (struct sockaddr*) &local_addr, &socklen);
-                
-                address.set(inet_ntoa(local_addr.sin_addr),
-                            ntohs(local_addr.sin_port));
+                system_.getaddress(sockfd_, address);
         }
 
         WaitStatus BaseSocket::wait(double timeout)
         {
                 WaitStatus ret = kWaitError;
-                if (timeout >= 0.0)
-                        ret = do_wait(timeout);
-                return ret; 
-        }
-
-        WaitStatus BaseSocket::do_wait(double timeout)
-        {
-                WaitStatus retval = kWaitError;
                 int timeout_ms = (int) (timeout * 1000.0);
-                
-                struct pollfd fds[1];
-                fds[0].fd = sockfd_;
-                fds[0].events = POLLIN;
-                
-                int pollrc = linux_->poll(fds, 1, timeout_ms);
-                if (pollrc < 0) {
-                        log_err(log_, "do_wait: poll error %d", errno);
-                        
-                } else if (pollrc > 0) {
-                        if (fds[0].revents & POLLIN) {
-                                retval = kWaitOK;
-                        }
-                } else {
-                        retval = kWaitTimeout;
-                }
-                return retval;
+                if (timeout >= 0.0)
+                        ret = system_.wait(sockfd_, timeout_ms);
+                return ret; 
         }
         
         void BaseSocket::set_nodelay(int value)
         {
-                linux_->setsockopt(sockfd_, IPPROTO_TCP, TCP_NODELAY,
-                                 (char *) &value, sizeof(int));
+                system_.setsockopt(sockfd_, IPPROTO_TCP, TCP_NODELAY,
+                                   (char *) &value, sizeof(int));
         }        
 
         void BaseSocket::close()
         {
-                ssize_t n;
-                char buf[512];
                 if (sockfd_ != kInvalidSocket) {
-                        linux_->shutdown(sockfd_, SHUT_RDWR);
-                        while (true) {
-                                n = linux_->recv(sockfd_, buf, 512, 0);
-                                if (n <= 0)
-                                        break;
-                        }
-                        linux_->close(sockfd_);
-                        sockfd_ = kInvalidSocket;
+                        system_.socket_close(sockfd_);
                 }
         }
 
-        ILinux& BaseSocket::get_linux()
+        ISystem& BaseSocket::get_system()
         {
-                return *linux_;
+                return system_;
         }
 }

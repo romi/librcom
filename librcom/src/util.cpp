@@ -109,34 +109,4 @@ namespace rcom {
         {
                 return std::regex_match(s, std::regex("[a-zA-Z0-9+/]+[=]{0,2}"));
         }
-
-        double rcom_time(ILinux& linux)
-        {
-                struct timespec spec = {0, 0};
-                double result;
-                
-                linux.clock_gettime(CLOCK_REALTIME, &spec);
-                result = (double) spec.tv_sec + (double) spec.tv_nsec / 1.0e9;
-                
-                return result;
-        }
-        
-        void rcom_sleep(ILinux& linux, double seconds)
-        {
-                struct timespec spec = {0, 0};
-                struct timespec remain = {0, 0};
-                
-                spec.tv_sec = (time_t) floor(seconds);
-                double nsec = seconds - (double) spec.tv_sec;
-                spec.tv_nsec = (time_t) floor(nsec * 1.0e9);
-                int r = linux.clock_nanosleep(CLOCK_REALTIME, 0, &spec, &remain);
-                
-                if (r != 0) {
-                        if (r == EINTR) {
-                                throw std::runtime_error("rcom_sleep: Interrupted");
-                        } else {
-                                throw std::runtime_error("rcom_sleep: Failed");
-                        }
-                }
-        }
 }

@@ -31,24 +31,24 @@
 
 namespace rcom {
         
-        std::unique_ptr<IRPCClient> RcomClient::create(const std::string& topic,
-                                                       double timeout_seconds)
-        {
-                std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
-                return create(topic, timeout_seconds, log);
-        }
+        // std::unique_ptr<IRPCClient> RcomClient::create(const std::string& topic,
+        //                                                double timeout_seconds)
+        // {
+        //         std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
+        //         return create(topic, timeout_seconds, log);
+        // }
         
         std::unique_ptr<IRPCClient> RcomClient::create(const std::string& topic,
                                                        double timeout_seconds,
-                                                       const std::shared_ptr<ILog>& log)
+                                                       ILog& log, ISystem& system)
         {
-                auto link = MessageLink::create(topic, timeout_seconds, log);
+                auto link = MessageLink::create(topic, timeout_seconds, log, system);
                 return std::make_unique<RcomClient>(link, timeout_seconds, log);
         }
         
         RcomClient::RcomClient(std::unique_ptr<IMessageLink>& link,
                                double timeout_seconds,
-                               const std::shared_ptr<ILog>& log)
+                               ILog& log)
                 : link_(std::move(link)),
                   log_(log),
                   buffer_(),
@@ -221,7 +221,7 @@ namespace rcom {
                 return link_->is_connected();
         }
 
-        const std::shared_ptr<ILog>& RcomClient::log()
+        ILog& RcomClient::log()
         {
                 return log_;
         }

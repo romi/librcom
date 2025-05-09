@@ -21,14 +21,15 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_MESSAGE_LINK_H_
-#define _LIBRCOM_MESSAGE_LINK_H_
+#ifndef _LIBRCOM_MESSAGELINK_H_
+#define _LIBRCOM_MESSAGELINK_H_
 
 #include <memory>
 #include "rcom/IMessageLink.h"
-#include "rcom/ISocketFactory.h"
+#include "rcom/IWebSocketFactory.h"
 #include "rcom/IWebSocket.h"
 #include "rcom/ILog.h"
+#include "rcom/ISystem.h"
 #include "rcom/Address.h"
 
 namespace rcom {
@@ -37,12 +38,12 @@ namespace rcom {
         {
         protected:
 
-                std::shared_ptr<ISocketFactory> factory_;
+                std::shared_ptr<IWebSocketFactory> factory_;
                 std::unique_ptr<IWebSocket> websocket_;
                 std::string topic_;
                 RecvStatus recv_status_;
-                std::shared_ptr<ILinux> linux_;
-                std::shared_ptr<ILog> log_;
+                ILog& log_;
+                ISystem& system_;
                 
                 bool connect(double timeout);
                 bool get_remote_address(Address& address, double timeout);
@@ -50,17 +51,16 @@ namespace rcom {
 
         public:
 
+                // static std::unique_ptr<IMessageLink> create(const std::string& topic,
+                //                                             double timeout);
                 static std::unique_ptr<IMessageLink> create(const std::string& topic,
-                                                            double timeout);
-                static std::unique_ptr<IMessageLink> create(const std::string& topic,
-                                                            double timeout,
-                                                            const std::shared_ptr<ILog>& log);
+                                                            double timeout_seconds,
+                                                            ILog& log, ISystem& system);
                 
                 MessageLink(const std::string& topic,
                             double timeout,
-                            const std::shared_ptr<ISocketFactory>& factory,
-                            const std::shared_ptr<ILinux>& linux,
-                            const std::shared_ptr<ILog>& log);                
+                            const std::shared_ptr<IWebSocketFactory>& factory,
+                            ILog& log, ISystem& system);                
                 virtual ~MessageLink();
 
                 std::string& get_topic() override;                
@@ -72,4 +72,4 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_MESSAGE_LINK_H_
+#endif // _LIBRCOM_MESSAGELINK_H_

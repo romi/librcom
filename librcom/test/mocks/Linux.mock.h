@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "rcom/ILinux.h"
+#include "rcom/ISystem.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 
-class MockLinux : public rcom::ILinux {
+class MockLinux : public rcom::ISystem {
 public:
         MOCK_METHOD2(open, int(const char *pathname, int flags));
         MOCK_METHOD1(close, int(int fd));

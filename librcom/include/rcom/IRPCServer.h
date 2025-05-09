@@ -21,8 +21,11 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _librcom_I_RPCSERVER_H
-#define _librcom_I_RPCSERVER_H
+#ifndef _LIBRCOM_IRPCSERVER_H
+#define _LIBRCOM_IRPCSERVER_H
+
+#include "rcom/MemBuffer.h"
+#include "rcom/IWebSocket.h"
 
 namespace rcom {
         
@@ -36,4 +39,4 @@ namespace rcom {
         };
 }
 
-#endif // _librcom_I_RPCSERVER_H
+#endif // _LIBRCOM_IRPCSERVER_H

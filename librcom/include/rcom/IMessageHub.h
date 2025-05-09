@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_MESSAGE_HUB_H_
-#define _LIBRCOM_I_MESSAGE_HUB_H_
+#ifndef _LIBRCOM_IMESSAGEHUB_H_
+#define _LIBRCOM_IMESSAGEHUB_H_
 
 #include "rcom/MemBuffer.h"
 #include "rcom/IWebSocket.h"
@@ -35,13 +35,11 @@ namespace rcom {
                 virtual ~IMessageHub() = default; 
                 
                 virtual std::string& topic() = 0;
-                
                 virtual void handle_events() = 0;
                 virtual void broadcast(MemBuffer &message, MessageType type,
                                        IWebSocket *exclude) = 0;
-                virtual size_t count_links() = 0;
         };
 }
 
-#endif // _LIBRCOM_I_MESSAGE_HUB_H_
+#endif // _LIBRCOM_IMESSAGEHUB_H_
 

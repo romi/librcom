@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_REQUEST_PARSER_H_
-#define _LIBRCOM_I_REQUEST_PARSER_H_
+#ifndef _LIBRCOM_IREQUESTPARSER_H_
+#define _LIBRCOM_IREQUESTPARSER_H_
 
 #include "rcom/ISocket.h"
 #include "rcom/IRequest.h"
@@ -42,5 +42,5 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_REQUEST_PARSER_H_
+#endif // _LIBRCOM_IREQUESTPARSER_H_
 

@@ -26,6 +26,8 @@
 
 #include <string>
 #include <thread>
+#include "rcom/ILog.h"
+#include "rcom/ISystem.h"
 
 namespace rcom {
 
@@ -33,6 +35,8 @@ namespace rcom {
         {
                 
         protected:
+                ILog& log_;
+                ISystem& system_;
                 int socket_;
                 std::unique_ptr<std::thread> thread_;
                 std::string address_;
@@ -44,7 +48,8 @@ namespace rcom {
                 void stop();
 
         public:
-                RegistryLookupServer(const std::string& address, uint16_t port);
+                RegistryLookupServer(ILog& log, ISystem& system,
+                                     const std::string& address, uint16_t port);
                 virtual ~RegistryLookupServer();
 
         };

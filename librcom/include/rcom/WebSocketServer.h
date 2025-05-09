@@ -21,14 +21,14 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _RCOM_WEBSOCKET_SERVER_H_
-#define _RCOM_WEBSOCKET_SERVER_H_
+#ifndef _RCOM_WEBSOCKETSERVER_H_
+#define _RCOM_WEBSOCKETSERVER_H_
 
 #include <memory>
 #include "rcom/IWebSocketServer.h"
 #include "rcom/IAddress.h"
 #include "rcom/IServerSocket.h"
-#include "rcom/ISocketFactory.h"
+#include "rcom/IWebSocketFactory.h"
 #include "rcom/IMessageListener.h"
 
 namespace rcom {
@@ -37,9 +37,9 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IServerSocket> server_socket_;
-                std::shared_ptr<ISocketFactory> factory_;
-                std::shared_ptr<IMessageListener> listener_;
-                std::shared_ptr<ILog> log_;
+                std::shared_ptr<IWebSocketFactory> factory_;
+                IMessageListener& listener_;
+                ILog& log_;
                 std::vector<std::unique_ptr<IWebSocket>> links_;
                 MemBuffer message_;
                 std::vector<size_t> to_close_;
@@ -59,17 +59,15 @@ namespace rcom {
                 
         public:
                 WebSocketServer(std::unique_ptr<IServerSocket>& server_socket,
-                                const std::shared_ptr<ISocketFactory>& factory,
-                                const std::shared_ptr<IMessageListener>& listener,
-                                const std::shared_ptr<ILog>& log);
+                                const std::shared_ptr<IWebSocketFactory>& factory,
+                                IMessageListener& listener,
+                                ILog& log);
                 virtual ~WebSocketServer();
 
                 void handle_events() override;
                 void broadcast(MemBuffer& message, MessageType type, IWebSocket *exclude) override;
                 void get_address(IAddress& address) override;
-                size_t count_links() override;
-                IWebSocket& get_link(size_t index) override;
         };
 }
 
-#endif // _RCOM_WEBSOCKET_SERVER_H_
+#endif // _RCOM_WEBSOCKETSERVER_H_

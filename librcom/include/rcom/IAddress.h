@@ -21,10 +21,9 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_ADDRESS_H_
-#define _LIBRCOM_I_ADDRESS_H_
+#ifndef _LIBRCOM_IADDRESS_H_
+#define _LIBRCOM_IADDRESS_H_
 
-#include <netinet/in.h>
 #include <string>
 
 namespace rcom {
@@ -34,15 +33,16 @@ namespace rcom {
         public:
                 virtual ~IAddress() = default;
 
-                virtual void set(const char *ip, uint16_t port) = 0;
+                virtual void set(const std::string& ip, uint16_t port) = 0;
                 virtual void set(const std::string& str) = 0;
                 virtual void set(const IAddress& other) = 0;
-                virtual bool is_set() = 0;
+                virtual bool is_set() const = 0;
 
-                virtual std::string& tostring(std::string& str) = 0;                
-                virtual struct sockaddr_in get_sockaddr() const = 0;
+                virtual const std::string& ip() const = 0;
+                virtual uint16_t port() const = 0;
+                virtual std::string tostring() const = 0;
         };
 }
 
-#endif // _LIBRCOM_I_ADDRESS_H_
+#endif // _LIBRCOM_IADDRESS_H_
 

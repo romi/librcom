@@ -21,13 +21,11 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_WEBSOCKET_H_
-#define _LIBRCOM_I_WEBSOCKET_H_
+#ifndef _LIBRCOM_IWEBSOCKET_H_
+#define _LIBRCOM_IWEBSOCKET_H_
 
 #include "rcom/MemBuffer.h"
-#include "rcom/IAddress.h"
 #include "rcom/WebSocketConstants.h"
-#include "rcom/ILinux.h"
 
 namespace rcom {
                 
@@ -59,4 +57,4 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_WEBSOCKET_H_
+#endif // _LIBRCOM_IWEBSOCKET_H_

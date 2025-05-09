@@ -21,10 +21,10 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _RCOM_I_MESSAGELISTENER_H_
-#define _RCOM_I_MESSAGELISTENER_H_
+#ifndef _RCOM_IMESSAGELISTENER_H_
+#define _RCOM_IMESSAGELISTENER_H_
 
-#include "rcom/IMessageHub.h"
+#include "rcom/MemBuffer.h"
 #include "rcom/IWebSocket.h"
 #include "rcom/IWebSocketServer.h"
 
@@ -42,4 +42,4 @@ namespace rcom {
         };
 }
 
-#endif // _RCOM_I_MESSAGELISTENER_H_
+#endif // _RCOM_IMESSAGELISTENER_H_

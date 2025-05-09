@@ -24,10 +24,6 @@
 #ifndef _LIBRCOM_CONSOLELOG_H
 #define _LIBRCOM_CONSOLELOG_H
 
-#include <stdarg.h>
-#include <cstring>
-#include <memory>
-#include <mutex>
 #include "rcom/ILog.h"
 
 namespace rcom {

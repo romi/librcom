@@ -21,26 +21,25 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_DUMMYMESSAGELISTENER_H
-#define _LIBRCOM_DUMMYMESSAGELISTENER_H
+#ifndef _LIBRCOM_LINUXSOCKETFACTORY_H_
+#define _LIBRCOM_LINUXSOCKETFACTORY_H_
 
-#include <stdexcept>
-#include "rcom/IWebSocket.h"
+#include "rcom/Linux.h"
+#include "rcom/ISocketFactory.h"
 
 namespace rcom {
         
-        class DummyMessageListener : public IMessageListener
+        class LinuxSocketFactory : public ISocketFactory
         {
         public:
-                virtual ~DummyMessageListener() = default;
+                virtual ~LinuxSocketFactory() = default;
                 
-                void onmessage(IWebSocketServer&,
-                               IWebSocket&,
-                               MemBuffer&,
-                               MessageType) override
-                {
-                }
+                virtual std::unique_ptr<IServerSocket>
+                        new_server_socket(int sockfd) = 0;
+
+                virtual std::unique_ptr<ISocket>
+                        new_client_socket(IAddress& remote_address) = 0;
         };
 }
 
-#endif // _LIBRCOM_DUMMYMESSAGELISTENER_H
+#endif // _LIBRCOM_LINUXSOCKETFACTORY_H_

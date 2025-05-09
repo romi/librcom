@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_TIMER_H_
-#define _LIBRCOM_I_TIMER_H_
+#ifndef _LIBRCOM_ITIMER_H_
+#define _LIBRCOM_ITIMER_H_
 
 namespace rcom {
         
@@ -38,5 +38,5 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_CLOCK_H_
+#endif // _LIBRCOM_ITIMER_H_
 

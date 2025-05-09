@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_HTTP_PARSER_H_
-#define _LIBRCOM_I_HTTP_PARSER_H_
+#ifndef _LIBRCOM_IHTTPPARSER_H_
+#define _LIBRCOM_IHTTPPARSER_H_
 
 namespace rcom {
 
@@ -35,5 +35,5 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_HTTP_PARSER_H_
+#endif // _LIBRCOM_IHTTPPARSER_H_
 

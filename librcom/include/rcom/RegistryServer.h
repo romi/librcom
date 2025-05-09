@@ -26,8 +26,10 @@
 
 #include "rcom/MemBuffer.h"
 #include "rcom/json.hpp"
+#include "rcom/ILog.h"
+#include "rcom/ISystem.h"
 #include "rcom/IRegistry.h"
-#include "rcom/ISocketFactory.h"
+#include "rcom/IWebSocketFactory.h"
 #include "rcom/IMessageHub.h"
 #include "rcom/IWebSocketServer.h"
 #include "rcom/IMessageListener.h"
@@ -37,15 +39,17 @@ namespace rcom {
         class RegistryServer : public IMessageListener
         {
         public:
+                static const uint16_t kRegistryPort = 10101;
                 static void get_address(IAddress& address);
-                static void set_address(const char *ip, uint16_t port = 10101);        
+                static void set_address(const char *ip);        
                 
         protected:
                 IRegistry& registry_;
-                std::shared_ptr<ILog> log_;
+                ILog& log_;
                 MemBuffer response_;
                 
-                void set(const std::string& topic, IAddress& address); 
+                void set(const std::string& topic, IAddress& address,
+                         const std::string& type); 
                 bool get(const std::string& topic, IAddress& address);
                 void remove(const std::string& topic);
 
@@ -54,15 +58,17 @@ namespace rcom {
                 void handle_register(IWebSocket& websocket, nlohmann::json& message);
                 void handle_unregister(IWebSocket& websocket, nlohmann::json& message);
                 void handle_get(IWebSocket& websocket, nlohmann::json& message);
+                void handle_list(IWebSocket& websocket, nlohmann::json& message);
                 void send_address(IWebSocket& websocket, const std::string& topic, IAddress& address);
                 void send_empty_address(IWebSocket& websocket);
                 void send_fail(IWebSocket& websocket, const std::string& message);
                 void send_success(IWebSocket& websocket);
                 void send_response(IWebSocket& websocket);
+                void assert_topic(const std::string& topic);        
+                void assert_type(const std::string& type);        
                 
         public:
-                RegistryServer(IRegistry& registry,
-                               const std::shared_ptr<ILog>& log);
+                RegistryServer(IRegistry& registry, ILog& log);
                 virtual ~RegistryServer() override;
                 
                 void onmessage(IWebSocketServer& server,

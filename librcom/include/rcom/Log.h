@@ -24,22 +24,14 @@
 #ifndef _LIBRCOM_LOG_H
 #define _LIBRCOM_LOG_H
 
-#include <stdarg.h>
-#include <cstring>
-#include <memory>
-#include <mutex>
 #include "rcom/ILog.h"
 
 namespace rcom {
 
-        void log_err(const std::shared_ptr<ILog>& log,
-                    const char* format, ...);
-        void log_warn(const std::shared_ptr<ILog>& log,
-                      const char* format, ...);
-        void log_debug(const std::shared_ptr<ILog>& log,
-                       const char* format, ...);
-        void log_info(const std::shared_ptr<ILog>& log,
-                      const char* format, ...);
+        void log_err(ILog& log, const char* format, ...);
+        void log_warn(ILog& log, const char* format, ...);
+        void log_debug(ILog& log, const char* format, ...);
+        void log_info(ILog& log, const char* format, ...);
 }
 
 #endif // _LIBRCOM_LOG_H

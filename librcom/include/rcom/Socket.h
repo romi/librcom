@@ -24,7 +24,7 @@
 #ifndef _LIBRCOM_SOCKET_H_
 #define _LIBRCOM_SOCKET_H_
 
-#include "rcom/ILinux.h"
+#include "rcom/ISystem.h"
 #include "rcom/ISocket.h"
 #include "rcom/BaseSocket.h"
 
@@ -37,12 +37,8 @@ namespace rcom {
 
         public:
 
-                Socket(const std::shared_ptr<ILinux>& linux,
-                       const std::shared_ptr<ILog>& log,
-                       int sockfd);
-                Socket(const std::shared_ptr<ILinux>& linux,
-                       const std::shared_ptr<ILog>& log,
-                       IAddress& address);
+                Socket(ILog& log, ISystem& system, int sockfd);
+                Socket(ILog& log, ISystem& system, IAddress& address);
                 ~Socket() override = default;
                 
                 void close() override;
@@ -58,7 +54,7 @@ namespace rcom {
                 void turn_buffering_off() override;
                 void turn_buffering_on() override;
                 
-                ILinux& get_linux() override;
+                ISystem& get_system() override;
         };
 }
 

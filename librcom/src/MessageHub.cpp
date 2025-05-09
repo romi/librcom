@@ -21,12 +21,11 @@
   <http://www.gnu.org/licenses/>.
 
  */
+#include <stdexcept>
 #include "rcom/Log.h"
 #include "rcom/MessageHub.h"
 #include "rcom/WebSocketServer.h"
 #include "rcom/util.h"
-#include "rcom/DummyMessageListener.h"
-#include "rcom/ConsoleLog.h"
 #include "rcom/Address.h"
 #include "rcom/ServerSocket.h"
 #include "rcom/RegistryServer.h"
@@ -34,70 +33,83 @@
 
 namespace rcom {
         
-        std::unique_ptr<IMessageHub>
-        MessageHub::create(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener,
-                           const std::shared_ptr<ILog>& log,
-                           uint16_t port,
-                           bool standalone)
+        std::unique_ptr<IMessageHub> MessageHub::create(const std::string& topic,
+                                                        const std::string& type,
+                                                        IMessageListener& listener,
+                                                        ILog& log, ISystem& system,
+                                                        uint16_t port, bool standalone)
         {
-                Address address(port);
-                auto linux = std::make_shared<Linux>();
-                auto socket_factory = std::make_shared<SocketFactory>(linux, log);
+                Address address(system.local_ip(), port);
+                auto socket_factory = std::make_shared<WebSocketFactory>(log, system);
                 std::unique_ptr<IServerSocket> server_socket
-                        = std::make_unique<ServerSocket>(linux, log, address);
+                        = std::make_unique<ServerSocket>(log, system, address);
                 std::unique_ptr<IWebSocketServer> ws_server
                         = std::make_unique<WebSocketServer>(server_socket, socket_factory,
                                                             listener, log);
-                auto hub = std::make_unique<MessageHub>(topic, ws_server, socket_factory,
-                                                        linux, log);
+                auto hub = std::make_unique<MessageHub>(topic, type, ws_server,
+                                                        socket_factory, log, system);
                 if (!standalone) {
                         hub->register_topic();
                 }
                 return hub;
         }
- 
-        std::unique_ptr<IMessageHub>
-        MessageHub::create(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener,
-                           const std::shared_ptr<ILog>& log)
+
+        std::unique_ptr<IMessageHub> MessageHub::create(const std::string& topic,
+                                                        const std::string& type,
+                                                        IMessageListener& listener,
+                                                        ILog& log, ISystem& system)
         {
-                return create(topic, listener, log, 0, false);
-        }
-                
-        std::unique_ptr<IMessageHub>
-        MessageHub::create(const std::string& topic,
-                           const std::shared_ptr<IMessageListener>& listener)
-        {
-                std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
-                return create(topic, listener, log);
-        }
-                
-        std::unique_ptr<IMessageHub>
-        MessageHub::create(const std::string& topic, const std::shared_ptr<ILog>& log)
-        {
-                std::shared_ptr<IMessageListener> listener
-                        = std::make_shared<DummyMessageListener>();
-                return create(topic, listener, log);
-        }
-                
-        std::unique_ptr<IMessageHub>
-        MessageHub::create(const std::string& topic)
-        {
-                std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
-                return create(topic, log);
+                return create(topic, type, listener, log, system, 0, false);
         }
 
+        // std::unique_ptr<IMessageHub> MessageHub::create(const std::string& topic,
+        //                                                 ILog& log, ISystem& system)
+        // {
+        //         return create(topic, XXX, log, system, 0, false);
+        // }
+
+        // std::unique_ptr<IMessageHub>
+        // MessageHub::create(const std::string& topic,
+        //                    const std::shared_ptr<IMessageListener>& listener,
+        //                    const std::shared_ptr<ILog>& log)
+        // {
+        //         return create(topic, listener, log, 0, false);
+        // }
+                
+        // std::unique_ptr<IMessageHub>
+        // MessageHub::create(const std::string& topic,
+        //                    const std::shared_ptr<IMessageListener>& listener)
+        // {
+        //         std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
+        //         return create(topic, listener, log);
+        // }
+                
+        // std::unique_ptr<IMessageHub>
+        // MessageHub::create(const std::string& topic, const std::shared_ptr<ILog>& log)
+        // {
+        //         std::shared_ptr<IMessageListener> listener
+        //                 = std::make_shared<DummyMessageListener>();
+        //         return create(topic, listener, log);
+        // }
+                
+        // std::unique_ptr<IMessageHub>
+        // MessageHub::create(const std::string& topic)
+        // {
+        //         std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
+        //         return create(topic, log);
+        // }
+
         MessageHub::MessageHub(const std::string &topic,
+                               const std::string &type,
                                std::unique_ptr<IWebSocketServer>& server_socket,
-                               const std::shared_ptr<ISocketFactory>& socket_factory,
-                               const std::shared_ptr<ILinux>& linux,
-                               const std::shared_ptr<ILog>& log)
+                               const std::shared_ptr<IWebSocketFactory>& socket_factory,
+                               ILog& log, ISystem& system)
                 : server_(std::move(server_socket)),
                   socket_factory_(socket_factory),
                   topic_(topic),
-                  linux_(linux),
-                  log_(log)
+                  type_(type),
+                  log_(log),
+                  system_(system)
         {
                 if (nullptr == server_) {
                         log_err(log_, "MessageHub: Invalid server socket");
@@ -111,10 +123,7 @@ namespace rcom {
                         log_err(log_, "MessageHub: Invalid topic: %s", topic.c_str());
                         throw std::invalid_argument("MessageHub: Invalid topic");
                 }
-                // if (!register_topic()) {
-                //         log_err(log_, "MessageHub: Registration failed: topic '%s'", topic.c_str());
-                //         throw std::runtime_error("MessageHub: Registration failed");
-                // }
+                register_topic();
         }
 
         std::string& MessageHub::topic()
@@ -130,12 +139,12 @@ namespace rcom {
                 std::unique_ptr<IWebSocket> registry_socket
                         = socket_factory_->new_client_side_websocket(registry_address);
 
-                RegistryProxy registry(registry_socket, linux_, log_);
+                RegistryProxy registry(registry_socket, system_, log_);
 
                 Address my_address;
                 server_->get_address(my_address);
 
-                registry.set(topic_, my_address);
+                registry.set(topic_, my_address, type_);
         }
 
         void MessageHub::handle_events()
@@ -148,10 +157,5 @@ namespace rcom {
                                    IWebSocket *exclude)
         {
                 server_->broadcast(message, type, exclude);
-        }
-
-        size_t MessageHub::count_links()
-        {
-                return server_->count_links();
         }
 }

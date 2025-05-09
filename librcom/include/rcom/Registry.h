@@ -38,13 +38,17 @@ namespace rcom {
                 ssize_t find(const std::string& topic); 
                 void erase(ssize_t index); 
                 void erase(const std::string& topic); 
-                void insert(const std::string& topic, IAddress& address);
+                void insert(const std::string& topic,
+                            IAddress& address,
+                            const std::string& type);
 
         public:
                 Registry();
                 virtual ~Registry() = default; 
 
-                void set(const std::string& topic, IAddress& address) override;
+                void set(const std::string& topic,
+                         IAddress& address,
+                         const std::string& type) override;
                 
                 bool get(const std::string& topic, IAddress& address,
                          double timeout_in_seconds) override;

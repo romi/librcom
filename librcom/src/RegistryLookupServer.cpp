@@ -27,14 +27,18 @@
 #include <string.h>
 #include <stdexcept>
 
-#include "rcom/ip.h"
+#include "rcom/Log.h"
 #include "rcom/RegistryLookupServer.h"
 
 namespace rcom {
 
-        RegistryLookupServer::RegistryLookupServer(const std::string& address,
+        RegistryLookupServer::RegistryLookupServer(ILog& log,
+                                                   ISystem& system,
+                                                   const std::string& address,
                                                    uint16_t port)
-                : socket_(-1),
+                : log_(log),
+                  system_(system),
+                  socket_(-1),
                   thread_(nullptr),
                   address_(address),
                   quit_(false)
@@ -52,7 +56,7 @@ namespace rcom {
         void RegistryLookupServer::init(uint16_t port)
         {
                 // Create a UDP socket
-                socket_ = socket(AF_INET, SOCK_DGRAM, 0);
+                socket_ = socket(AF_INET, SOCK_DGRAM, 0); // FIXME: Use ISystem API
                 if (socket_ < 0) {
                         throw std::runtime_error("Failed to create socket.");
                 }
@@ -86,17 +90,21 @@ namespace rcom {
                 while (!quit_) {
                         memset(buffer, 0, sizeof(buffer));
                         ssize_t bytesRead = recvfrom(socket_, buffer,
-                                                     sizeof(buffer) - 1, 0,
+                                                     sizeof(buffer) - 1, MSG_DONTWAIT,
                                                      (struct sockaddr*) &clientAddr,
                                                      &clientAddrLen);
 
-                        if (bytesRead < 0) {
+                        if (bytesRead == EAGAIN) {
                                 //std::cerr << "Failed to receive data." << std::endl;
                                 continue;
+                        } else if (bytesRead < 0) {
+                                //std::cerr << "Failed to receive data." << std::endl;
+                                continue;
+                        } else {
+                                sendto(socket_, address_.c_str(), address_.length(), 0,
+                                       (struct sockaddr*)& clientAddr, clientAddrLen);
+                                system_.sleep(0.010);
                         }
-
-                        sendto(socket_, address_.c_str(), address_.length(), 0,
-                               (struct sockaddr*)& clientAddr, clientAddrLen);
                 }
         }
 

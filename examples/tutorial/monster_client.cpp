@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <stdexcept>
+#include <rcom/Linux.h>
 #include <rcom/RemoteStub.h>
 #include <rcom/RcomClient.h>
 #include "MyLog.h"
@@ -58,11 +59,9 @@ double RemoteMonster::get_energy_level()
 int main()
 {
         try {
-                // Log message to the console:
-                //auto client = rcom::RcomClient::create("elmo", 10.0);
-                // Redirect log messages:
-                auto log = std::make_shared<MyLog>();
-                auto client = rcom::RcomClient::create("elmo", 10.0, log);
+                MyLog log;
+                rcom::Linux system(log);
+                auto client = rcom::RcomClient::create("elmo", 10.0, log, system);
                 RemoteMonster monster(client);        
                 monster.gently_scare_someone("you");
         } catch (std::exception& e) {

@@ -21,6 +21,7 @@
   <http://www.gnu.org/licenses/>.
 
  */
+#include <stdexcept>
 #include "rcom/Log.h"
 #include "rcom/Response.h"
 

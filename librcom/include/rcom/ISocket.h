@@ -21,22 +21,16 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_SOCKET_H_
-#define _LIBRCOM_I_SOCKET_H_
+#ifndef _LIBRCOM_ISOCKET_H_
+#define _LIBRCOM_ISOCKET_H_
 
 #include "rcom/MemBuffer.h"
 #include "rcom/IAddress.h"
-#include "rcom/ILinux.h"
+#include "rcom/ISystem.h"
 
 namespace rcom {
 
         static const int kInvalidSocket = -1;
-
-        enum WaitStatus {
-                kWaitOK = 1,
-                kWaitTimeout = 0,
-                kWaitError = -1,
-        };
 
         class ISocket
         {
@@ -69,8 +63,8 @@ namespace rcom {
                 virtual void turn_buffering_off() = 0;
                 virtual void turn_buffering_on() = 0;
 
-                virtual ILinux& get_linux() = 0;
+                virtual ISystem& get_system() = 0;
         };
 }
 
-#endif // _LIBRCOM_I_SOCKET_H_
+#endif // _LIBRCOM_ISOCKET_H_

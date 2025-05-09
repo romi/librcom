@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_RESPONSE_PARSER_H_
-#define _LIBRCOM_RESPONSE_PARSER_H_
+#ifndef _LIBRCOM_RESPONSEPARSER_H_
+#define _LIBRCOM_RESPONSEPARSER_H_
 
 #include "rcom/IResponseParser.h"
 #include "rcom/IHttpParserListener.h"
@@ -53,5 +53,5 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_RESPONSE_PARSER_H_
+#endif // _LIBRCOM_RESPONSEPARSER_H_
 

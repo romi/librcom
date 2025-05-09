@@ -21,31 +21,11 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_SOCKET_FACTORY_H_
-#define _LIBRCOM_SOCKET_FACTORY_H_
-
-#include "rcom/ILinux.h"
-#include "rcom/ISocketFactory.h"
+#include <string>
 
 namespace rcom {
         
-        class SocketFactory : public ISocketFactory
-        {
-        protected:
-                std::shared_ptr<ILinux> linux_;
-                std::shared_ptr<ILog> log_;
+        std::string get_local_ip();
+        void set_local_ip(const std::string& ip);
 
-        public:
-                SocketFactory(const std::shared_ptr<ILinux>& linux,
-                              const std::shared_ptr<ILog>& log);
-                ~SocketFactory() override = default;
-
-                std::unique_ptr<IWebSocket>
-                        new_server_side_websocket(int sockfd) override;
-                
-                std::unique_ptr<IWebSocket>
-                        new_client_side_websocket(IAddress& remote_address) override;
-        };
 }
-
-#endif // _LIBRCOM_SOCKET_FACTORY_H_

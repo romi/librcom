@@ -21,68 +21,54 @@
   <http://www.gnu.org/licenses/>.
 
  */
-
 #include <arpa/inet.h>
 #include <stdexcept>
 #include <algorithm>
 #include "rcom/Address.h"
-#include "rcom/ip.h"
-
-using namespace std;
 
 namespace rcom {
 
-        Address::Address() : Address(0)
+        Address::Address() : Address("0.0.0.0", 0)
         {
-        }
-
-        Address::Address(uint16_t port) : Address("0.0.0.0", port)
-        {
-                std::string ip = get_local_ip();
-                set(ip.c_str(), port);
         }
         
-        Address::Address(const char *ip, uint16_t port) : addr_{AF_INET,0,0,{0}}
+        Address::Address(const std::string& ip, uint16_t port)
+                : ip_(ip), port_(0)
         {
-                std::string ipaddress;
-                if (ip == nullptr)
-                        ipaddress = get_local_ip();
-                else
-                        ipaddress = ip;
-                set(ipaddress.c_str(), port);
+                set(ip, port);
         }
  
-        Address::Address(const std::string& str) : addr_{AF_INET,0,0,{0}}
+        Address::Address(const std::string& str)
+                : ip_("0.0.0.0"), port_(0)
         {
                 parse(str);
         }
 
-        Address::Address(IAddress& address) : addr_{AF_INET,0,0,{0}}
+        Address::Address(IAddress& address) 
+                : ip_(address.ip()), port_(address.port())
         {
-                addr_ = address.get_sockaddr();
         }
 
         void Address::set(const IAddress& other)
         {
                 if (&other != this) {
-                        addr_ = other.get_sockaddr();
+                        set_ip(other.ip());
+                        set_port(other.port());
                 }
         }
 
-        string& Address::ip(string& s)
+        const std::string& Address::ip() const
         {
-                s = inet_ntoa(addr_.sin_addr);
-                return s;
+                return ip_;
         }
         
-        uint16_t Address::port()
+        uint16_t Address::port() const
         {
-                return ntohs(addr_.sin_port);
+                return port_;
         }
         
-        void Address::set(const char *ip, uint16_t port)
+        void Address::set(const std::string& ip, uint16_t port)
         {
-                addr_.sin_family = AF_INET;
                 set_ip(ip);
                 set_port(port);
         }
@@ -92,30 +78,23 @@ namespace rcom {
                 parse(str);
         }
 
-        void Address::set_ip(const char *ip)
+        void Address::set_ip(const std::string& ip)
         {
-                if (ip != nullptr) {
-                        if (inet_aton(ip, &addr_.sin_addr) == 0) {
-                                throw std::runtime_error("Address::set_ip: "
-                                                         "inet_aton failed");
-                        }
-                } else {
-                        throw std::runtime_error("Address::set_ip: null address");
-                }
+                ip_ = ip;
         }
         
         void Address::set_port(uint16_t port)
         {
-                addr_.sin_port = htons(port);
+                port_ = port;
         }
         
         void Address::parse(const std::string& address)
         {
-                string ip;
-                string portstr;
+                std::string ip;
+                std::string portstr;
                 
-                string::const_iterator split_colon = std::find(address.rbegin(),
-                                                               address.rend(), ':').base();
+                std::string::const_iterator split_colon = std::find(address.rbegin(),
+                                                                    address.rend(), ':').base();
                 
                 if (split_colon != address.begin()) {
                         ip.assign(address.begin(), split_colon-1);
@@ -131,7 +110,7 @@ namespace rcom {
                 }
         }
 
-        bool Address::is_valid_integer(string& s)
+        bool Address::is_valid_integer(std::string& s)
         {
                 bool success = false;
                 try {
@@ -142,23 +121,16 @@ namespace rcom {
                 return success;
         }
 
-        bool Address::is_set()
+        bool Address::is_set() const
         {
-                return (addr_.sin_port != 0)
-                        && (addr_.sin_addr.s_addr != 0);
+                return (ip_ != "0.0.0.0") && (port_ != 0);
         }
                 
-        string& Address::tostring(string& str)
+        std::string Address::tostring() const
         {
-                ip(str);
-                str += ":";
-                str += std::to_string(port());
-                return str;
+                std::string s = ip_;
+                s += ":";
+                s += std::to_string(port());
+                return s;
         }
-
-        struct sockaddr_in Address::get_sockaddr() const 
-        {
-                return addr_;
-        }
-
 }

@@ -21,11 +21,13 @@
 #include <signal.h>
 #include <syslog.h>
 #include <atomic>
+#include <csignal>
 #include <unistd.h>
 
 #include <rcom/MessageHub.h>
 #include <rcom/IMessageListener.h>
 #include <rcom/Linux.h>
+#include <rcom/ConsoleLog.h>
 #include <rcom/util.h>
 
 std::atomic<bool> quit(false);
@@ -66,9 +68,12 @@ public:
 int main()
 {
         try {
-                std::shared_ptr<rcom::IMessageListener> hello_world
-                        = std::make_shared<HelloWorldListener>();
-                auto message_hub = rcom::MessageHub::create("hello-world", hello_world);
+                rcom::ConsoleLog log;
+                rcom::Linux system(log);
+                HelloWorldListener listener;
+                
+                auto message_hub = rcom::MessageHub::create("hello-world", "test", listener,
+                                                            log, system);
 
                 std::signal(SIGINT, SignalHandler);
         

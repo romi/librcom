@@ -24,9 +24,11 @@
 #include <atomic>
 #include <unistd.h>
 
+#include <rcom/ConsoleLog.h>
 #include <rcom/Linux.h>
 #include <rcom/MessageHub.h>
 #include <rcom/IMessageListener.h>
+#include <rcom/DummyListener.h>
 #include <rcom/util.h>
 
 std::atomic<bool> quit(false);
@@ -79,7 +81,12 @@ void broadcast_sensor_value(rcom::IMessageHub& hub)
 int main()
 {
         try {
-                auto hub = rcom::MessageHub::create("sensor");
+                rcom::ConsoleLog log;
+                rcom::Linux system(log);
+                rcom::DummyListener listener;
+                
+                auto hub = rcom::MessageHub::create("sensor", "sensor", listener,
+                                                    log, system);
                 
                 std::signal(SIGINT, SignalHandler);
 

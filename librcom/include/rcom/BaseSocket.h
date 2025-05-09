@@ -21,12 +21,12 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_BASE_SOCKET_H_
-#define _LIBRCOM_BASE_SOCKET_H_
+#ifndef _LIBRCOM_BASESOCKET_H_
+#define _LIBRCOM_BASESOCKET_H_
 
 #include <string>
 #include <memory>
-#include "rcom/ILinux.h"
+#include "rcom/ISystem.h"
 #include "rcom/ILog.h"
 #include "rcom/IAddress.h"
 #include "rcom/ISocket.h"
@@ -35,19 +35,16 @@ namespace rcom {
 
         class BaseSocket {
         protected:
-                std::shared_ptr<ILinux> linux_;
-                std::shared_ptr<ILog> log_;
+                ILog& log_;
+                ISystem& system_;
                 int sockfd_;
                 
-                WaitStatus do_wait(double timeout);
+                //WaitStatus do_wait(double timeout);
                 
         public:
 
-                BaseSocket(const std::shared_ptr<ILinux>& linux,
-                           const std::shared_ptr<ILog>& log);
-                BaseSocket(const std::shared_ptr<ILinux>& linux,
-                           const std::shared_ptr<ILog>& log,
-                           int sockfd);
+                BaseSocket(ILog& log, ISystem& system);
+                BaseSocket(ILog& log, ISystem& system, int sockfd);
                 virtual ~BaseSocket();
                         
                 bool listen(IAddress& address);
@@ -63,9 +60,9 @@ namespace rcom {
                 void get_address(IAddress& address);
                 void set_nodelay(int value);
 
-                ILinux& get_linux();
+                ISystem& get_system();
         };
 }
 
-#endif // _LIBRCOM_BASE_SOCKET_H_
+#endif // _LIBRCOM_BASESOCKET_H_
 

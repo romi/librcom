@@ -21,14 +21,15 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_REGISTRY_PROXY_H_
-#define _LIBRCOM_REGISTRY_PROXY_H_
+#ifndef _LIBRCOM_REGISTRYPROXY_H_
+#define _LIBRCOM_REGISTRYPROXY_H_
 
 #include <memory>
+#include "rcom/ISystem.h"
 #include "rcom/MemBuffer.h"
 #include "rcom/json.hpp"
 #include "rcom/IRegistry.h"
-#include "rcom/ISocketFactory.h"
+#include "rcom/IWebSocketFactory.h"
 
 namespace rcom {
 
@@ -36,12 +37,13 @@ namespace rcom {
         {
         protected:
                 std::unique_ptr<IWebSocket> websocket_;
-                std::shared_ptr<ILinux> linux_;
-                std::shared_ptr<ILog> log_;
+                ISystem& system_;
+                ILog& log_;
                         
                 void make_register_request(MemBuffer& request,
                                            const std::string& topic,
-                                           IAddress& address);
+                                           IAddress& address,
+                                           const std::string& type);
                 void make_unregister_request(MemBuffer& request,
                                              const std::string& topic);
                 
@@ -58,16 +60,18 @@ namespace rcom {
 
         public:
                 RegistryProxy(std::unique_ptr<IWebSocket>& websocket,
-                              const std::shared_ptr<ILinux>& linux,
-                              const std::shared_ptr<ILog>& log);
+                              ISystem& system,
+                              ILog& log);
                 ~RegistryProxy() override;
 
-                void set(const std::string& topic, IAddress& address) override; 
+                void set(const std::string& topic,
+                         IAddress& address,
+                         const std::string& type) override; 
                 bool get(const std::string& topic, IAddress& address,
                          double timeout_in_seconds) override;
                 void remove(const std::string& topic) override; 
         };
 }
 
-#endif // _LIBRCOM_REGISTRY_PROXY_H_
+#endif // _LIBRCOM_REGISTRYPROXY_H_
 

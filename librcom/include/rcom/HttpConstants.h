@@ -21,6 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
+#ifndef _LIBRCOM_HTTPCONSTANTS_H_
+#define _LIBRCOM_HTTPCONSTANTS_H_
 
 namespace rcom {
         
@@ -75,3 +77,5 @@ namespace rcom {
                 kHttpStatusNetworkAuthenticationRequired = 511,
         };
 }
+
+#endif // _LIBRCOM_HTTPCONSTANTS_H__

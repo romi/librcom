@@ -42,7 +42,7 @@ namespace rcom {
 
         void RegistryLookup::create_socket()
         {
-                socket_ = socket(AF_INET, SOCK_DGRAM, 0);
+                socket_ = socket(AF_INET, SOCK_DGRAM, 0); // FIXME: Use ISystem API
                 if (socket_ < 0) {
                         throw std::runtime_error("Failed to create socket.");
                 }

@@ -21,29 +21,23 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#include <netinet/tcp.h>
 #include <stdexcept>
 #include "rcom/Log.h"
 #include "rcom/Socket.h"
 
 namespace rcom {
 
-        Socket::Socket(const std::shared_ptr<ILinux>& linux,
-                       const std::shared_ptr<ILog>& log,
-                       int sockfd)
-                : socket_(linux, log, sockfd)
+        Socket::Socket(ILog& log, ISystem& system, int sockfd)
+                : socket_(log, system, sockfd)
         {
         }
 
-        Socket::Socket(const std::shared_ptr<ILinux>& linux,
-                       const std::shared_ptr<ILog>& log,
-                       IAddress& address)
-                : socket_(linux, log)
+        Socket::Socket(ILog& log, ISystem& system, IAddress& address)
+                : socket_(log, system)
         {
                 if (!socket_.connect(address)) {
-                        std::string s;
                         log_err(log, "Socket::Socket: Failed to connect to address %s",
-                                address.tostring(s).c_str());
+                                address.tostring().c_str());
                         throw std::runtime_error("Socket: Failed to connect");
                 }
         }
@@ -93,8 +87,8 @@ namespace rcom {
                 socket_.set_nodelay(0);
         }
 
-        ILinux& Socket::get_linux()
+        ISystem& Socket::get_system()
         {
-                return socket_.get_linux();
+                return socket_.get_system();
         }
 }

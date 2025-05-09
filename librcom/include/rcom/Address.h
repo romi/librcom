@@ -26,6 +26,7 @@
 
 #include <string>
 #include <cstring>
+#include "rcom/ISystem.h"
 #include "rcom/IAddress.h"
 
 namespace rcom {
@@ -33,37 +34,34 @@ namespace rcom {
         class Address : public IAddress
         {
         protected:
-                struct sockaddr_in addr_;
+                std::string ip_;
+                uint16_t port_;
 
-                void set_ip(const char *ip);
+                void set_ip(const std::string& ip);
                 void set_port(uint16_t port);
                 bool is_valid_integer(std::string& s);
                 void parse(const std::string& str);
 
         public:
                 Address();
-                explicit Address(uint16_t port);
-                explicit Address(const char *ip, uint16_t port);
-                explicit Address(const std::string& str);
+                explicit Address(const std::string& ip, uint16_t port);
+                explicit Address(const std::string& str); // ip:port
                 explicit Address(IAddress& address);
                 ~Address() override = default;
 
-
-                bool operator==(const Address &rval) const {
-                    auto other_addr = rval.get_sockaddr();
-                    return (std::memcmp(&addr_, (void*)&other_addr, sizeof(addr_)) == 0);
+                bool operator==(const Address &other) const {
+                    auto this_addr = tostring();
+                    auto other_addr = other.tostring();
+                    return this_addr == other_addr;
                 }
                 
-                void set(const char *ip, uint16_t port) override;
+                void set(const std::string& ip, uint16_t port) override;
                 void set(const std::string& str) override;
                 void set(const IAddress& other) override;
-                bool is_set() override;
-                std::string& tostring(std::string& str) override;
-                
-                struct sockaddr_in get_sockaddr() const override;
-
-                std::string& ip(std::string&);
-                uint16_t port();
+                bool is_set() const override;
+                const std::string& ip() const override;
+                uint16_t port() const override;
+                std::string tostring() const override;
         };
 }
 

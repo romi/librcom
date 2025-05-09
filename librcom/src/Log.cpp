@@ -23,7 +23,7 @@
  */
 #include <stdarg.h>
 #include <mutex>
-#include <iostream>
+#include <cstring>
 #include "rcom/Log.h"
 
 namespace rcom {
@@ -44,43 +44,43 @@ namespace rcom {
                 out = log_buffer_;
         }
 
-        void log_err(const std::shared_ptr<ILog>& log, const char* format, ...)
+        void log_err(ILog& log, const char* format, ...)
         {
                 std::string message;
                 va_list ap;
                 va_start(ap, format);
                 buffer_printf(message, format, ap);
                 va_end(ap);
-                log->error(message);
+                log.error(message);
         }
 
-        void log_warn(const std::shared_ptr<ILog>& log, const char* format, ...)
+        void log_warn(ILog& log, const char* format, ...)
         {
                 std::string message;
                 va_list ap;
                 va_start(ap, format);
                 buffer_printf(message, format, ap);
                 va_end(ap);
-                log->warn(message);
+                log.warn(message);
         }
 
-        void log_debug(const std::shared_ptr<ILog>& log, const char* format, ...)
+        void log_debug(ILog& log, const char* format, ...)
         {
                 std::string message;
                 va_list ap;
                 va_start(ap, format);
                 buffer_printf(message, format, ap);
                 va_end(ap);
-                log->debug(message);
+                log.debug(message);
         }
 
-        void log_info(const std::shared_ptr<ILog>& log, const char* format, ...)
+        void log_info(ILog& log, const char* format, ...)
         {
                 std::string message;
                 va_list ap;
                 va_start(ap, format);
                 buffer_printf(message, format, ap);
                 va_end(ap);
-                log->info(message);
+                log.info(message);
         }
 }

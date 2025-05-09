@@ -11,17 +11,15 @@ output_compile_flags()
 set(SOURCES
     include/rcom/sha1.h
     include/rcom/util.h
-    include/rcom/ip.h
     include/rcom/Address.h
     include/rcom/BaseSocket.h
     include/rcom/ClientSideWebSocket.h
     include/rcom/ConsoleLog.h
-    include/rcom/DummyMessageListener.h
+    include/rcom/DummyListener.h
     include/rcom/Frames.h
     include/rcom/HttpParser.h
     include/rcom/IAddress.h
     include/rcom/IHttpParserListener.h
-    include/rcom/ILinux.h
     include/rcom/ILog.h
     include/rcom/IMessageHub.h
     include/rcom/IMessageLink.h
@@ -33,7 +31,8 @@ set(SOURCES
     include/rcom/IRPCServer.h
     include/rcom/IServerSocket.h
     include/rcom/ISocket.h
-    include/rcom/ISocketFactory.h
+    include/rcom/IWebSocketFactory.h
+    include/rcom/ISystem.h
     include/rcom/IWebSocketServer.h
     include/rcom/json.hpp
     include/rcom/Linux.h
@@ -56,7 +55,7 @@ set(SOURCES
     include/rcom/Response.h
     include/rcom/ResponseParser.h
     include/rcom/Socket.h
-    include/rcom/SocketFactory.h
+    include/rcom/WebSocketFactory.h
     include/rcom/ServerSideWebSocket.h
     include/rcom/ServerSocket.h
     include/rcom/WebSocket.h
@@ -65,7 +64,6 @@ set(SOURCES
     
     src/sha1.cpp
     src/util.cpp
-    src/ip.cpp
     src/Address.cpp
     src/BaseSocket.cpp
     src/ClientSideWebSocket.cpp
@@ -94,7 +92,7 @@ set(SOURCES
     src/ServerSideWebSocket.cpp
     src/ServerSocket.cpp
     src/Socket.cpp
-    src/SocketFactory.cpp
+    src/WebSocketFactory.cpp
     src/WebSocket.cpp
     src/WebSocketServer.cpp)
 

@@ -21,8 +21,8 @@
   <http://www.gnu.org/licenses/>.
 
  */
-#ifndef _LIBRCOM_I_RESPONSEPARSER_H_
-#define _LIBRCOM_I_RESPONSEPARSER_H_
+#ifndef _LIBRCOM_IRESPONSEPARSER_H_
+#define _LIBRCOM_IRESPONSEPARSER_H_
 
 #include "rcom/IResponse.h"
 #include "rcom/ISocket.h"
@@ -42,5 +42,5 @@ namespace rcom {
         };
 }
 
-#endif // _LIBRCOM_I_RESPONSEPARSER_H_
+#endif // _LIBRCOM_IRESPONSEPARSER_H_
 
