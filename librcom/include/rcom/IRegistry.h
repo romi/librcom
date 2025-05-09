@@ -26,6 +26,7 @@
 
 #include <string>
 #include "rcom/IAddress.h"
+#include "rcom/RegistryEntry.h"
 
 namespace rcom {
 
@@ -44,7 +45,9 @@ namespace rcom {
                 virtual bool get(const std::string& topic, IAddress& address,
                                  double timeout_in_seconds) = 0;
                 
-                virtual void remove(const std::string& topic) = 0; 
+                virtual void remove(const std::string& topic) = 0;
+                
+                virtual void list(std::vector<RegistryEntry>& vector) = 0;
         };
 }
 

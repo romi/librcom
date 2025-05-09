@@ -213,9 +213,24 @@ namespace rcom {
         void RegistryServer::handle_list(IWebSocket& websocket, nlohmann::json& /*message*/)
         {
                 try {
-                        //std::string type = message["type"];
+                        std::vector<RegistryEntry> list;
+                        registry_.list(list);
 
-                        // TODO
+                        nlohmann::json array = nlohmann::json::array();
+
+                        for (size_t i = 0; i < list.size(); i++) {
+                                RegistryEntry& entry = list[i];
+                                nlohmann::json obj = {{ "topic", entry.topic },
+                                                      { "address", entry.address.tostring() },
+                                                      { "type", entry.type }};
+                                array[i] = obj; 
+                        }
+
+                        nlohmann::json result = {{"success", true}, {"list", array}};
+                        
+                        response_.clear();
+                        response_.append(result.dump());
+                        send_response(websocket);
                         
                 } catch (std::runtime_error& e) {
                         log_info(log_, "RegistryServer: Get topic failed: %s", e.what());

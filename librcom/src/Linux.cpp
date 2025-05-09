@@ -57,7 +57,6 @@
 // LCOV_EXCL_START
 namespace  rcom
 {
-
         Linux::Linux(ILog& log) : log_(log), ip_()
         {
         }
@@ -72,13 +71,14 @@ namespace  rcom
                 fds[0].events = POLLIN;
                 
                 int pollrc = poll(fds, 1, timeout_ms);
+                log_debug(log_, "Linux::wait: poll returned %d", pollrc);
                 if (pollrc < 0) {
-                        log_err(log_, "do_wait: poll error %d", errno);
+                        log_err(log_, "Linux::wait: error: %s", strerror(errno));
                         
                 } else if (pollrc > 0) {
                         if (fds[0].revents & POLLIN) {
                                 retval = kWaitOK;
-                        }
+                        } // else?
                 } else {
                         retval = kWaitTimeout;
                 }

@@ -92,5 +92,10 @@ namespace rcom {
                 if (index >= 0)
                         erase(index);
         }
+        
+        void Registry::list(std::vector<RegistryEntry>& vector)
+        {
+                vector = entries_;
+        }
 }
 
