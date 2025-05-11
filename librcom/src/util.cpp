@@ -97,7 +97,7 @@ namespace rcom {
 
         bool is_valid_name(const std::string& name)
         {
-                return std::regex_match(name, std::regex("[a-z][a-z-]{2,64}"));
+                return std::regex_match(name, std::regex("[a-z][a-z0-9-]{2,64}"));
         }
 
         bool is_valid_topic(const std::string& topic)
