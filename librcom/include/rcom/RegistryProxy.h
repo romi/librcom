@@ -57,6 +57,7 @@ namespace rcom {
                 void assert_success(nlohmann::json& jsonobj);
                 bool read_address(IAddress& address, double timeout); 
                 bool get_address(nlohmann::json& jsonobj, std::string& address_string);
+                void make_list_request(MemBuffer& request);
 
         public:
                 RegistryProxy(std::unique_ptr<IWebSocket>& websocket,
@@ -70,6 +71,7 @@ namespace rcom {
                 bool get(const std::string& topic, IAddress& address,
                          double timeout_in_seconds) override;
                 void remove(const std::string& topic) override; 
+                void list(std::vector<RegistryEntry>& vector) override;
         };
 }
 

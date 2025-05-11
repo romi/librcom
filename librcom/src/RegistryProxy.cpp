@@ -22,6 +22,7 @@
 
  */
 #include <algorithm>
+#include <iostream>
 #include "rcom/Log.h"
 #include "rcom/RegistryProxy.h"
 #include "rcom/util.h"
@@ -118,7 +119,37 @@ namespace rcom {
                 request.printf("{\"request\": \"unregister\", \"topic\": \"%s\"}",
                                topic.c_str());
         }
+
+        void RegistryProxy::make_list_request(MemBuffer& request)
+        {
+                request.printf("{\"request\": \"list\"}");
+        }
+
+        void RegistryProxy::list(std::vector<RegistryEntry>& vector)
+        {
+                MemBuffer request;
+                MemBuffer response;
+                make_list_request(request);
+                send_request(request);
+                read_response(response, 10.0);
+                nlohmann::json json = parse_response(response);
+                assert_success(json);
+                nlohmann::json list = json["list"];
                 
+                for (size_t i = 0; i < list.size(); i++) {
+                        nlohmann::json entry = list[i];
+                        if (entry.contains("topic")
+                            && entry.contains("address")
+                            && entry.contains("type")) {
+                                std::string topic = entry["topic"];
+                                std::string a = entry["address"];
+                                Address address(a);
+                                std::string type = entry["type"];
+                                vector.emplace_back(topic, address, type);
+                        }
+                }
+        }
+
         void RegistryProxy::send_request(MemBuffer& request)
         {
                 bool success = websocket_->send(request, kTextMessage);

@@ -54,6 +54,7 @@ namespace rcom {
                          double timeout_in_seconds) override;
                 
                 void remove(const std::string& topic) override; 
+                void list(std::vector<RegistryEntry>& vector) override;
         };
 }
 
