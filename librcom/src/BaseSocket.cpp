@@ -188,6 +188,7 @@ namespace rcom {
         {
                 if (sockfd_ != kInvalidSocket) {
                         system_.socket_close(sockfd_);
+                        sockfd_ = kInvalidSocket;
                 }
         }
 

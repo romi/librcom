@@ -98,7 +98,7 @@ set(SOURCES
 
 add_library(rcom SHARED ${SOURCES})
 target_include_directories(rcom PUBLIC include)
-target_link_libraries(rcom i2c m)
+target_link_libraries(rcom m)
 
 add_subdirectory(test/mocks)
 

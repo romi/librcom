@@ -71,7 +71,7 @@ namespace  rcom
                 fds[0].events = POLLIN;
                 
                 int pollrc = poll(fds, 1, timeout_ms);
-                log_debug(log_, "Linux::wait: poll returned %d", pollrc);
+                //log_debug(log_, "Linux::wait: poll returned %d", pollrc);
                 if (pollrc < 0) {
                         log_err(log_, "Linux::wait: error: %s", strerror(errno));
                         
