@@ -105,7 +105,7 @@ namespace rcom {
                                        (struct sockaddr*)& clientAddr, clientAddrLen);
                         }
                         
-                        system_.sleep(0.010);
+                        system_.sleep(0.020);
                 }
         }
 
