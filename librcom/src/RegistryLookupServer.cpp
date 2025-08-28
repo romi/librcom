@@ -103,8 +103,9 @@ namespace rcom {
                         } else {
                                 sendto(socket_, address_.c_str(), address_.length(), 0,
                                        (struct sockaddr*)& clientAddr, clientAddrLen);
-                                system_.sleep(0.010);
                         }
+                        
+                        system_.sleep(0.010);
                 }
         }
 
