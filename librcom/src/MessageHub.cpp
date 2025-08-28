@@ -141,7 +141,13 @@ namespace rcom {
         void MessageHub::update_register()
         {
                 while (!done_) {
-                        register_topic();
+                        try {
+                                register_topic();
+                        } catch (const std::exception& ex) {
+                        } catch (...) {
+                                log_err(log_, "MessageHub::update_register: "
+                                        "caught unknown excpetion");
+                        }
                         system_.sleep(3);
                 }
         }
