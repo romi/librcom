@@ -25,6 +25,7 @@
 #define _LIBRCOM_MESSAGEHUB_H_
 
 #include <memory>
+#include <thread>
 #include "rcom/ISystem.h"
 #include "rcom/WebSocketFactory.h"
 #include "rcom/IMessageHub.h"
@@ -42,6 +43,11 @@ namespace rcom {
                 std::string type_;
                 ILog& log_;
                 ISystem& system_;
+                std::thread thread_;
+                bool done_;
+                
+                void stop_register_thread();
+                void update_register();
                 
         public:
                 
@@ -56,24 +62,6 @@ namespace rcom {
                                                            IMessageListener& listener,
                                                            ILog& log, ISystem& system);
                 
-                // static std::unique_ptr<IMessageHub>
-                // create(const std::string& topic,
-                //        const std::shared_ptr<IMessageListener>& listener,
-                //        const std::shared_ptr<ILog>& log);
-
-                // static std::unique_ptr<IMessageHub>
-                // create(const std::string& topic,
-                //        const std::shared_ptr<IMessageListener>& listener);
-                
-                // static std::unique_ptr<IMessageHub>
-                // create(const std::string& topic);
-                
-                // static std::unique_ptr<IMessageHub>
-                // create(const std::string& topic,
-                //        const std::shared_ptr<ILog>& log);
-
-                //
-                
                 MessageHub(const std::string& topic,
                            const std::string& type,
                            std::unique_ptr<IWebSocketServer>& server_socket,
@@ -87,6 +75,7 @@ namespace rcom {
                 void broadcast(MemBuffer &message, MessageType type,
                                IWebSocket *exclude) override;
                 void register_topic();
+                void start_register_thread();
         };
 }
 

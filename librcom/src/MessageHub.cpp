@@ -50,6 +50,7 @@ namespace rcom {
                                                         socket_factory, log, system);
                 if (!standalone) {
                         hub->register_topic();
+                        hub->start_register_thread();
                 }
                 return hub;
         }
@@ -62,43 +63,6 @@ namespace rcom {
                 return create(topic, type, listener, log, system, 0, false);
         }
 
-        // std::unique_ptr<IMessageHub> MessageHub::create(const std::string& topic,
-        //                                                 ILog& log, ISystem& system)
-        // {
-        //         return create(topic, XXX, log, system, 0, false);
-        // }
-
-        // std::unique_ptr<IMessageHub>
-        // MessageHub::create(const std::string& topic,
-        //                    const std::shared_ptr<IMessageListener>& listener,
-        //                    const std::shared_ptr<ILog>& log)
-        // {
-        //         return create(topic, listener, log, 0, false);
-        // }
-                
-        // std::unique_ptr<IMessageHub>
-        // MessageHub::create(const std::string& topic,
-        //                    const std::shared_ptr<IMessageListener>& listener)
-        // {
-        //         std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
-        //         return create(topic, listener, log);
-        // }
-                
-        // std::unique_ptr<IMessageHub>
-        // MessageHub::create(const std::string& topic, const std::shared_ptr<ILog>& log)
-        // {
-        //         std::shared_ptr<IMessageListener> listener
-        //                 = std::make_shared<DummyMessageListener>();
-        //         return create(topic, listener, log);
-        // }
-                
-        // std::unique_ptr<IMessageHub>
-        // MessageHub::create(const std::string& topic)
-        // {
-        //         std::shared_ptr<ILog> log = std::make_shared<ConsoleLog>();
-        //         return create(topic, log);
-        // }
-
         MessageHub::MessageHub(const std::string &topic,
                                const std::string &type,
                                std::unique_ptr<IWebSocketServer>& server_socket,
@@ -109,7 +73,9 @@ namespace rcom {
                   topic_(topic),
                   type_(type),
                   log_(log),
-                  system_(system)
+                  system_(system),
+                  thread_(),
+                  done_(false)
         {
                 if (nullptr == server_) {
                         log_err(log_, "MessageHub: Invalid server socket");
@@ -123,7 +89,7 @@ namespace rcom {
                         log_err(log_, "MessageHub: Invalid topic: %s", topic.c_str());
                         throw std::invalid_argument("MessageHub: Invalid topic");
                 }
-                register_topic();
+                //register_topic();
         }
 
         std::string& MessageHub::topic()
@@ -157,5 +123,26 @@ namespace rcom {
                                    IWebSocket *exclude)
         {
                 server_->broadcast(message, type, exclude);
+        }
+
+        void MessageHub::start_register_thread()
+        {
+                done_ = false;
+                thread_ = std::thread(&rcom::MessageHub::update_register, this);
+        }
+        
+        void MessageHub::stop_register_thread()
+        {
+                done_ = true;
+                if (thread_.joinable())
+                        thread_.join();
+        }
+        
+        void MessageHub::update_register()
+        {
+                while (!done_) {
+                        register_topic();
+                        system_.sleep(3);
+                }
         }
 }

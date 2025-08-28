@@ -42,18 +42,15 @@ class RcomClient(ABC):
         else:
             cmd = { 'id': self.id, 'method': method }
         request = json.dumps(cmd)
-        #print(f'request: {request}')
         self._send(request)
         
     def _read_response(self):
+        result = None
         data = self._recv()
-        #print(f'data=/{data}/, type={type(data)}')
         response = json.loads(data)
-        #print(response)
         self._check_error(response)
         if 'result' in response:
             result = response['result']
-        else: result = None
         return result
 
     def _check_error(self, response):
