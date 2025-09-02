@@ -1,10 +1,13 @@
 #include <string>
 #include "gtest/gtest.h"
 
+#include "Linux.mock.h"
+
 #include "rcom/Address.h"
-#include "rcom/ip.h"
+//#include "rcom/ip.h"
 
 using namespace rcom;
+using namespace testing;
 
 class address_tests : public ::testing::Test
 {
@@ -32,7 +35,7 @@ TEST_F(address_tests, address_constructor_initializes_correctly_1)
         //Assert
         std::string actual_ip;
         ASSERT_TRUE(address.is_set());
-        ASSERT_STREQ(address.ip(actual_ip).c_str(), ip);
+        ASSERT_STREQ(address.ip().c_str(), ip);
         ASSERT_EQ(address.port(), port);
 }
 
@@ -52,7 +55,7 @@ TEST_F(address_tests, address_constructor_initializes_correctly_2)
         //Assert
         std::string actual_ip;
         ASSERT_TRUE(address.is_set());
-        ASSERT_STREQ(address.ip(actual_ip).c_str(), ip);
+        ASSERT_STREQ(address.ip().c_str(), ip);
         ASSERT_EQ(address.port(), port);
 }
 
@@ -70,13 +73,15 @@ TEST_F(address_tests, address_constructor_with_no_args_is_not_set)
 TEST_F(address_tests, address_with_null_and_port_sets_default_ip)
 {
         // Arrange
+        MockLinux linux;
         uint16_t port = 123;
-        std::string expected = get_local_ip();
+        std::string expected = "1.2.3.4";
+        EXPECT_CALL(linux, local_ip())
+                .WillOnce(Return(expected));
 
         // Act
         Address address(nullptr, port);
-        std::string actual;
-        address.ip(actual);
+        const std::string& actual = address.ip();
 
         ASSERT_EQ(actual, expected);
 }

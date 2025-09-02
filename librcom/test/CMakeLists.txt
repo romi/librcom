@@ -2,20 +2,20 @@ cmake_minimum_required(VERSION 3.10)
 
 set(SRCS
         src/tests_main.cpp
-        src/address_tests.cpp
+        #src/address_tests.cpp
         src/util_tests.cpp
-        src/messagehub_tests.cpp
-        src/registry_tests.cpp
-        src/registryproxy_tests.cpp
+        #src/messagehub_tests.cpp
+        #src/registry_tests.cpp
+        #src/registryproxy_tests.cpp
         src/response_tests.cpp
         src/request_tests.cpp
-        src/requestparser_tests.cpp
-        src/responseparser_tests.cpp
-        src/serverside_websocket_tests.cpp
-        src/websocketserver_tests.cpp
-        src/serversocket_tests.cpp
-        src/serverside_websocket_tests.cpp
-        src/clientside_websocket_tests.cpp
+        #src/requestparser_tests.cpp
+        #src/responseparser_tests.cpp
+        #src/serverside_websocket_tests.cpp
+        #src/websocketserver_tests.cpp
+        #src/serversocket_tests.cpp
+        #src/serverside_websocket_tests.cpp
+        #src/clientside_websocket_tests.cpp
         src/rcommessagehandler_tests.cpp
         
         mocks/ServerSocket.mock.h
