@@ -92,6 +92,11 @@ namespace rcom {
                 //register_topic();
         }
 
+        MessageHub::~MessageHub()
+        {
+                stop_register_thread();
+        }
+
         std::string& MessageHub::topic()
         {
                 return topic_;

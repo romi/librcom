@@ -68,7 +68,7 @@ namespace rcom {
                            const std::shared_ptr<IWebSocketFactory>& socket_factory,
                            ILog& log, ISystem& system);
 
-                ~MessageHub() override = default;
+                ~MessageHub() override;
                 
                 std::string& topic() override;
                 void handle_events() override;
