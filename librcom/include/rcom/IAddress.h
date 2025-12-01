@@ -24,6 +24,7 @@
 #ifndef _LIBRCOM_IADDRESS_H_
 #define _LIBRCOM_IADDRESS_H_
 
+#include <stdint.h>
 #include <string>
 
 namespace rcom {
